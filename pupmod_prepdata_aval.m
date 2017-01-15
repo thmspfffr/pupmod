@@ -19,7 +19,7 @@ clear all
 v               = 2;
 v_grid          = 3; % 4 = aal
 fsample         = 400;
-SUBJLIST        = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24];
+SUBJLIST        = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
 allpara.filt    = 'eloreta';
 allpara.grid    = 'cortex';
 v_rawdata       = 6;
@@ -27,21 +27,18 @@ v_rawdata       = 6;
 
 restoredefaultpath
 
-addpath /home/gnolte/meg_toolbox/toolbox/
-addpath /home/gnolte/meg_toolbox/fieldtrip_utilities/
-addpath /home/gnolte/meg_toolbox/toolbox_nightly/
-addpath /home/gnolte/meg_toolbox/meg/
-addpath /home/tpfeffer/Documents/MATLAB/fieldtrip-20130925/
-addpath /home/tpfeffer/Documents/MATLAB/toolboxes/NBT-ReleaseNBTRC4a/
+tp_addpaths
 addpath ~/pconn/matlab
 
-ft_defaults
+% ft_defaults
 
 indir   = '/home/tpfeffer/pconn/proc/src/';
 outdir   = '/home/tpfeffer/pupmod/proc/';
 
 run ~/Documents/MATLAB/toolboxes/NBT-NBTv0.5.3-alpha/installNBT.m
 %%
+
+
 
 for ifoi = 1 : 1
   for m = 1 : 3
@@ -57,35 +54,36 @@ for ifoi = 1 : 1
         
         disp(sprintf('Loading MEG data ...'));
 
-        load(sprintf('/home/tpfeffer/pconn/proc/preproc/pconn_postproc_s%d_m%d_b%d_v%d.mat',isubj,m,iblock,v_rawdata));
+        load(sprintf('~/pconn/proc/preproc/pconn_postpostproc_s%d_m%d_b%d_v%d.mat',isubj,m,iblock,1));
         
-        [dat,epleng] = megdata2mydata(data_low); clear data_low
+        cfg = [];
+        cfg.bpfilter = 'yes';
+        cfg.bpfreq    = [2 40];
         
-        pars = [];
+        data = ft_preprocessing(cfg,data);
+
+        [dat,epleng] = megdata2mydata(data); clear data
         
-        pars.fsample   = 400;
-        pars.segleng   = 400;
-        pars.segshift  = 400;
-        pars.epleng    = size(dat,1);
-        
-        cs = data2cs_event(dat,pars.segleng,pars.segshift,pars.epleng,40,pars.fsample);
-        
-        % get spatial filter
-        pars = [];
-        pars.grid = allpara.grid;
-        pars.sa   = sprintf('~/pconn/proc/src/pconn_sa_s%d_m%d_b%d_v%d.mat',isubj,m,iblock,v_grid);
-        pars.filt = allpara.filt;
-        pars.cs   = cs;
-        pars.foi  = [1 40];
-        
-        % get spatial filter as defined elsewhere
-        filt      = get_spatfilt(pars);
+        load([indir sprintf('pconn_sa_s%d_m%d_b%d_v%d.mat',isubj,m,iblock,3)]);
+        A = mkfilt_eloreta_v2(sa.L_coarse);
+
+        load(sprintf(['~/pconn/proc/src/' 'pconn_src_common_filter_s%d_f%d_v%d.mat'],isubj,6,1));
                
-        dat = dat*filt;
-                    
-        save(sprintf([outdir 'pupmod_prepdata_aval_s%d_b%d_m%d_f%d_v%d.mat'],isubj,iblock,m,ifoi,v),'dat','-v7.3');
+        for ivox = 1 : size(A,2)
+          
+          Aloc       = squeeze(A(:,ivox,:));
+          [u s vv]   = svd(real(cs_src_all(:,:,ivox)));
+          A1(:,ivox) = Aloc*u(:,1);
+          
+        end
+  
+        clear A 
         
-        clear par
+        dat = dat*A1;
+%                     
+        save(sprintf([outdir 'pupmod_prepdata_aval_s%d_b%d_m%d_f%d_v%d.mat'],isubj,iblock,m,ifoi,v),'dat','-v7.3');
+%         
+        clear par A1
         
       end
       
@@ -94,6 +92,8 @@ for ifoi = 1 : 1
 end
 
 error('STOP')
+
+%% REMOVE ERROR FILES
 
 
 %% % AVALANCHE ANALYSIS
