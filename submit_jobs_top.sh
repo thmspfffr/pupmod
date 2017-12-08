@@ -4,7 +4,7 @@
 
 for i in {1..50}
 do
-  let var1=40*$i;
+  let var1=10*$i;
   echo 'Start Job ' $i 'wait for: ' $var1 's'
   qsub -v var="$var1" submit_jobs.sh
 done

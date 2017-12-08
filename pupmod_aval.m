@@ -263,7 +263,7 @@ r(isnan(r)) = 0;
 r(isnan(p)) = 0;
 
 %
-figure_white;
+figure;
 
 k(1)=subplot(2,3,1)
 imagesc(flipud((r.*(p<0.05))'),[-1 1]); colormap(jet)
@@ -313,28 +313,29 @@ axis square
 % imagesc(flipud(-slp'),[0 2]); colormap(jet)
 % xlabel('tau [ms]'); ylabel('T [SD]');
 % 
-para.cond = 'bth'
-
-behav = nanmean(pconn_getbehavior(para),2);
-
-for i = 1 : size(slp,3)
-  for j = 1 : size(slp,4)
-    
-    [r(i,j) p(i,j)] = corr(squeeze(-ss(:,i,j)),behav);
-    
-  end
-end
-
-r(isnan(r)) = 0;
-
-k(6)=subplot(2,3,4)
-imagesc(flipud(r'),[-0.5 0.5]); colormap(jet)
-xlabel('tau [ms]'); ylabel('T [SD]');
-title('Corr(behav,alpha)');
-axis square
-
-set(k,'tickdir','out','xtick',3:8:length(tau),'xticklabel',tau(3:8:end).*1000);
-set(k,'tickdir','out','ytick',1:4:length(T),'yticklabel',T(end:-4:1));
+% para.cond = 'bth'
+% para.subj = SUBJLIST;
+% 
+% behav = nanmean(pconn_getbehavior(para),2);
+% 
+% for i = 1 : size(slp,3)
+%   for j = 1 : size(slp,4)
+%     
+%     [r(i,j) p(i,j)] = corr(squeeze(-ss(:,i,j)),behav);
+%     
+%   end
+% end
+% 
+% r(isnan(r)) = 0;
+% 
+% k(6)=subplot(2,3,4)
+% imagesc(flipud(r'),[-0.5 0.5]); colormap(jet)
+% xlabel('tau [ms]'); ylabel('T [SD]');
+% title('Corr(behav,alpha)');
+% axis square
+% 
+% set(k,'tickdir','out','xtick',3:8:length(tau),'xticklabel',tau(3:8:end).*1000);
+% set(k,'tickdir','out','ytick',1:4:length(T),'yticklabel',T(end:-4:1));
 
 print(gcf,'-djpeg100',sprintf('~/pupmod/plots/pupmod_aval_f%d_v%d.jpeg',ifoi,v));
 %%

@@ -25,15 +25,15 @@ addpath /home/gnolte/meg_toolbox/toolbox_nightly/
 addpath /home/gnolte/meg_toolbox/meg/
 addpath /home/tpfeffer/Documents/MATLAB/fieldtrip-20130925/
 
-outdir   = '/home/tpfeffer/pupmod/proc/';
+outdir   = '/home/tpfeffer/pupmod/proc/conn/';
 addpath /home/tpfeffer/pconn/matlab/
 
 
 %%
-clear s s1 s2 fc_mean
+clear powcorr_all
 v = 10;
 
-SUBJLIST  = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24];
+SUBJLIST  = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
 
 addpath ~/pconn/matlab/
   
@@ -50,86 +50,48 @@ for ifoi = 1:13
       for iblock = 1 : 2
         
         load(sprintf([outdir 'pupmod_src_powcorr_s%d_m%d_b%d_f%d_v%d.mat'],isubj,im,iblock,ifoi,v));
+       
+        powcorr_all(:,:,isubj,m,1,ifoi,iblock) =  powcorr; clear powcorr
         
-%         for iep = 1 : size(powcorr,3)
-%           for jep = 1 : size(powcorr,3)
-%             
-%             fcd(iep,jep) = corr(nonzeros(triu(powcorr(:,:,iep),1)),nonzeros(triu(powcorr(:,:,jep),1)));
-%           
-%           end
-%         end
-%         
-%         [h(1,:,m,ifoi,isubj,iblock),n]=hist(nonzeros(triu(fcd,1)),-1:0.01:1);
+        load(sprintf([outdir 'pupmod_task_src_powcorr_s%d_m%d_b%d_f%d_v%d.mat'],isubj,im,iblock,ifoi,v));
 
-  s(:,:,isubj,m,ifoi,iblock) =  powcorr;
+        powcorr_all(:,:,isubj,m,2,ifoi,iblock) =  powcorr; clear powcorr
               
       end
     end
   end
 end
 
-save('~/pupmod/proc/pupmod_src_fcd.mat','h')
-
-s = squeeze(nanmean(s(:,:,SUBJLIST,:,:,:),6));
+powcorr_all = squeeze(nanmean(powcorr_all(:,:,SUBJLIST,:,:,:,:),7));
 
 
 %% PLOT 
-% s = st;
-% 
-cmap = cbrewer('div', 'RdBu', 100,'pchip');% colormap(autumn)
-cmap = cmap(end:-1:1,:);
 
 
-nfoi=7;
-cnt = 0;
-
-for ifoi = 1:13
+for ifoi = 1 : 13
   
+  fcmat_rest = squeeze(nanmean(powcorr_all(:,:,:,1,2,ifoi),3));
+  fcmat_task = squeeze(nanmean(powcorr_all(:,:,:,2,2,ifoi),3));
+
+  fcmat_diff = squeeze(nanmean(powcorr_all(:,:,:,1,2,ifoi),3))-squeeze(nanmean(powcorr_all(:,:,:,1,1,ifoi),3));
   
-cnt = cnt + 1;
+  m_fc_diff(ifoi) = mean(fcmat_diff(ask_find(triu(ones(90,90),1))));
+  m_fc_rest(ifoi) = mean(fcmat_rest(find(triu(ones(90,90),1))));
+  m_fc_task(ifoi) = mean(fcmat_task(find(triu(ones(90,90),1))));
+  
 
-ss = s(:,:,:,:,ifoi);
-
-sss(ifoi) = nanmean(ss(:));
-
-[t1 p1]=ttest(ss(:,:,:,2),ss(:,:,:,1),'dim',3); t1(isnan(t1))=0;
-[t2 p2]=ttest(ss(:,:,:,3),ss(:,:,:,1),'dim',3); t2(isnan(t1))=0;
-
-ss_clim = squeeze(nanmean(ss,3)); ss_clim(ss_clim==inf)=nan;
-
-clim = max([abs(min(ss_clim(:))) abs(max(ss_clim(:)))])
-
-clim = [-clim clim];
-
-figure_white;
-
-subplot(1,5,1)
-imagesc(nanmean(ss(:,:,:,1),3),clim); axis square; colormap(cmap)
-
-subplot(1,5,2)
-imagesc(nanmean(ss(:,:,:,2),3),clim); axis square; 
-
-subplot(1,5,3)
-imagesc(nanmean(ss(:,:,:,3),3),clim); axis square;
-
-print(gcf,'-depsc2',sprintf('~/pconn_all/plots/pconn_src_powcorr_raw_f%d_v%d.eps',ifoi,v));
-
-
-figure_white;
-
-subplot(2,2,1)
-imagesc(nanmean(ss(:,:,:,2),3)-nanmean(ss(:,:,:,1),3),[-0.02 0.02]); axis square
-subplot(2,2,2)
-imagesc(t1,[-1 1]); axis square
-
-subplot(2,2,3)
-imagesc(nanmean(ss(:,:,:,3),3)-nanmean(ss(:,:,:,1),3),[-0.02 0.02]); axis square
-subplot(2,2,4)
-imagesc(t2,[-1 1]); axis square
-colormap(cmap)
-print(gcf,'-depsc2',sprintf('~/pconn_all/plots/pconn_src_powcorr_contrast_f%d_v%d.eps',ifoi,v));
-
+  
 end
+
+
+figure;
+subplot(1,2,1); hold on
+plot(m_fc_rest,'r','linewidth',3)
+plot(m_fc_task,'color',[0.2 0.5 1],'linewidth',3)
+
+axis square; xlabel('Frequency [Hz]'); ylabel('Correlation');
+axis([0 14 0.015 0.035 ]); set(gca,'xtick',[1 5 9 13],'xticklabel',[2 8 32 128])
+
 
 
 %%

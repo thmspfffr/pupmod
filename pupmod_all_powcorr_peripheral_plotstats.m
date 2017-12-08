@@ -1,74 +1,106 @@
-%% pupmod_src_powcorr_plot
-% COMPUTES THE NUMBER OF ALTERED CORRELATIONS AS A FUNCTION OF
-% CARRIER FREQUENCY.
 
-clear
 
-v = 1;
-
-SUBJLIST  = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
-
-addpath ~/pconn/matlab/
-
-outdir = '~/pupmod/proc/conn/';
-  
-ord = pconn_randomization;
-
-for ifoi = 1:13
-  
-  for isubj = SUBJLIST
-    disp(isubj)
-    for m = 1 : 3
-
-      im = find(ord(isubj,:)==m);
-
-      for iblock = 1 : 2
-        clear tmp
-        load(sprintf([outdir 'pupmod_src_powcorr_s%d_m%d_b%d_f%d_v%d.mat'],isubj,im,iblock,ifoi,v));
-% 
-        s_fc(:,:,isubj,m,1,ifoi,iblock) = powcorr;
-        
-        load(sprintf([outdir 'pupmod_task_src_powcorr_s%d_m%d_b%d_f%d_v%d.mat'],isubj,im,iblock,ifoi,v));
-        
-        s_fc(:,:,isubj,m,2,ifoi,iblock) = powcorr;
-
-      end
-    end
-  end
-end
-
-s_fc = nanmean(s_fc(:,:,SUBJLIST,:,:,:,:),7);
-
+v = 12;
 
 %%
+
+
+load(sprintf('~/pupmod/proc/conn/pupmod_src_powcorr_cleaned_v%d.mat',v));
+
 for ifoi = 1 : 13
+  
+  s_fc = cleandat(:,:,:,:,:,ifoi);
 
-[h,~,~,s]=ttest(s_fc(:,:,:,2,1,ifoi),s_fc(:,:,:,1,1,ifoi),'dim',3);
-n_p_atx(ifoi,1) = nansum(nansum((h.*sign(s.tstat))>0))./8010;
-n_n_atx(ifoi,1) = nansum(nansum((h.*sign(s.tstat))<0))./8010;
+  [h,~,~,s]=ttest(s_fc(:,:,:,2,1),s_fc(:,:,:,1,1),'dim',3);
+  n_p_atx(ifoi,1) = nansum(nansum((h.*sign(s.tstat))>0))./(size(s_fc,1)*size(s_fc,1)-size(s_fc,1));
+  n_n_atx(ifoi,1) = nansum(nansum((h.*sign(s.tstat))<0))./(size(s_fc,1)*size(s_fc,1)-size(s_fc,1));
 
-[h,~,~,s]=ttest(s_fc(:,:,:,2,2,ifoi),s_fc(:,:,:,1,2,ifoi),'dim',3);
-n_p_atx(ifoi,2) = nansum(nansum((h.*sign(s.tstat))>0))./8010;
-n_n_atx(ifoi,2) = nansum(nansum((h.*sign(s.tstat))<0))./8010;
+  [h,~,~,s]=ttest(s_fc(:,:,:,2,2),s_fc(:,:,:,1,2),'dim',3);
+  n_p_atx(ifoi,2) = nansum(nansum((h.*sign(s.tstat))>0))./(size(s_fc,1)*size(s_fc,1)-size(s_fc,1));
+  n_n_atx(ifoi,2) = nansum(nansum((h.*sign(s.tstat))<0))./(size(s_fc,1)*size(s_fc,1)-size(s_fc,1));
 
-[h,~,~,s]=ttest(s_fc(:,:,:,3,1,ifoi),s_fc(:,:,:,1,1,ifoi),'dim',3);
-n_p_dpz(ifoi,1) = nansum(nansum((h.*sign(s.tstat))>0))./8010;
-n_n_dpz(ifoi,1) = nansum(nansum((h.*sign(s.tstat))<0))./8010;
+  [h,~,~,s]=ttest(s_fc(:,:,:,3,1),s_fc(:,:,:,1,1),'dim',3);
+  n_p_dpz(ifoi,1) = nansum(nansum((h.*sign(s.tstat))>0))./(size(s_fc,1)*size(s_fc,1)-size(s_fc,1));
+  n_n_dpz(ifoi,1) = nansum(nansum((h.*sign(s.tstat))<0))./(size(s_fc,1)*size(s_fc,1)-size(s_fc,1));
 
-[h,~,~,s]=ttest(s_fc(:,:,:,3,2,ifoi),s_fc(:,:,:,1,2,ifoi),'dim',3);
-n_p_dpz(ifoi,2) = nansum(nansum((h.*sign(s.tstat))>0))./8010;
-n_n_dpz(ifoi,2) = nansum(nansum((h.*sign(s.tstat))<0))./8010;
+  [h,~,~,s]=ttest(s_fc(:,:,:,3,2),s_fc(:,:,:,1,2),'dim',3);
+  n_p_dpz(ifoi,2) = nansum(nansum((h.*sign(s.tstat))>0))./(size(s_fc,1)*size(s_fc,1)-size(s_fc,1));
+  n_n_dpz(ifoi,2) = nansum(nansum((h.*sign(s.tstat))<0))./(size(s_fc,1)*size(s_fc,1)-size(s_fc,1));
 
+%   [h,~,~,s]=ttest(s_fc(:,:,:,2,1)-s_fc(:,:,:,1,1),s_fc(:,:,:,2,2)-s_fc(:,:,:,1,2),'dim',3);
+%   n_p_dd_atx(ifoi,1) = nansum(nansum((h.*sign(s.tstat))>0))./(size(s_fc,1)*size(s_fc,1)-size(s_fc,1));
+%   n_n_dd_atx(ifoi,1) = nansum(nansum((h.*sign(s.tstat))<0))./(size(s_fc,1)*size(s_fc,1)-size(s_fc,1));
+% 
+%   [h,~,~,s]=ttest(s_fc(:,:,:,3,1)-s_fc(:,:,:,1,1),s_fc(:,:,:,3,2)-s_fc(:,:,:,1,2),'dim',3);
+%   n_p_dd_dpz(ifoi,1) = nansum(nansum((h.*sign(s.tstat))>0))./(size(s_fc,1)*size(s_fc,1)-size(s_fc,1));
+%   n_n_dd_dpz(ifoi,1) = nansum(nansum((h.*sign(s.tstat))<0))./(size(s_fc,1)*size(s_fc,1)-size(s_fc,1));
+
+  n_p_dd_dpz(ifoi) = n_p_dpz(ifoi,1)-n_p_dpz(ifoi,2);
+  n_n_dd_dpz(ifoi) = n_n_dpz(ifoi,1)-n_n_dpz(ifoi,2);
+
+  n_p_dd_atx(ifoi) = n_p_atx(ifoi,1)-n_p_atx(ifoi,2);
+  n_n_dd_atx(ifoi) = n_n_atx(ifoi,1)-n_n_atx(ifoi,2);
 end
 
+%% PLOT
 
+figure;
+
+subplot(3,2,1); hold on
+
+plot(n_p_atx(:,1),'r')
+plot(n_n_atx(:,1),'b')
+
+axis([0 14 0 0.3])
+set(gca,'tickdir','out','xtick',[1 3 5 7 9 11 13],'xticklabel',[2 4 8 16 32 64 128])
+
+subplot(3,2,3); hold on
+
+plot(n_p_atx(:,2),'r')
+plot(n_n_atx(:,2),'b')
+
+axis([0 14 0 0.3])
+set(gca,'tickdir','out','xtick',[1 3 5 7 9 11 13],'xticklabel',[2 4 8 16 32 64 128])
+
+subplot(3,2,2); hold on
+
+plot(n_p_dpz(:,1),'r')
+plot(n_n_dpz(:,1),'b')
+
+axis([0 14 0 0.3])
+set(gca,'tickdir','out','xtick',[1 3 5 7 9 11 13],'xticklabel',[2 4 8 16 32 64 128])
+
+subplot(3,2,4); hold on
+
+plot(n_p_dpz(:,2),'r')
+plot(n_n_dpz(:,2),'b')
+
+axis([0 14 0 0.3])
+set(gca,'tickdir','out','xtick',[1 3 5 7 9 11 13],'xticklabel',[2 4 8 16 32 64 128])
+
+subplot(3,2,5); hold on
+
+plot(n_p_dd_atx,'r')
+plot(n_n_dd_atx(:,1),'b')
+
+axis([0 14 -0.3 0.3])
+set(gca,'tickdir','out','xtick',[1 3 5 7 9 11 13],'xticklabel',[2 4 8 16 32 64 128])
+
+subplot(3,2,6); hold on
+
+plot(n_p_dd_dpz,'r')
+plot(n_n_dd_dpz,'b')
+
+axis([0 14 -0.3 0.3])
+set(gca,'tickdir','out','xtick',[1 3 5 7 9 11 13],'xticklabel',[2 4 8 16 32 64 128])
 %%
+
 clear tperm_cnt1_n tperm_cnt1_p tperm_cnt2_n tperm_cnt2_p
 clear tperm_res1_n tperm_res1_p tperm_res2_n tperm_res2_p
 clear perm_n_p_atx perm_n_n_atx perm_n_n_dpz perm_n_p_dpz
 
-nperm = 20000;
-v = 1;
+nperm = 10000;
+v = 12;
 par.subs = 100;
 par.allperms = nperm/par.subs;
 alpha = 0.05;
@@ -76,22 +108,22 @@ alp = 0.05;
 
 for iperm = 1 : par.allperms
   
+%   load(sprintf('~/pupmod/proc/pupmod_src_powcorr_clean_permtest_iperm%d_nperm%d_v%d.mat',iperm,nperm,v),'par')
   load(sprintf('~/pupmod/proc/pupmod_src_powcorr_permtest_iperm%d_nperm%d_v%d.mat',iperm,nperm,v),'par')
 
   perm_n_p_atx((iperm-1)*par.subs+1:(iperm)*par.subs,:,1)=par.tperm_res1_p;
   perm_n_p_atx((iperm-1)*par.subs+1:(iperm)*par.subs,:,2)=par.tperm_cnt1_p;
-    
+  
   perm_n_n_atx((iperm-1)*par.subs+1:(iperm)*par.subs,:,1)=par.tperm_res1_n;
   perm_n_n_atx((iperm-1)*par.subs+1:(iperm)*par.subs,:,2)=par.tperm_cnt1_n;
-      
+  
   perm_n_p_dpz((iperm-1)*par.subs+1:(iperm)*par.subs,:,1)=par.tperm_res2_p;
   perm_n_p_dpz((iperm-1)*par.subs+1:(iperm)*par.subs,:,2)=par.tperm_cnt2_p;
-
+  
   perm_n_n_dpz((iperm-1)*par.subs+1:(iperm)*par.subs,:,1)=par.tperm_res2_n;
   perm_n_n_dpz((iperm-1)*par.subs+1:(iperm)*par.subs,:,2)=par.tperm_cnt2_n;
-
+  
 end
-
 
 %%
 
@@ -127,6 +159,7 @@ for ifoi = 1 : 13
   
 end
 
+%%
 
 %% PLOT P-VALUES
 figure;
@@ -189,8 +222,8 @@ xlabel('Carrier frequency [Hz]'); ylabel('P-Value (uncorrected)')
 
 print(gcf,'-dpdf',sprintf('~/pupmod/plots/pupmod_src_powcorr_taskrestcomp_pval.pdf'));
 
+%%
 
-%% PLOT CHANGES
 
 figure;
 
@@ -257,7 +290,6 @@ plot(find(p_d2_n<0.025),d2_n(find(p_d2_n<0.025)),'k.','markersize',30)
 print(gcf,'-dpdf',sprintf('~/pupmod/plots/pupmod_src_powcorr_taskrestcomp.pdf'));
 
 
-
 %% MULTIPLE COMPARISONS CORRECTION (HAWELLEK ET AL., xxxx)
 
 for ifreq = 1 : 13
@@ -321,23 +353,40 @@ for ifreq = 1 : 13
 
 end
 
+%%
+nperm = 5000;
 
-%% BEHAV
+contr = [1 2; 1 3];
 
-m = squeeze(s_fc(:,:,:,2,2,6))-squeeze(s_fc(:,:,:,1,2,6));
+icontr = 2;
 
-m = squeeze(nanmean(nanmean(m),2))
+clear t_max
 
-s = 1:28;
+ifoi = 6;
 
-% for isubj = 1 : 28
-%   
-%   ss = s(s~=isubj);
-%   
-%   p_fc(isubj) = sum(sum(triu(1-(sum((s_fc(:,:,isubj,2,2,6)-s_fc(:,:,isubj,1,2,6)) > m,3)./27)<0.05,1)))./4005;
-%   n_fc(isubj) = sum(sum(triu(1-(sum((s_fc(:,:,isubj,2,2,6)-s_fc(:,:,isubj,1,2,6)) < m,3)./27)<0.05,1)))./4005;
-%   
-% end
+ s_fc = cleandat(:,:,:,contr(icontr,:),:,ifoi);
 
+ [h,p,~,s]=ttest(s_fc(:,:,:,2,2),s_fc(:,:,:,1,2),'dim',3);
+ 
+ for i = 1 : nperm
+  
+  fprintf('Perm%d ...\n',i)
+   
+  idx(:,1) = randi(2,[28 1]);
+  idx(:,2) = 3-idx(:,1);
+  
+  for isubj  = 1 : 28
+    
+    permdat(:,:,isubj,1,:) = squeeze(s_fc(:,:,isubj,idx(isubj,1),:));
+    permdat(:,:,isubj,2,:) = squeeze(s_fc(:,:,isubj,idx(isubj,2),:));
 
-
+  end
+  
+  [h,p,~,s]=ttest(permdat(:,:,:,2,2),permdat(:,:,:,1,2),'dim',3);
+  
+  t_max(i) = max(s.tstat(:));
+  
+ end
+ 
+ %% PLOT FC MATRICES FOR ALPHA
+    

@@ -1,23 +1,22 @@
 %% pupmod_src_hopf_gain
 
-clear all
+% clear all
 
 % --------------------------------------------------------
 % VERSION 1
 % --------------------------------------------------------
 v = 1;
 fsample  = 400;
-para.bif = -0.2:0.02:0.04;
-para.G   = 0:2:14;
+para.bif = -1;
+para.G   = 3;
 para.sig = 0.01;
 para.freq = 10;
-para.gain     = 0.02:0.02:0.2;
+para.gain     = 1;
 % --------------------------------------------------------
 
 para.epleng = 60;
 para.overlap = 0.98;
 
-para.freq = 40*ones(90,1);%para.freq(para.freq<40);
 
 outdir   = '/home/tpfeffer/pupmod/proc/';
 
@@ -28,11 +27,11 @@ for ifoi = 1 : 1
     for ibi = 1 : length(para.bif)
       for iG = 1 : length(para.G)
         
-        if ~exist(sprintf([outdir 'pupmod_src_hopf_gain_f%d_s%d_b%d_g%d_v%d_processing.txt'],ifoi,isig,ibi,iG,v))
-          system(['touch ' outdir sprintf('pupmod_src_hopf_gain_f%d_s%d_b%d_g%d_v%d_processing.txt',ifoi,isig,ibi,iG,v)]);
-        else
-          continue
-        end
+%         if ~exist(sprintf([outdir 'pupmod_src_hopf_gain_f%d_s%d_b%d_g%d_v%d_processing.txt'],ifoi,isig,ibi,iG,v))
+%           system(['touch ' outdir sprintf('pupmod_src_hopf_gain_f%d_s%d_b%d_g%d_v%d_processing.txt',ifoi,isig,ibi,iG,v)]);
+%         else
+%           continue
+%         end
         
         clear xs kura
         
@@ -40,7 +39,9 @@ for ifoi = 1 : 1
         
         load ~/Downloads/SC_AAL_90.mat
         
-        areas       = 90;
+        areas       = 1;
+        para.freq   = 10*ones(areas,1);%para.freq(para.freq<40);
+
         C           = SC/max(max(SC))*0.2;
         
         time_steps  = 600;
@@ -69,13 +70,14 @@ for ifoi = 1 : 1
         fprintf('Initializing...\n');
         
         for t=0:dt:100
-          
-          sumax = C*x-diag(C*repmat(x',areas,1));
-          sumay = C*y-diag(C*repmat(y',areas,1));
+          t
+          C = 1;
+%           sumax = C*x-diag(C*repmat(x',areas,1));
+%           sumay = C*y-diag(C*repmat(y',areas,1));
           
           % *supercritical*
-          x = x+dt*(resp_fun((a.*x-y.*omega-x.*(x.*x+y.*y)+we*sumax)+sqrt(dt)*sig*randn(areas,1),gain)-0.5);
-          y = y+dt*(resp_fun((a.*y+x.*omega-y.*(x.*x+y.*y)+we*sumay)+sqrt(dt)*sig*randn(areas,1),gain)-0.5);
+          x = x+dt*((a.*x-y.*omega-x.*(x.*x+y.*y))+sqrt(dt)*sig*randn(areas,1)-0.5);
+          y = y+dt*((a.*y+x.*omega-y.*(x.*x+y.*y))+sqrt(dt)*sig*randn(areas,1)-0.5);
           
         end
         
@@ -84,22 +86,27 @@ for ifoi = 1 : 1
         for t=0:dt:time_steps  %32000
           
           fprintf('Time step %.3f / %d ...\n',t,time_steps);
-          
-          sumax = C*x-diag(C*repmat(x',areas,1));
-          sumay = C*y-diag(C*repmat(y',areas,1));
-          
-          x = x+dt*(resp_fun((a.*x-y.*omega-x.*(x.*x+y.*y)+we*sumax)+sqrt(dt)*sig*randn(areas,1),gain)-0.5);
-          y = y+dt*(resp_fun((a.*y+x.*omega-y.*(x.*x+y.*y)+we*sumay)+sqrt(dt)*sig*randn(areas,1),gain)-0.5);
-          
-          %       if mod(t,2)==0
+                   
           nn=nn+1;
+
+%           sumax = C*x-diag(C*repmat(x',areas,1));
+%           sumay = C*y-diag(C*repmat(y',areas,1));
+          if nn == 1
+            x(nn,:) = x+dt*((a.*x-y.*omega-x.*(x.*x+y.*y))+sig*randn(areas,1)-0.5);
+            y(nn,:) = y+dt*((a.*y+x.*omega-y.*(x.*x+y.*y))+sig*randn(areas,1)-0.5);
+       
+          else
+          x(nn,:) = x(nn-1)+dt*((a.*x(nn-1)-y(nn-1).*omega-x(nn-1).*(x(nn-1).*x(nn-1)+y(nn-1).*y(nn-1)))+sig*randn(areas,1)-0.5);
+          y(nn,:) = y(nn-1)+dt*((a.*y(nn-1)+x(nn-1).*omega-y(nn-1).*(x(nn-1).*x(nn-1)+y(nn-1).*y(nn-1)))+sig*randn(areas,1)-0.5);
+          end
+          %       if mod(t,2)==0
           %       xs(nn,:)=x';
           %       ys(nn,:)=y';
-          amp(nn,:) = sqrt(x.*x+y.*y);
+          amp(nn,:) = sqrt(x(nn,:).*x(nn,:)+y(nn,:).*y(nn,:));
           ri=amp(nn,:)';
           rimax=max(ri);
           ri=ri/rimax;
-          kura(nn)=abs(sum(ri.*complex(cos(angle(complex(x,y))),sin(angle(complex(x,y)))))/areas);
+%           kura(nn)=abs(sum(ri.*complex(cos(angle(complex(x,y))),sin(angle(complex(x,y)))))/areas);
           %       end
           
         end
@@ -114,13 +121,13 @@ for ifoi = 1 : 1
           
         end
         
-        for iep = 1 : nep
-          for jep = 1 : nep
-
-            fcd(iep,jep) = corr(nonzeros(triu(fc_sim(:,:,iep),1)),nonzeros(triu(fc_sim(:,:,jep),1)));
-
-          end
-        end
+%         for iep = 1 : nep
+%           for jep = 1 : nep
+% 
+%             fcd(iep,jep) = corr(nonzeros(triu(fc_sim(:,:,iep),1)),nonzeros(triu(fc_sim(:,:,jep),1)));
+% 
+%           end
+%         end
         
         save(sprintf([outdir '/pupmod_fc_sim_gain_f%d_s%d_b%d_g%d_gain%d_v%d.mat'],ifoi,isig,ibi,iG,igain,v),'fcd','fc_sim','kura');
         
@@ -129,6 +136,8 @@ for ifoi = 1 : 1
   end
 end
 end
+
+
 error('!')
 
 %% FCD

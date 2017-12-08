@@ -42,37 +42,8 @@ for isubj = SUBJLIST
       
       for iblock = 1:2
         
-        disp(sprintf('Loading MEG data ...'));
-        
-        load(['~/pconn/proc/src/' sprintf('pconn_cs_fm_s%d_m%d_b%d_f1_v%d.mat',isubj,m,iblock,1)]);
-        
-        load(sprintf('/home/tpfeffer/pconn/proc/preproc/pconn_postproc_s%d_m%d_b%d_v%d.mat',isubj,m,iblock,v_postproc));
-        data_low.trial{1} = data_low.trial{1} + data_hi.trial{1}; clear data_hi
-        
-        [dat,epleng] = megdata2mydata(data_low); clear data_low
-        dat = dat';
+        load(sprintf([outdir 'pupmod_src_powcorr_s%d_m%d_b%d_f%d_v%d.mat'],isubj,m,iblock,ifoi,v),'par');
 
-        % get spatial filter
-        par = [];
-        par.grid = allpara.grid;
-        par.sa   = sprintf('~/pconn/proc/src/pconn_sa_s%d_m%d_b%d_v%d.mat',isubj,m,iblock,v_grid);
-        par.filt = allpara.filt;
-        par.cs   = cs;
-        par.foi  = [foi_range(ifoi) foi_range(ifoi)];
-        
-        % get spatial filter as defined elsewhere
-        filt      = get_spatfilt(par);
-        
-       
-        fsample   = 400;
-        segleng   = para.segleng(ifoi).*fsample;
-        segshift  = segleng;
-        
-        winsize   = segleng;
-        epleng    = winsize;
-        nwin      = floor(size(dat,2)/winsize);
-        f         = foi_range(ifoi);
-        
         
         for iwin = 1 : nwin
           
@@ -98,7 +69,8 @@ for isubj = SUBJLIST
           end
         end
         
-                
+        
+        
       end
     end
   end
