@@ -12,7 +12,7 @@ outdir = '~/pupmod/proc/conn/';
   
 ord = pconn_randomization;
 
-for ifoi = 1:13
+for ifoi = 6:7
   
   for isubj = SUBJLIST
     disp(isubj)
@@ -26,9 +26,9 @@ for ifoi = 1:13
 % 
         s_fc(:,:,isubj,m,1,ifoi,iblock) = powcorr;
         
-%         load(sprintf([outdir 'pupmod_task_src_powcorr_s%d_m%d_b%d_f%d_v%d.mat'],isubj,im,iblock,ifoi,v));
+        load(sprintf([outdir 'pupmod_task_src_powcorr_s%d_m%d_b%d_f%d_v%d.mat'],isubj,im,iblock,ifoi,v));
 %         
-%         s_fc(:,:,isubj,m,2,ifoi,iblock) = powcorr;
+        s_fc(:,:,isubj,m,2,ifoi,iblock) = powcorr;
 
       end
     end
