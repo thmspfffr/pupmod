@@ -4,7 +4,7 @@
 
 clear
 
-v = 1;
+v = 12;
 
 SUBJLIST  = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
 
@@ -14,7 +14,7 @@ outdir = '~/pupmod/proc/conn/';
 
 ord = pconn_randomization;
 
-    load(sprintf('~/pupmod/proc/conn/pupmod_src_powcorr_cleaned_v%d.mat',v));
+load(sprintf('~/pupmod/proc/conn/pupmod_src_powcorr_cleaned_v%d.mat',v));
 
 
 for ifoi = 1:13

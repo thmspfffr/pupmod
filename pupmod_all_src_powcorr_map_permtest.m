@@ -209,3 +209,8 @@ for iperm = 1 : par.allperms
   
 end
 
+
+error('!')
+%% PLOT STUFF
+
+load(sprintf('~/pupmod/proc/pupmod_src_powcorr_map_permtest_iperm%d_nperm%d_v%d.mat',iperm,nperm,v))

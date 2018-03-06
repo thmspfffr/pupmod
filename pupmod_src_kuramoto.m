@@ -1,576 +1,412 @@
-%% pupmod_src_kuramoto
+%% pupmod_src_power
 
-clear all
+% Script computes center frequency for alpha/beta band in order
+% to investigate a potential frequency shift due to neuromodulation
+% as predicted by simulations of a WC model (email Adrian 19/02/18)
+
+% v1, 26/02/18
+
+clear
 
 % --------------------------------------------------------
 % VERSION 1
 % --------------------------------------------------------
-v         = 1;
-fsample   = 400;
-v_postproc = 6;
-v_cs = 2;
-SUBJLIST  = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24];
-v_grid    = 3; % 1 = coarse; 2 = coarse; 3 = cortex
-allpara.filt = 'eloreta';
-allpara.grid = 'coarse';
-foi_range = [2 6; 4 8; 6 10.5; 8 13; 10.5 21.5; 13 30; 21.5 39; 30 48; 39 66; 52 80];
+v               = 1;
+v_postproc      = 6;
+fsample         = 400;
+SUBJLIST        = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
+allpara.filt    = 'jh_lcmv';
+allpara.grid    = 'aal_4mm';
+f               = 8:0.1:12;
 
 % --------------------------------------------------------
 
-% foi_range = foi_range(foi_range<40);
 
 addpath /home/gnolte/meg_toolbox/toolbox/
 addpath /home/gnolte/meg_toolbox/fieldtrip_utilities/
 addpath /home/gnolte/meg_toolbox/toolbox_nightly/
 addpath /home/gnolte/meg_toolbox/meg/
-addpath /home/tpfeffer/Documents/MATLAB/fieldtrip-20130925/
 
-outdir   = '/home/tpfeffer/pupmod/proc/';
+outdir   = '/home/tpfeffer/pupmod/proc/pow/';
 addpath /home/tpfeffer/pconn/matlab/
-run ~/Documents/MATLAB/toolboxes/NBT-NBTv0.5.3-alpha/installNBT.m
-siginfo = nbt_Info;
-siginfo.converted_sample_frequency = 400;
+
+if strcmp(allpara.grid,'xcoarse')
+  v_grid = 2;
+elseif strcmp(allpara.grid,'aal')
+  v_grid = 4;
+elseif strcmp(allpara.grid,'cortex')
+  v_grid = 3;
+elseif strcmp(allpara.grid,'medium')
+  v_grid = 5;
+elseif strcmp(allpara.grid,'aal_6mm')
+  v_grid = 6;
+elseif strcmp(allpara.grid,'aal_4mm')
+  v_grid = 7;
+elseif strcmp(allpara.grid,'m758_4mm')
+  v_grid = 8;
+elseif strcmp(allpara.grid,'cortex_lowres')
+  v_grid = 9;
+end
+
 
 %% LOAD DATA COMPUTE SRC TIME COURSES
 
-switch allpara.grid
-  
-  case 'xcoarse'
-    load ~/pconn/matlab/aalmask_grid_xcoarse
-  case 'coarse'
-    load ~/pconn/matlab/aalmask_grid_coarse
-  case 'medium'
-    load ~/pconn/matlab/aalmask_grid_medium
-  case 'cortex'
-    load('~/Documents/MATLAB/aalmask_grid_cortex3000.mat')
+for isubj = SUBJLIST
+  for m = 1:3
+    % %
+    if ~exist(sprintf([outdir 'pupmod_src_kuramoto_s%d_m%d_v%d_processing.txt'],isubj,m,v))
+      system(['touch ' outdir sprintf('pupmod_src_kuramoto_s%d_m%d_v%d_processing.txt',isubj,m,v)]);
+    else
+      continue
+    end
+    %
+    fprintf('Processing s%d m%d f%d ...\n', isubj,m)
+    
+    for iblock = 1:2
+      
+      fprintf('Loading MEG data ...\n');
+      
+      
+      load(sprintf('/home/tpfeffer/pconn/proc/preproc/pconn_postpostproc_s%d_m%d_b%d_v%d.mat',isubj,m,iblock,1))
+      [dat] = megdata2mydata(data); clear data
+      
+      pars      = [];
+      pars.sa   = sprintf('~/pconn/proc/src/pconn_sa_s%d_m%d_b%d_v%d.mat',isubj,m,iblock,v_grid);
+      load(pars.sa);
+      
+      pars = [];
+      pars.grid      = allpara.grid;
+      
+      fsample = 400;
+      all_freq = 0:fsample/segleng:fsample/2;
+      
+      segshift = segleng / 2;
+      maxfreqbin = fsample/2;
+      epleng    = size(dat,1);
+      f_select = find(all_freq>=f(1) & all_freq<=f(2));
+      
+      cs = data2cs_event(dat,segleng,segshift,epleng,maxfreqbin);
+      
+      tmp = regexp(pars.grid,'_','split');
+      
+      para.reg = 0.05;
+      para.iscs = 1;
+      
+      eval(sprintf('pos = sa.grid_%s_indi;',sprintf('%s%s',tmp{1},tmp{2})));
+      eval(sprintf('filt = pconn_beamformer(nanmean(cs(:,:,f_select),3),sa.L_%s,para);',pars.grid));
+        
+      for ifoi = 1 : maxfreqbin
+        ifoi
+        for iaal = 1 : 90
+          cs_src    = filt(:,sa.aal_label==iaal)'*squeeze(cs(:,:,ifoi))*filt(:,sa.aal_label==iaal);
+          pow(iaal,ifoi,1) = mean(real(diag(cs_src)));
+        end
+      end
+      
+      clear sa dat data cs cs_src 
+      try
+        
+        load(sprintf('/home/tpfeffer/pconn_cnt/proc/preproc/pconn_cnt_postpostproc_s%d_m%d_b%d_v%d.mat',isubj,m,iblock,1))
+        [dat] = megdata2mydata(data); clear data
+
+        pars      = [];
+        pars.sa   = sprintf('~/pconn_cnt/proc/src/pconn_cnt_sa_s%d_m%d_b%d_v%d.mat',isubj,m,iblock,v_grid);
+        load(pars.sa);
+        
+        pars = [];
+        pars.grid      = allpara.grid;
+        
+        fsample = 400;
+        all_freq = 0:fsample/segleng:fsample/2;
+        
+        segshift = segleng / 2;
+        epleng    = size(dat,1);
+        f_select = find(all_freq>=f(1) & all_freq<=f(2));
+        
+        cs = data2cs_event(dat,segleng,segshift,epleng,maxfreqbin);
+        
+        tmp = regexp(pars.grid,'_','split');
+        
+        para.reg = 0.05;
+        para.iscs = 1;
+        
+        eval(sprintf('pos = sa.grid_%s_indi;',sprintf('%s%s',tmp{1},tmp{2})));
+        eval(sprintf('filt = pconn_beamformer(nanmean(cs(:,:,f_select),3),sa.L_%s,para);',pars.grid));
+        
+        
+        for ifoi = 1 : maxfreqbin
+          ifoi
+          for iaal = 1 : 90
+            cs_src    = filt(:,sa.aal_label==iaal)'*squeeze(cs(:,:,ifoi))*filt(:,sa.aal_label==iaal);
+            pow(iaal,ifoi,2) = mean(real(diag(cs_src)));
+          end
+        end
+      catch me
+        pow(:,:,2) = nan(size(pow,1),size(pow,2));
+        save(sprintf([outdir 'pupmod_src_power_s%d_m%d_b%d_v%d.mat'],isubj,m,iblock,v),'all_freq','pow','f_select');
+
+      end
+      
+      save(sprintf([outdir 'pupmod_src_power_s%d_m%d_b%d_v%d.mat'],isubj,m,iblock,v),'all_freq','pow','f_select');
+      
+      
+    end
+  end
 end
+
+error('!')
+
+tp_addpaths
+%%
+clear fc_all pow_all pow_all_res pow_all_tsk  fc_all_res fc_all_tsk
+% SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25   30 31 32  34];
+SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
+addpath ~/Documents/MATLAB/cbrewer/cbrewer/
+ord = pconn_randomization;
+peak_range = [7 13];
+cmap = cbrewer('qual', 'Paired', 12,'pchip');
+cmap = cmap([2 6 8 1 5 7],:);
+set(groot,'defaultaxescolororder',cmap);
+
+v = 3;
+load(sprintf([outdir 'pupmod_src_power_s%d_m%d_b%d_v%d.mat'],5,1,1,v));
 
 
 for isubj = SUBJLIST
+  isubj
   for m = 1 : 3
-    for ifoi = 1:length(foi_range)
+    im = find(ord(isubj,:)==m);
+    for iblock = 1 :2
       
-      if ~exist(sprintf([outdir 'pupmod_src_kuramoto_s%d_m%d_f%d_v%d_processing.txt'],isubj,m,ifoi,v))
-        system(['touch ' outdir sprintf('pupmod_src_kuramoto_s%d_m%d_f%d_v%d_processing.txt',isubj,m,ifoi,v)]);
+      load(sprintf([outdir 'pupmod_src_power_s%d_m%d_b%d_v%d.mat'],isubj,im,iblock,v));
+      
+      pow = pow(:,find(all_freq>=2,1,'first'):end,:);
+      all_freq = all_freq(all_freq>=2);
+      
+      f_select = find(all_freq>=peak_range(1) & all_freq<=peak_range(2));
+      
+      para.f       = all_freq;
+      para.fselect = f_select;
+      para.method  = 'gaussian';
+      para.win     = 5;
+      para.detrend = 0;
+      
+      if para.detrend == 1      
+        tmp_pow = log10(squeeze(nanmean(pow)));
+        pow_detr = exp(detrend(tmp_pow));     
       else
-        continue
+        pow_detr = squeeze(nanmean(pow));
       end
+       
+      fc_all_res(isubj,m,iblock) = tp_peakfreq(pow_detr(:,1),para);      
       
-      disp(sprintf('Processing s%d m%d f%d ...', isubj,m,ifoi))
-      
-      
-      for iblock = 1:2
-        
-        disp(sprintf('Loading MEG data ...'));
-        
-        load(['~/pconn/proc/src/' sprintf('pconn_sens_cs_s%d_m%d_b%d_f%d_v%d.mat',isubj,m,iblock,ifoi,v_cs)]);
-        if ndims(cs)<3
-          load(['~/pconn/proc/src/' sprintf('pconn_cs_fm_s%d_m%d_b%d_f1_v%d.mat',isubj,m,iblock,1)]);
-        end
-      
-        
-        load(sprintf('/home/tpfeffer/pconn/proc/preproc/pconn_postproc_s%d_m%d_b%d_v%d.mat',isubj,m,iblock,v_postproc));
-        data_low.trial{1} = data_low.trial{1} + data_hi.trial{1}; clear data_hi
-        
-        [dat,epleng] = megdata2mydata(data_low); clear data_low
-        dat = dat';
-
-        % get spatial filter
-        pars      = [];
-        pars.grid = allpara.grid;
-        pars.sa   = sprintf('~/pconn/proc/src/pconn_sa_s%d_m%d_b%d_v%d.mat',isubj,m,iblock,v_grid);
-        pars.filt = allpara.filt;
-        pars.cs   = cs;
-        pars.foi  = [foi_range(ifoi,1) foi_range(ifoi,2)];
-        
-        % get spatial filter as defined elsewhere
-        filt      = get_spatfilt(pars);
-        
-        dat       = dat'*filt;
-        
-        % Convert to AAL
-        cnt = 0; clear env
-        for i = 1 : 90
-          if sum(aalgrid.mask==i) == 0
-            continue
-          end
-          cnt = cnt + 1;          
-          env(:,cnt) = nanmean(dat(:,aalgrid.mask==i),2);
-        end
-        
-        clear dat
-        
-        % compute bp-filtered signal
-        ampenv = nbt_filter_fir(env,foi_range(ifoi,1),foi_range(ifoi,2),siginfo.converted_sample_frequency,2/foi_range(ifoi,1));       
-        pha    = angle(hilbert(ampenv));       
-        par.r  = abs(sum(exp(1i*pha),2)/cnt);
-        
-        i = sqrt(-1); 
-        
-        for i1 = 1 : size(env,2)
-          for j1 = 1 : size(env,2)
-            
-            par.pw_kura(i1,j1) = abs(mean(exp(i*(pha(:,i1)-pha(:,j1)))));
-            
-          end
-        end
-        
-        % PAIRWISE KURAMOTO
-                  
-        save(sprintf([outdir 'pupmod_src_kuramoto_s%d_m%d_b%d_f%d_v%d.mat'],isubj,m,iblock,ifoi,v),'par');
-        
+      try
+        fc_all_tsk(isubj,m,iblock) = tp_peakfreq(pow_detr(:,2),para);
+      catch me
+        fc_all_tsk(isubj,m,iblock) = nan;
       end
-    end
-  end
-end
-  
-  
-  error('!')
-  
-  
-%%
-
-v = 1;
-
-FOI = [2 4; 4 8; 8 13; 13 38; 54 128];
-
-addpath ~/pconn/matlab/
-  
-ord = pconn_randomization;
-
-for ifoi = 1 : 10
-  
-%   foi = [find(foi_range==FOI(ifoi,1)):find(foi_range==FOI(ifoi,2))];
-
-  for isubj = SUBJLIST
-    disp(isubj)
-    for m = 1 : 3
-
-      im = find(ord(isubj,:)==m);
-
-      for iblock = 1 : 2
-        
-        load(sprintf([outdir 'pupmod_src_kuramoto_s%d_m%d_b%d_f%d_v%d.mat'],isubj,im,iblock,ifoi,v));
-
-%         r_sync(isubj,m,ifoi,iblock) = std(par.r);
-        r_sync_all(:,:,isubj,m,ifoi,iblock) = par.pw_kura;
-
-      end
+%       [~,i]=max(nanmean(pow(:,f_select,1),1));
+%       fc_all_res(isubj,m,iblock) = all_freq(f_select(i));
+%       pos_res(isubj,m,iblock) = i;
+%       [~,i]=max(nanmean(pow(:,f_select,2),1));
+%       fc_all_tsk(isubj,m,iblock) = all_freq(f_select(i));
+%       pos_tsk(isubj,m,iblock) = i;
+      
+      pow_all_res(:,isubj,m,iblock) = nanmean(pow(:,:,1),1);
+      pow_all_tsk(:,isubj,m,iblock) = nanmean(pow(:,:,2),1);
+      
     end
   end
 end
 
+fc_all_res  = fc_all_res(SUBJLIST,:,:);
+mean_fc_res = nanmean(fc_all_res,3);
+pow_all_res = nanmean(pow_all_res(:,SUBJLIST,:,:),4);
 
-%%
-% figure; set(gcf,'color','white');
-% 
+fc_all_tsk  = fc_all_tsk(SUBJLIST,:,:);
+mean_fc_tsk = nanmean(fc_all_tsk,3);
+pow_all_tsk = nanmean(pow_all_tsk(:,SUBJLIST,:,:),4);
+
+% fc_all(1) = f*mean(pow_all(:,:,1),2) / sum(mean(pow_all(:,:,1),2));
+% fc_all(2) = f*mean(pow_all(:,:,2),2) / sum(mean(pow_all(:,:,2),2));
+% fc_all(3) = f*mean(pow_all(:,:,3),2) / sum(mean(pow_all(:,:,3),2));
 
 figure; hold on
-for ifoi = 1 : 10
-  
-  r_sync = nanmean(r_sync_all(:,:,SUBJLIST,:,:,:),6);
+subplot(3,2,[1 3]); hold on
 
+mp_res = squeeze(nanmean(pow_all_res,2));
+mp_tsk = squeeze(nanmean(pow_all_tsk,2));
 
-  r1=squeeze(nanmean(r_sync(:,:,:,1,ifoi),3));
-  r2=squeeze(nanmean(r_sync(:,:,:,2,ifoi),3));
-  r3=squeeze(nanmean(r_sync(:,:,:,3,ifoi),3));
+plot(all_freq(1:length(mp_res)),mp_res,'linewidth',2)
+plot(all_freq(1:length(mp_tsk)),mp_tsk,'linewidth',2)
+axis square
 
-  [t, p] = ttest(r_sync(:,:,:,1,ifoi),r_sync(:,:,:,2,ifoi),'dim',3);
-  % min(p(:))
-  % imagesc(t.*(r2-r1),[-0.01 0.01])
-
-  a=t.*(r2-r1); a=a(:);
-
-  n(ifoi)=sum(a<0); p(ifoi)=sum(a>0);
-
+% m_res = squeeze(nanmean(mean_fc_res));
+% m_tsk = squeeze(nanmean(mean_fc_tsk));
+for i = 1 : 3
+  m_res(i) = tp_peakfreq(squeeze(nanmean(pow_all_res(:,:,i),2)),para);
+  m_tsk(i) = tp_peakfreq(squeeze(nanmean(pow_all_tsk(:,:,i),2)),para);
 end
 
-plot(mean(foi_range,2),n); plot(mean(foi_range,2),p)
-% 
-% clim = [0 0.25];
-% 
-% s_plt = nanmean(s.*1.77,6);
-% s_plt = s_plt(:,:,SUBJLIST,:,:);
-% 
-% ss = squeeze(nanmean(nanmean(nanmean(nanmean(s_plt,4),3),2),1));
+% [~,i_res]=max(mean(mean(pow_all_res(f_select,:,:,:),4),2))
+% [~,i_tsk]=max(mean(mean(pow_all_tsk(f_select,:,:,:),4),2))
 
-%%
+% all_freq(f_select)*nanmean(pow(:,f_select,1),1)' / sum(nanmean(pow(:,f_select,1),1))
 
+% for ii = 1 : length(i)
+%   pp = mp_res(f_select(squeeze(i_res(ii)))-8:f_select(squeeze(i_res(ii)))+8,ii)
+%   ff = all_freq(f_select(squeeze(i_res(ii)))-8:f_select(squeeze(i_res(ii)))+8)
+%   m_res(ii) = ff*pp / sum(pp);
+%   
+%   pp = mp_tsk(f_select(squeeze(i_tsk(ii)))-8:f_select(squeeze(i_tsk(ii)))+8,ii)
+%   ff = all_freq(f_select(squeeze(i_tsk(ii)))-8:f_select(squeeze(i_tsk(ii)))+8)
+%   m_tsk(ii) = ff*pp / sum(pp);
+% end
+%   
+%   m_res = all_freq(f_select(squeeze(i)));
+% m_tsk = all_freq(f_select(squeeze(i)));
 
+line([m_res(1) m_res(1)],[min(mp_res(:)) max(mp_res(:))+0.2*max(mp_res(:))],'color',cmap(1,:),'linewidth',2)
+line([m_res(2) m_res(2)],[min(mp_res(:)) max(mp_res(:))+0.2*max(mp_res(:))],'color',cmap(2,:),'linewidth',2)
+line([m_res(3) m_res(3)],[min(mp_res(:)) max(mp_res(:))+0.2*max(mp_res(:))],'color',cmap(3,:),'linewidth',2)
 
+line([all_freq(f_select(1)) all_freq(f_select(1))],[min(mp_res(:)) max(mp_res(:))+0.2*max(mp_res(:))],'color','k','linestyle',':')
+line([all_freq(f_select(end)) all_freq(f_select(end))],[min(mp_res(:)) max(mp_res(:))+0.2*max(mp_res(:))],'color','k','linestyle',':')
 
+[~,idx]=min(abs(all_freq(1:4000)-m_tsk(1)));
+line([m_tsk(1) m_tsk(1)],[min(mp_tsk(:)) mp_tsk(idx,1)],'color',cmap(4,:),'linewidth',2)
 
+[~,idx]=min(abs(all_freq(1:4000)-m_tsk(2)));
+line([m_tsk(2) m_tsk(2)],[min(mp_tsk(:))  mp_tsk(idx,2)],'color',cmap(5,:),'linewidth',2)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+[~,idx]=min(abs(all_freq(1:4000)-m_tsk(3)));
+line([m_tsk(3) m_tsk(3)],[min(mp_tsk(:)) mp_tsk(idx,3)],'color',cmap(6,:),'linewidth',2)
 
 
+axis([7 13 min(mp_res(:)) max(mp_res(:))+0.2*max(mp_res(:)) ])
+
+title('Peak frequency (\alpha)');
+ylabel('Power'); xlabel('Frequency [Hz]')
+
+subplot(3,2,2)
+scatter(fc_all_res(:,1,1),fc_all_res(:,1,2),30,'markerfacecolor',cmap(1,:),'markeredgecolor','w')
+lsline; axis square
+xlabel('Peak freq #1 [Hz]'); ylabel('Peak freq #2 [Hz]')
+axis([9 11 9 11])
+
+subplot(3,2,4)
+scatter(fc_all_res(:,2,1),fc_all_res(:,2,2),30,'markerfacecolor',cmap(2,:),'markeredgecolor','w')
+lsline; axis square
+xlabel('Peak freq #1 [Hz]'); ylabel('Peak freq #2 [Hz]')
+axis([9 11 9 11])
+
+subplot(3,2,6)
+scatter(fc_all_res(:,3,1),fc_all_res(:,3,2),30,'markerfacecolor',cmap(3,:),'markeredgecolor','w')
+lsline; axis square
+xlabel('Peak freq #1 [Hz]'); ylabel('Peak freq #2 [Hz]')
+axis([9 11 9 11])
 
 
+subplot(3,2,[5]); hold on
+r=corr(fc_all_res(:,:,1),fc_all_res(:,:,2));
+imagesc(r,[0.75 1]); axis  square tight
+set(gca,'xtick',[1 2 3],'xticklabel',['Pbo1';'Atx1';'Dpz1'])
+set(gca,'ytick',[1 2 3],'yticklabel',['Pbo2';'Atx2';'Dpz2'])
+h = colorbar; colormap(inferno);
+ylabel(h,'Correlation')
+% set(gca,'Visible','off')
+
+print(gcf,'-dpdf',sprintf('~/pupmod/plots/pupmod_src_power_v%d.pdf',v))
+
+%% PERMUTATION TEST
 
 
+% pow_res = nanmean(pow_all_res(:,SUBJLIST,:,:),4);
+% pow_tsk = nanmean(pow_all_tsk(:,SUBJLIST,:,:),4);
 
+% [~,i] = max(nanmean(pow_res(f_select,:,:),2));
+% peak_freq_res = all_freq(f_select(i));
+peak_freq_res(1) = tp_peakfreq(nanmean(pow_res(:,:,1),2)',para)
+peak_freq_res(2) = tp_peakfreq(nanmean(pow_res(:,:,2),2)',para)
+peak_freq_res(3) = tp_peakfreq(nanmean(pow_res(:,:,3),2)',para)
 
+% [~,i] = max(nanmean(pow_tsk(f_select,:,:),2));
+% peak_freq_tsk = all_freq(f_select(i));
+peak_freq_tsk(1) = tp_peakfreq(nanmean(pow_tsk(:,:,1),2)',para)
+peak_freq_tsk(2) = tp_peakfreq(nanmean(pow_tsk(:,:,2),2)',para)
+peak_freq_tsk(3) = tp_peakfreq(nanmean(pow_tsk(:,:,3),2)',para)
 
+% -------------------
+% PERMUTATION TEST: SETTINGS
+% -------------------
 
+para          = [];
+para.f        = all_freq;
+para.nperm    = 2000;
+para.f_select = f_select;
+para.all_freq = all_freq;
+para.method = 'gaussian'
+% -------------------
+% PERMUTATION TEST: Atomoxetine vs. placebo (resting state)
+% -------------------
 
+dat(:,:,1) = pow_res(:,:,1);
+dat(:,:,2) = pow_res(:,:,2);
 
+peak_freq_perm = tp_permtest_peakfreq(dat,para)
 
-
-
-
-
-
-%% PLOT PEAK FREQ OF VAR
-a = squeeze(nanmean(s_plt,3));
-a = squeeze(nanmean(a,3));
-a = squeeze(nanmean(a,2));
-
-for i = 1 : 91
-%   for j = 1 : 91
-    [~,t(i)]=max(a(i,:));
-    idx(i) = foi_range(t(i));
-%   end
-end
-
-%% PLOT ON AAL COARSE
-
-load sa_meg_template;
-mri   = sa_meg_template.mri;
-
-addpath ~/pconn/matlab/
-load aalmask_grid_cortex3000
-grid = sa_meg_template.grid_cortex3000;
-
-dat = zeros(3000,1);
-
-for i = 1 : 91
+perm_diff = peak_freq_perm(:,2)-peak_freq_perm(:,1);
+emp_diff = peak_freq_res(:,2)-peak_freq_res(:,1);
   
-  aalidx = find(aalgrid.mask==i);
-  dat(aalidx) = idx(i);
+p(1) = 1-sum(emp_diff<perm_diff)/para.nperm;  
   
-end
+% -------------------
+% PERMUTATION TEST: Donepezil vs. placebo (resting state)
+% -------------------
 
+dat(:,:,1) = pow_res(:,:,1);
+dat(:,:,2) = pow_res(:,:,3);
 
-g1 = sa_meg_template.grid_cortex3000;
-g2 = sa_meg_template.cortex10K.vc;
+peak_freq_perm = tp_permtest_peakfreq(dat,para)
 
-vc = sa_meg_template.vc;
-
-viewdir = [0.001 -0 1; 0 -.5 0; 1 0 0; -.5 0 0; -.5 0 0;1 0 0 ];
-
-dd = .1;
-%%
-par_interp = spatfiltergauss(dat,g1,dd,g2);
-   
-figure; set(gcf,'color','white'); hold on;
-
-para = [] ;
-% r = max(abs(min(d)),abs(max(d)));
-%   para.colorlimits = [min(d(d>eps)) max(d)];
-para.colorlimits = [0 38];
-
-for iplot = 1 : 6
+perm_diff = -diff(peak_freq_perm,[],2);
+emp_diff = peak_freq_res(:,3)-peak_freq_res(:,1);
   
-  subplot(3,2,iplot)
+p(2) = 1-sum(emp_diff<perm_diff)/para.nperm;  
+
+% -------------------
+% PERMUTATION TEST: Task vs rest
+% -------------------
+
+dat(:,:,1) = nanmean(pow_res,3);
+dat(:,:,2) = nanmean(pow_tsk,3);
+
+peak_freq_perm = tp_permtest_peakfreq(dat,para)
+
+perm_diff = -diff(peak_freq_perm,[],2);
+emp_diff = mean(peak_freq_res)-mean(peak_freq_tsk);
   
-  para.myviewdir = viewdir(iplot,:);
-  a = sa_meg_template.cortex10K;
+p(3) = 1-sum(emp_diff<perm_diff)/para.nperm;  
+
   
-  if iplot == 5
-    a=cutsurface(sa_meg_template.cortex10K,[mean(sa_meg_template.cortex10K.vc(:,1)) 0 0],[1 0 0]);
-  elseif iplot == 6
-    a=cutsurface(sa_meg_template.cortex10K,[mean(sa_meg_template.cortex10K.vc(:,1)) 0 0],[-1 0 0]);
-  end
-  
-  pconn_showsurface(a,para,par_interp)
-  
-  colormap(parula)
-  
-  camlight headlight
-  
-end
-
-% saveas(gcf,sprintf([plotdir 'pconn_src_contrast_f%d_v%d.fig'],ifoi,v),'fig')
-
-%%
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
 %%
-
-addpath ~/Documents/MATLAB/cbrewer/cbrewer/
-cmap = cbrewer('div', 'RdBu', 100,'pchip');% colormap(autumn)
-
-ifoi = 6;
+isubj = 1;
 
 
-clim = [0 0.25];
+X = [ones(length(all_freq(200:370)),1) log10(all_freq(200:370)')]
+Y = log10(nanmean(dat(200:370,isubj,1),1));
 
-s_plt = squeeze(nanmean(nanmean(nanmean(s(:,:,SUBJLIST,:,ifoi,:),6),5),3));
+regre = X\Y;
 
-dat = zeros(3000,3);
-
-sss = squeeze(nanmean(s_plt,2));
-
-for i = 1 : 91
-  
-  aalidx = find(aalgrid.mask==i);
-  dat(aalidx,:) = repmat(sss(i,:),[length(aalidx) 1]);
-  
-end
-
-dat = dat(:,2)-dat(:,1);
-
-g1 = sa_meg_template.grid_cortex3000;
-g2 = sa_meg_template.cortex10K.vc;
-
-vc = sa_meg_template.vc;
-
-viewdir = [0.001 -0 1; 0 -.5 0; 1 0 0; -.5 0 0; -.5 0 0;1 0 0 ];
-
-dd = .1;
-
-par_interp = spatfiltergauss(dat,g1,dd,g2);
-   
-figure; set(gcf,'color','white'); hold on;
-
-para = [] ;
-% r = max(abs(min(d)),abs(max(d)));
-%   para.colorlimits = [min(d(d>eps)) max(d)];
-para.colorlimits = [-max([abs(min(dat)) abs(max(dat))]) max([abs(min(dat)) abs(max(dat))])];
-
-for iplot = 1 : 6
-  
-  subplot(3,2,iplot)
-  
-  para.myviewdir = viewdir(iplot,:);
-  a = sa_meg_template.cortex10K;
-  
-  if iplot == 5
-    a=cutsurface(sa_meg_template.cortex10K,[mean(sa_meg_template.cortex10K.vc(:,1)) 0 0],[1 0 0]);
-  elseif iplot == 6
-    a=cutsurface(sa_meg_template.cortex10K,[mean(sa_meg_template.cortex10K.vc(:,1)) 0 0],[-1 0 0]);
-  end
-  
-  pconn_showsurface(a,para,par_interp)
-  
-  colormap(cmap)
-  
-  camlight headlight
-  
-end
-
-
-
-%%
-
-for iblock = 1 : 2
-  
-  load(sprintf('/home/tpfeffer/pupmod/proc/pupmod_src_powcorr_s4_m1_b%d_f10_v1.mat',iblock))
-
-
-  for i = 1  : 91
-    for j = 1 : 91
-
-      [r(i,j,iblock),p(i,j,iblock)]=corr(squeeze(par.powcorr(i,j,:)),par.pup');
-
-    end
-  end
-
-end
+% plot(log10(all_freq(1:380)),log10(all_freq(1:380))*regre(2)+regre(1))
+log10(nanmean(dat(:,isubj,1),1))-log10(all_freq(1:380))*regre(2)+regre(1)
 
 
 
 
-  
-  
-  
-  %% GET TIME COURSES IN ORDER TO COMPUTE LOCAL BIFURCATION PARAMETER
-  % SOURCE SETTINGS
-  para.grid = 'coarse';
-  para.sa   = sprintf('~/pconn/proc/src/pconn_sa_s%d_m%d_b%d_v%d.mat',isubj,m,iblock,v_grid);
-  para.filt = 'lcmv';
-  para.fs   = 400;
-  para.foi  = [8 12];
-  para.cs   = cs;
-  para.aal  = 0;
-  
-  [dat A1]  = pupmod_src_timecourse(mydata,para);
-  
-  
-  
-  
-  
-  
-  
-  cd ~/Downloads/
-  
-  load SC_AAL_90.mat
-  
-  areas = 90;
-  C = SC/max(max(SC))*0.2;
-  
-  time_steps = 600;
-  
-  a = 0.2;
-  we = 0.8;
-  sig = 0.01;
-  omega = 10;
-  
-  threshold = 0;
-  polarity = 1;
-  
-  dt = 0.0025;
-  
-  xs = zeros(time_steps/2,areas);
-  x = 0.1 * randn(areas,1);
-  y = 0.1 * randn(areas,1);
-  nn = 0;
-  
-  Isubdiag = find(tril(ones(areas),-1));
-  
-  
-  for t=0:dt:500
-    t
-    sumax = C*x-diag(C*repmat(x',areas,1));
-    sumay = C*y-diag(C*repmat(y',areas,1));
-    
-    x = x+dt*(a.*x-y.*omega-x.*(x.*x+y.*y)+we*sumax)+sqrt(dt)*sig*randn(areas,1);
-    y = y+dt*(a.*y+x.*omega-y.*(x.*x+y.*y)+we*sumay)+sqrt(dt)*sig*randn(areas,1);
-    
-  end
-  
-  for t=0:dt:5000  %32000
-    t
-    % if t > 500
-    %     a = 0.1;
-    % end
-    
-    sumax = C*x-diag(C*repmat(x',areas,1));
-    sumay = C*y-diag(C*repmat(y',areas,1));
-    
-    x = x+dt*(a.*x-y.*omega-x.*(x.*x+y.*y)+we*sumax)+sqrt(dt)*sig*randn(areas,1);
-    y = y+dt*(a.*y+x.*omega-y.*(x.*x+y.*y)+we*sumay)+sqrt(dt)*sig*randn(areas,1);
-    
-    
-    if mod(t,2)==0
-      nn=nn+1;
-      xs(nn,:)=x';
-      ri=sqrt(x.*x+y.*y);
-      rimax=max(ri);
-      ri=ri/rimax;
-      kura(nn)=abs(sum(ri.*complex(cos(angle(complex(x,y))),sin(angle(complex(x,y)))))/areas);
-    end
-    
-  end
-  
-  
-  FC_simul = corrcoef(xs(1:nn,:));
-  
-  
-  % RUN DFA
-  f_win = [1 100];
-  c_win = [0.5 150];
-  
-  siginfo = nbt_Info;
-  siginfo.converted_sample_frequency =  5;
-  
-  t = nbt_doDFA(abs(hilbert(xs)), siginfo, [1 100],[0.5 150],0.5,0,0,[]);
-  % cc = corrcoef(FC_emp(Isubdiag),FC_simul(Isubdiag));
-  v = var(abs(hilbert(xs)),[],1);
-  m = mean(abs(hilbert(xs)));
-  
-  
-  %%
-  % -0.2
-  m = 0.0117
-  v = 3.78e-05
-  d = 0.56
-  
-  % 0
-  m = 0.271
-  v = 2.08e-04
-  d = 0.92
-  
-  % 0.2
-  m = 0.44;
-  v = 8.72e-05;
-  d = 0.56
-  
-  save('~/pmod/proc/pmod_hopf_par2.mat','t','v','m')
-  
-  
-  Corr = cc(1,2);
-  
-  Corr_sim_mean = mean(mean(FC_simul));
-  
-  data = xs';
-  [Peak,Amp] = Threshold_fMRI(data, areas, threshold, polarity);
-  
-  figure;
-  subplot(2,1,1)
-  pcolor(Peak)
-  subplot(2,1,2)
-  plot(1:time_steps/2+1, xs(:,1:66))
-  xlim([0 time_steps/2+1])
-  
+
+
+

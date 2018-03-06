@@ -353,7 +353,7 @@ subplot(3,2,2); hold on
 plot(n_p_dpz(:,1),'r-','linewidth',3)
 plot(n_n_dpz(:,1),'b-','linewidth',3)
 set(gca,'tickdir','out','xtick',[1 3 5 7 9 11 13],'xticklabel',[2 4 8 16 32 64 128])
-set(gca,'tickdir','out','ytick',[0 0.1 0.2 0.3],'yticklabel',[0 10 20 30])
+set(gca,'tickdir','out','ytick',[0 0.1 0.2 0.3 0.4 0.5],'yticklabel',[0 10 20 30 40 50])
 axis([1 14 -0.05 0.55])
 plot(find(tp_res2_p<0.025),n_p_dpz(find(tp_res2_p<0.025),1),'k.','markersize',30)
 plot(find(tp_res2_n<0.025),n_n_dpz(find(tp_res2_n<0.025),1),'k.','markersize',30)
@@ -366,7 +366,7 @@ subplot(3,2,3); hold on
 plot(n_p_atx(:,2),'r-','linewidth',3)
 plot(n_n_atx(:,2),'b-','linewidth',3)
 set(gca,'tickdir','out','xtick',[1 3 5 7 9 11 13],'xticklabel',[2 4 8 16 32 64 128])
-set(gca,'tickdir','out','ytick',[0 0.1 0.2 0.3],'yticklabel',[0 10 20 30])
+set(gca,'tickdir','out','ytick',[0 0.1 0.2 0.3 0.4 0.5],'yticklabel',[0 10 20 30 40 50])
 ylabel('Altered corr. [%]')
 title('Task')
 axis([1 14 -0.05 0.55])
@@ -381,7 +381,7 @@ subplot(3,2,4); hold on
 plot(n_p_dpz(:,2),'r-','linewidth',3)
 plot(n_n_dpz(:,2),'b-','linewidth',3)
 set(gca,'tickdir','out','xtick',[1 3 5 7 9 11 13],'xticklabel',[2 4 8 16 32 64 128])
-set(gca,'tickdir','out','ytick',[0 0.1 0.2 0.3],'yticklabel',[0 10 20 30])
+set(gca,'tickdir','out','ytick',[0 0.1 0.2 0.3 0.4 0.5],'yticklabel',[0 10 20 30 40 50])
 axis([1 14 -0.05 0.55])
 plot(find(tp_cnt2_p<0.025),n_p_dpz(find(tp_cnt2_p<0.025),2),'k.','markersize',30)
 plot(find(tp_cnt2_n<0.025),n_n_dpz(find(tp_cnt2_n<0.025),2),'k.','markersize',30)
@@ -685,7 +685,7 @@ plot(find(p_dpz_context_n_corr<0.05),dn(find(p_dpz_context_n_corr<0.05)),'k.','m
 
 print(gcf,'-dpdf',sprintf('~/pupmod/plots/pupmod_src_alteredcorrelations_bothdir_corrected.pdf'))
 
-wefwefwefwefwefe
+
 figure;
 % DONEPEZIL
 subplot(3,2,6); hold on
