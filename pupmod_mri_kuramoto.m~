@@ -1,0 +1,19 @@
+%% pupmod_mri_kuramoto
+% Compute MRI Kuramoto order parameter
+
+load ~/M.mat
+
+bp = hilbert(tp_bpfilt(squeeze(M(1,1,:,1)),[0.02 0.2],1/2.25,4,'butter'))
+
+
+for isubj = 1 : 24
+  isubj
+  for icond = 1 : 4
+    
+    bp_mri(:,:,isubj,icond) = hilbert(tp_bpfilt(squeeze(M(isubj,icond,:,:)),[0.02 0.2],1/2.25,4,'butter'));
+    kura(
+    
+  end
+end
+
+

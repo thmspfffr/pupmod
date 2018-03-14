@@ -15,7 +15,7 @@ addpath(genpath('/home/gnolte/meth'));
 
 %%
 
-[h,p,~,s] = ttest(dat_res2(:,:,:,2,7),dat_res2(:,:,:,1,7),'dim',3);
+[h,p,~,s] = ttest(cleandat(:,:,:,2,1,7),cleandat(:,:,:,1,1,7),'dim',3);
 
 for i = 1 : 90 
   for j = 1 : 90
@@ -28,22 +28,25 @@ end
 
 %% SEED BASED CONNECTIVITY
 figure;
-load('~/pupmod/proc/grid_cortexlow.mat')
+load(sprintf('~/pconn/proc/src/pconn_sa_s%d_m%d_b%d_v%d.mat',4,1,1,9))
+grid = sa.grid_cortex_lowres;
+
+% load('~/pupmod/proc/grid_cortexlow.mat')
 
 % VISUAL
-  vis = [-47 -69 -3; 47 -69 3]./10;
-plt = 'vis';
+%   vis = [-47 -69 -3; 47 -69 3]./10;
+% plt = 'vis';
 % 
 % SOMATOSENSORY
 % vis = [-42 -26 54; 38 -32 48]./10;
 % plt = 'som';
 
 % AUDITORY
-% % vis = [-54 -22 10; 52 -24 12]./10;
-% % plt = 'aud';
+vis = [-54 -22 10; 52 -24 12]./10;
+plt = 'aud';
 
-vis = [-39 -54 32; 52 -24 12]./10;
-plt = 'lpc';
+% vis = [-39 -54 32; 52 -24 12]./10;
+% plt = 'lpc';
 
 % vis = [-3 39 -2; 3 39 -2]./10;
 % plt = 'mpfc';
@@ -62,13 +65,13 @@ plot3(vis(2,1),vis(2,2),vis(2,3),'r.','markersize',50)
 [~,i2]=min(d2)
 
 plot3(grid(i2,1),grid(i2,2),grid(i2,3),'b.','markersize',50)
-
+load sa_meg_template;
 %%
 
 
 
 para.plot = 'i1';
-ifoi = 7;
+ifoi = 8;
 
 
 if strcmp(para.plot,'i2')
@@ -97,7 +100,7 @@ m = squeeze(mean(mean(cleandat(ii,:,:,1,1,ifoi),4),3));
 sign(isnan(m))=[];
 m(isnan(m)) = [];
 
-load('~/pupmod/proc/grid_cortexlow.mat')
+grid = sa.grid_cortex_lowres;
 
 % roi = [grid(i1,:);grid(i2,:)] ;
 roi = [grid(ii,:); [-grid(ii,1) grid(ii,2) grid(ii,3)]] ;
@@ -127,7 +130,7 @@ tp_showsource(z2,cmap,sa_meg_template,para);
 print(gcf,'-djpeg100',sprintf('~/pupmod/plots/pupmod_src_powcorr_seeds_cortex_%s_%s_f%d_v%d.jpg',plt,pp,ifoi,v))
 
 % SHOW MARKER -------------------------------------------------------------
-load('~/pupmod/proc/grid_cortexlow.mat')
+grid = sa.grid_cortex_lowres;
 roi = [grid(ii,:); [-grid(ii,1) grid(ii,2) grid(ii,3)]] ;
 m = zeros(400,1);
 

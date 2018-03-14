@@ -289,40 +289,38 @@ max_task_dpz_n = squeeze(max(task_dpz_n_perm));
 
 %% OBTAIN CORRECTED P-VALUES
 
-for ifoi = [6 7]
-  for i = 1 : size(cleandat,1)
+ifoi = 6;
 
-    p_p_rest_atx(i,ifoi) = 1-sum(n_p_rest_atx(i,ifoi) > max_rest_atx_p(ifoi,:))/nperm;
-    p_n_rest_atx(i,ifoi) = 1-sum(n_n_rest_atx(i,ifoi) > max_rest_atx_n(ifoi,:))/nperm;
+for i = 1 : size(cleandat,1)
 
-    p_p_task_atx(i,ifoi) = 1-sum(n_p_task_atx(i,ifoi) > max_task_atx_p(ifoi,:))/nperm;
-    p_n_task_atx(i,ifoi) = 1-sum(n_n_task_atx(i,ifoi) > max_task_atx_n(ifoi,:))/nperm;
+  p_p_rest_atx(i) = 1-sum(n_p_rest_atx(i,6) > max_rest_atx_p(6,:))/nperm;
+  p_n_rest_atx(i) = 1-sum(n_n_rest_atx(i,6) > max_rest_atx_n(6,:))/nperm;
 
-    p_p_rest_dpz(i,ifoi) = 1-sum(n_p_rest_dpz(i,ifoi) > max_rest_dpz_p(ifoi,:))/nperm;
-    p_n_rest_dpz(i,ifoi) = 1-sum(n_n_rest_dpz(i,ifoi) > max_rest_dpz_n(ifoi,:))/nperm;
+  p_p_task_atx(i) = 1-sum(n_p_task_atx(i,6) > max_task_atx_p(6,:))/nperm;
+  p_n_task_atx(i) = 1-sum(n_n_task_atx(i,6) > max_task_atx_n(6,:))/nperm;
+ 
+    p_p_rest_atx(i) = 1-sum(n_p_rest_atx(i,6) > max_rest_atx_p(6,:))/nperm;
+  p_n_rest_atx(i) = 1-sum(n_n_rest_atx(i,6) > max_rest_atx_n(6,:))/nperm;
 
-    p_p_task_dpz(i,ifoi) = 1-sum(n_p_task_dpz(i,ifoi) > max_task_dpz_p(ifoi,:))/nperm;
-    p_n_task_dpz(i,ifoi) = 1-sum(n_n_task_dpz(i,ifoi) > max_task_dpz_n(ifoi,:))/nperm;
-
-  end
+  p_p_task_atx(i) = 1-sum(n_p_task_atx(i,6) > max_task_atx_p(6,:))/nperm;
+  p_n_task_atx(i) = 1-sum(n_n_task_atx(i,6) > max_task_atx_n(6,:))/nperm;
+  
 end
 
+
 %% IMAGE RESULTS
-
-ifoi = 7;
-var2plot = n_p_task_atx(:,ifoi).*(p_p_task_atx(:,ifoi)<0.3);
-
 
 if ~exist('sa_meg_template','var')
   load sa_meg_template;
 end
 
+var2plot = n_p_task_atx(:,6).*(p_p_task_atx<0.025)';
 
 mri   = sa_meg_template.mri;
 vc    = sa_meg_template.vc;
 g1    = grid;
 g2    = sa_meg_template.cortex10K.vc;
-dd    = .5;
+dd    = .1;
 
 z2 = spatfiltergauss(var2plot(:),g1,dd,g2);
 
