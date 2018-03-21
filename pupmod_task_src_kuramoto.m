@@ -219,8 +219,8 @@ for isubj = SUBJLIST
   for m = 1:3
     for ifoi = 1:length(foi_range)
 % %         
-      if ~exist(sprintf([outdir 'pupmod_src_kuramoto_s%d_m%d_f%d_v%d_processing.txt'],isubj,m,ifoi,v))
-        system(['touch ' outdir sprintf('pupmod_src_kuramoto_s%d_m%d_f%d_v%d_processing.txt',isubj,m,ifoi,v)]);
+      if ~exist(sprintf([outdir 'pupmod_task_src_kuramoto_s%d_m%d_f%d_v%d_processing.txt'],isubj,m,ifoi,v))
+        system(['touch ' outdir sprintf('pupmod_task_src_kuramoto_s%d_m%d_f%d_v%d_processing.txt',isubj,m,ifoi,v)]);
       else
         continue
       end
@@ -231,12 +231,12 @@ for isubj = SUBJLIST
         
         fprintf('Loading MEG data ...\n');
         
-        load(sprintf('/home/tpfeffer/pconn/proc/preproc/pconn_postpostproc_s%d_m%d_b%d_v%d.mat',isubj,m,iblock,1))
+        load(sprintf('/home/tpfeffer/pconn_cnt/proc/preproc/pconn_cnt_postpostproc_s%d_m%d_b%d_v%d.mat',isubj,m,iblock,1))
         
         [dat] = megdata2mydata(data); clear data
         
         pars      = [];
-        pars.sa   = sprintf('~/pconn/proc/src/pconn_sa_s%d_m%d_b%d_v%d.mat',isubj,m,iblock,v_grid);
+        pars.sa   = sprintf('~/pconn_cnt/proc/src/pconn_cnt_sa_s%d_m%d_b%d_v%d.mat',isubj,m,iblock,v_grid);
         sa        = load(pars.sa);
         
         if strcmp(allpara.grid,'cortex_lowres')
@@ -281,7 +281,7 @@ for isubj = SUBJLIST
           r = tp_match_aal(pars,R);
         end
 %    
-       save(sprintf([outdir 'pupmod_src_kuramoto_s%d_m%d_b%d_f%d_v%d.mat'],isubj,m,iblock,ifoi,v),'R');
+       save(sprintf([outdir 'pupmod_task_src_kuramoto_s%d_m%d_b%d_f%d_v%d.mat'],isubj,m,iblock,ifoi,v),'R');
         
       end
     end
@@ -294,6 +294,7 @@ error('!')
 
 %% PLOT RESULTS
 ord = pconn_randomization;
+clear m_all s_all d_all
 
 for isubj = SUBJLIST
   isubj
@@ -304,16 +305,38 @@ for isubj = SUBJLIST
       
       load(sprintf([outdir 'pupmod_src_kuramoto_s%d_m%d_b%d_f%d_v%d.mat'],isubj,im,iblock,ifoi,v));
       
-      s_all(isubj,m,iblock,ifoi) = std(R);
-      m_all(isubj,m,iblock,ifoi) = mean(R);
+      s_all(isubj,m,iblock,ifoi,1) = std(R);
+      m_all(isubj,m,iblock,ifoi,1) = mean(R);
+      tmp = tp_dfa(R',[3 100],400,0.5,20);
+      d_all(isubj,m,iblock,ifoi,1) = tmp.exp;
+      
+      clear R
+      
+      
+      try
+      load(sprintf([outdir 'pupmod_task_src_kuramoto_s%d_m%d_b%d_f%d_v%d.mat'],isubj,im,iblock,ifoi,v));
+      s_all(isubj,m,iblock,ifoi,2) = std(R);
+      m_all(isubj,m,iblock,ifoi,2) = mean(R);
+      tmp = tp_dfa(R',[3 100],400,0.5,20);
+      d_all(isubj,m,iblock,ifoi,2) = tmp.exp;
+      catch me
+        s_all(isubj,m,iblock,ifoi,2) = nan;
+        m_all(isubj,m,iblock,ifoi,2) = nan;
+        d_all(isubj,m,iblock,ifoi,2) = nan;
+      end
+      
+      
+      
       end
       
     end
   end
 end
 
-s_all = s_all(SUBJLIST,:,:,:);
-m_all = m_all(SUBJLIST,:,:,:);
+s_all = squeeze(nanmean(s_all(SUBJLIST,:,:,:,:),3));
+m_all = squeeze(nanmean(m_all(SUBJLIST,:,:,:,:),3));
+d_all = squeeze(nanmean(d_all(SUBJLIST,:,:,:,:),3));
+
 %%
 figure; 
 

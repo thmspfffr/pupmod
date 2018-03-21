@@ -63,12 +63,32 @@ clear
 % --------------------------------------------------------
 % VERSION 12 - VOXEL LEVEL, 400 samples cortex
 % --------------------------------------------------------
-v               = 12;
+% v               = 12;
+% v_postproc      = 6;
+% fsample         = 400;
+% SUBJLIST        = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
+% allpara.filt    = 'jh_lcmv';
+% allpara.grid    = 'cortex_lowres';
+% foi_range       = unique(round(2.^[1:.5:7]));
+% para.segleng    = 9 ./ foi_range;
+% para.bpfreq     = [foi_range-(foi_range./2)/2; foi_range+(foi_range./2)/2]';
+% para.epleng     = 60;
+% lpc             = 0;
+% timevariant     = 0;
+% para.wavelet    = 'bp_filt';
+% para.scnd_filt  = 0;
+% allpara.reg     = 0.05;
+% allpara.weigh   = 0;
+% allpara.tau     = nan;
+% --------------------------------------------------------
+% VERSION 13 - ELORETA
+% --------------------------------------------------------
+v               = 13;
 v_postproc      = 6;
 fsample         = 400;
 SUBJLIST        = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
-allpara.filt    = 'jh_lcmv';
-allpara.grid    = 'cortex_lowres';
+allpara.filt    = 'eloreta';
+allpara.grid    = 'aal_4mm';
 foi_range       = unique(round(2.^[1:.5:7]));
 para.segleng    = 9 ./ foi_range;
 para.bpfreq     = [foi_range-(foi_range./2)/2; foi_range+(foi_range./2)/2]';
@@ -78,7 +98,7 @@ timevariant     = 0;
 para.wavelet    = 'bp_filt';
 para.scnd_filt  = 0;
 allpara.reg     = 0.05;
-allpara.weigh   = 0;
+allpara.weigh   = 1;
 allpara.tau     = nan;
 % --------------------------------------------------------
 
@@ -120,8 +140,8 @@ t = license('test','signal_toolbox');
 % end
 %% LOAD DATA COMPUTE SRC TIME COURSES
 
-for isubj = 33
-  for m = 3 : 3
+for isubj = SUBJLIST
+  for m = 1 : 3
     for ifoi = 1:length(foi_range)
       
       if ~exist(sprintf([outdir 'pupmod_task_src_powcorr_s%d_m%d_f%d_v%d_processing.txt'],isubj,m,ifoi,v))
@@ -217,11 +237,13 @@ for isubj = 33
           end
         end
 
-%          if size(powcorr,1) < 100 && size(powcorr,1) > 80
-%           pars = [];
-%           pars.grid = 'medium';
-%           powcorr = tp_match_aal(pars,powcorr);
-%         end
+         if size(powcorr,1) < 100 && size(powcorr,1) > 80
+          pars = [];
+          pars.grid = 'medium';
+          pars.N = 91;
+          powcorr = tp_match_aal(pars,powcorr);
+          
+        end
        save(sprintf([outdir 'pupmod_task_src_powcorr_s%d_m%d_b%d_f%d_v%d.mat'],isubj,m,iblock,ifoi,v),'powcorr');
         
       end
