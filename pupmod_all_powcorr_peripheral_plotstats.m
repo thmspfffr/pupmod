@@ -1,6 +1,6 @@
 
 
-v = 12;
+v = 13;
 
 %%
 
@@ -100,7 +100,7 @@ clear tperm_res1_n tperm_res1_p tperm_res2_n tperm_res2_p
 clear perm_n_p_atx perm_n_n_atx perm_n_n_dpz perm_n_p_dpz
 
 nperm = 10000;
-v = 12;
+v = 13;
 par.subs = 100;
 par.allperms = nperm/par.subs;
 alpha = 0.05;
@@ -142,8 +142,7 @@ for ifoi = 1 : 13
 
   tp_res2_n(ifoi) = 1-[sum(n_n_dpz(ifoi,1)>perm_n_n_dpz(:,ifoi,1))]/nperm;
   tp_res2_p(ifoi) = 1-[sum(n_p_dpz(ifoi,1)>perm_n_p_dpz(:,ifoi,1))]/nperm;
-  
-  
+   
 %   % COMPUTE CHANGE OF CHANGE
   p_d1_p(ifoi) = 1-sum(abs(n_p_atx(ifoi,1)-n_p_atx(ifoi,2))>abs((perm_n_p_atx(:,ifoi,1)-perm_n_p_atx(:,ifoi,2)./4005)))/nperm;
   p_d1_n(ifoi) = 1-sum(abs(n_n_atx(ifoi,1)-n_n_atx(ifoi,2))>abs((perm_n_n_atx(:,ifoi,1)-perm_n_n_atx(:,ifoi,2)./4005)))/nperm;

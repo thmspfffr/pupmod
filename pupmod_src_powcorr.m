@@ -347,15 +347,15 @@ error('!')
   
   %% CLEAN NON PROCESSED FILES
 outdir = '/home/tpfeffer/pupmod/proc/conn/';
-
+SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
 cnt = 0;
-v = 6;
+v = 13;
 cnt_exist = 0;
 for m = 1 : 3
   for isubj = SUBJLIST
     for ifoi = 1:13
       for iblock = 1 : 2
-        ifoi
+%         ifoi
         if exist(sprintf([outdir 'pupmod_src_powcorr_s%d_m%d_b%d_f%d_v%d.mat'],isubj,m,iblock,ifoi,v)) && exist(sprintf([outdir 'pupmod_src_powcorr_s%d_m%d_f%d_v%d_processing.txt'],isubj,m,ifoi,v))
           cnt_exist = cnt_exist + 1;
 
@@ -363,13 +363,16 @@ for m = 1 : 3
         elseif exist(sprintf([outdir 'pupmod_src_powcorr_s%d_m%d_b%d_f%d_v%d.mat'],isubj,iblock,m,ifoi,v)) && ~exist(sprintf([outdir 'pupmod_src_powcorr_s%d_m%d_f%d_v%d_processing.txt'],isubj,m,ifoi,v))
           system(['touch ' outdir sprintf('pupmod_src_powcorr_s%d_m%d_f%d_v%d_processing.txt',isubj,m,ifoi,v)]);
         elseif exist(sprintf([outdir 'pupmod_src_powcorr_s%d_m%d_f%d_v%d_processing.txt'],isubj,m,ifoi,v)) && ~exist(sprintf([outdir 'pupmod_src_powcorr_s%d_m%d_b%d_f%d_v%d.mat'],isubj,m,iblock,ifoi,v))
-          warning(sprintf('Deleting stuff: s%d m%df %d',isubj,m,ifoi))
-          delete(sprintf([outdir 'pupmod_src_powcorr_s%d_m%d_f%d_v%d_processing.txt'],isubj,m,ifoi,v))
+%           warning(sprintf('Deleting stuff: s%d m%df %d',isubj,m,ifoi))
+%           delete(sprintf([outdir 'pupmod_src_powcorr_s%d_m%d_f%d_v%d_processing.txt'],isubj,m,ifoi,v))
+          fprintf('S%dm%df%db%d\n',isubj,m,ifoi,iblock)
+%           pause(2)
           cnt = cnt + 1;
         elseif ~exist(sprintf([outdir 'pupmod_src_powcorr_s%d_m%d_f%d_v%d_processing.txt'],isubj,m,ifoi,v)) && exist(sprintf([outdir 'pupmod_src_powcorr_s%d_m%d_b%d_f%d_v%d.mat'],isubj,m,iblock,ifoi,v))
           system(['touch ' outdir sprintf('pupmod_src_powcorr_s%d_m%d_f%d_v%d_processing.txt',isubj,m,ifoi,v)]);
         else
           warning('Nothing exists')
+          pause(1)
           cnt = cnt+1;
         end
       end

@@ -167,8 +167,10 @@ for isubj = SUBJLIST
           if ~exist(sprintf('/home/tpfeffer/pconn_cnt/proc/preproc/pconn_cnt_postpostproc_s%d_m%d_b%d_v%d.mat',isubj,m,iblock,1))
             if strcmp(allpara.grid,'cortex_lowres')
                 powcorr = nan(400,400);
-            else
-              powcorr = nan(size(sa.sa.L_xcoarse,2),size(sa.sa.L_xcoarse,2));
+            elseif strcmp(allpara.grid,'aal_4mm')
+              powcorr = nan(90,90);
+            elseif strcmp(allpara.grid,'aal_6mm')
+              powcorr = nan(90,90);
             end
           
             save(sprintf([outdir 'pupmod_task_src_powcorr_s%d_m%d_b%d_f%d_v%d.mat'],isubj,m,iblock,ifoi,v),'powcorr');
@@ -256,15 +258,15 @@ error('!')
 
 %%
 outdir   = '/home/tpfeffer/pupmod/proc/conn/';
-
+SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 34];
 cnt = 0;
-v = 12;
+v = 13;
 cnt_exist = 0;
 for m = 1 : 3
   for isubj = SUBJLIST
     for ifoi = 1:13
       for iblock = 1 : 2
-        ifoi
+%         ifoi
         if exist(sprintf([outdir 'pupmod_task_src_powcorr_s%d_m%d_b%d_f%d_v%d.mat'],isubj,m,iblock,ifoi,v)) && exist(sprintf([outdir 'pupmod_task_src_powcorr_s%d_m%d_f%d_v%d_processing.txt'],isubj,m,ifoi,v))
           cnt_exist = cnt_exist + 1;
 
@@ -274,8 +276,10 @@ for m = 1 : 3
 
         elseif exist(sprintf([outdir 'pupmod_task_src_powcorr_s%d_m%d_f%d_v%d_processing.txt'],isubj,m,ifoi,v)) && ~exist(sprintf([outdir 'pupmod_task_src_powcorr_s%d_m%d_b%d_f%d_v%d.mat'],isubj,m,iblock,ifoi,v))
           warning(sprintf('Deleting stuff: s%d m%df %d',isubj,m,ifoi))
-          delete(sprintf([outdir 'pupmod_task_src_powcorr_s%d_m%d_f%d_v%d_processing.txt'],isubj,m,ifoi,v))
+%           delete(sprintf([outdir 'pupmod_task_src_powcorr_s%d_m%d_f%d_v%d_processing.txt'],isubj,m,ifoi,v))
           cnt = cnt + 1;
+                    fprintf('S%dm%df%db%d\n',isubj,m,ifoi,iblock)
+
         elseif ~exist(sprintf([outdir 'pupmod_task_src_powcorr_s%d_m%d_f%d_v%d_processing.txt'],isubj,m,ifoi,v)) && exist(sprintf([outdir 'pupmod_task_src_fpowcorr_s%d_m%d_b%d_f%d_v%d.mat'],isubj,m,iblock,ifoi,v))
           system(['touch ' outdir sprintf('pupmod_task_src_powcorr_s%d_m%d_f%d_v%d_processing.txt',isubj,m,ifoi,v)]);
         else

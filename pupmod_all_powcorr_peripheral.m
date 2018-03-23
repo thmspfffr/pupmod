@@ -7,7 +7,7 @@ clear
 % -------------------------------------------------------------------------
 % VERSION 01 - ignore saccades, *interpolate* blinks
 % -------------------------------------------------------------------------
-v = 12;
+v = 13;
 v_pup = 2;
 % -------------------------------------------------------------------------
 
@@ -117,14 +117,14 @@ hb_all_cnt(hb_all_cnt==0) = NaN;
 hb(:,:,1)  = squeeze(nanmean(hb_all,2));
 hb(:,:,2)  = squeeze(nanmean(hb_all_cnt,2));
 %%
-v = 12;
+v = 13;
 clear p1 p2
 
 outdir = '~/pupmod/proc/conn/';
 
 ord = pconn_randomization;
-s_fc = single(zeros(400,400,34,3,2,13));
-% s_fc = single(zeros(90,90,34,3,2,13));
+% s_fc = single(zeros(400,400,34,3,2,13));
+s_fc = single(zeros(90,90,34,3,2,13));
 
 for ifoi = 1:13
   ifoi
