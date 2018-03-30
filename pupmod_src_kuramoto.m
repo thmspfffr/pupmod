@@ -273,7 +273,7 @@ for isubj = SUBJLIST
         pars.weigh     = allpara.weigh;
         
         % COMPUTE POWER CORRELATIONS
-              [R] = tp_kuramoto_ortho_weight(dat,pars,sa);
+        [R] = tp_kuramoto_ortho_weight(dat,pars,sa);
         
         if size(R,1) < 100 && size(R,1) > 80
           pars = [];
