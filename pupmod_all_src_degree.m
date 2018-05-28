@@ -116,16 +116,19 @@ end
   
 
 
-subplot(2,1,icond); hold on
+subplot(3,2,icond); hold on
 
-plot(log10(foi_range),squeeze(mean(kk(:,1,:),1)).*100,'color',[.7 .7 .7],'linewidth',2)
-plot(log10(foi_range),squeeze(mean(kk(:,2,:),1)).*100,'color',[1 0.2 0.2],'linewidth',2)
-plot(log10(foi_range),squeeze(mean(kk(:,3,:),1)).*100,'color',[0.2 0.2 1],'linewidth',2)
+plot(squeeze(mean(kk(:,1,:),1)).*100,'color',[.7 .7 .7],'linewidth',2)
+% plot(log10(foi_range),squeeze(mean(kk(:,2,:),1)).*100,'color',[1 0.2 0.2],'linewidth',2)
+% plot(log10(foi_range),squeeze(mean(kk(:,3,:),1)).*100,'color',[0.2 0.2 1],'linewidth',2)
 
-xlabel('Frequency [Hz]'); ylabel('Degree [%]')
+axis([0 14  0 30])
+set(gca,'tickdir','out','ytick',[0 10 20 30],'yticklabel',[0 10 20 30])
+set(gca,'tickdir','out','xtick',[1 3 5 7 9 11 13],'xticklabel',[2 4 8 16 32 64 128])
 
-set(gca,'tickdir','out','xtick',log10(foi_range([1 3 5 7 9 11 13])),'xticklabel',[2 4 8 16 32 64 128])
-% 
+xlabel('Carrier frequency [Hz]'); ylabel('Degree [%]')
+tp_editplots
+
 end
   print(gcf,'-dpdf',sprintf('~/pupmod/plots/pupmod_src_degree_spectrum.pdf'))
 
@@ -133,7 +136,6 @@ end
   
 for icond = 1 : 2
 
-  v = 121
 
   for ifoi = 1 : 13
 

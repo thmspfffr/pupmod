@@ -142,7 +142,7 @@ ord = pconn_randomization;
 for isubj = SUBJLIST
   for m = 1:3
     im = find(ord(isubj,:)==m);
-    for ifoi = 1:length(foi_range)
+    for ifoi = 1:2
 
       fprintf('Processing s%d m%d f%d ...\n', isubj,m,ifoi)
       
@@ -165,7 +165,7 @@ end
 
 dfa_all = nanmean(dfa_all(:,SUBJLIST,:,:,:,:),6);
 
-save(sprintf([outdir 'pupmod_src_dfa_aal_v%d.mat'],1),'dfa_all');
+save(sprintf([outdir 'pupmod_src_dfa_v%d.mat'],1),'dfa_all');
 %%
 
 [h,p]=ttest(squeeze(nanmean(dfa_all(:,1:18,2,1,2),1)), squeeze(nanmean(dfa_all(:,1:18,1,1,2))))%,'dim',2)

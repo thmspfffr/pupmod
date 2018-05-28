@@ -4,7 +4,7 @@
 
 clear
 
-v = 12;
+v = 14;
 
 SUBJLIST  = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
 
@@ -197,7 +197,7 @@ clear tperm_res1_n tperm_res1_p tperm_res2_n tperm_res2_p
 clear perm_n_p_atx perm_n_n_atx perm_n_n_dpz perm_n_p_dpz
 
 nperm = 10000;
-v = 12;
+v = 14;
 par.subs = 100;
 par.allperms = nperm/par.subs;
 alpha = 0.05;
@@ -521,8 +521,6 @@ end
 %% ALTERNATIVE CORRECTION
 % do not perform rank conversion, but only the nichols & holmes style
 
-
-
 for ifreq = 1 : 13
   
   idx_R_cnt1_p(:,ifreq) = max(abs(perm_n_p_atx(:,:,2)),[],2);
@@ -581,6 +579,8 @@ end
 
 %% PLOT CHANGES
 
+ALPHA = 0.05;
+
 figure;
 
 subplot(3,2,1); hold on
@@ -591,8 +591,8 @@ set(gca,'tickdir','out','ytick',[0 0.1 0.2 0.3 0.4 0.5],'yticklabel',[0 10 20 30
 ylabel('Altered corr. [%]'); xlabel('Frequency [Hz]')
 title('Rest')
 axis([1 14 -0.05 0.55])
-plot(find(p_res1_p<0.05),n_p_atx(find(p_res1_p<0.05),1),'k.','markersize',20)
-plot(find(p_res1_n<0.05),n_n_atx(find(p_res1_n<0.05),1),'k.','markersize',20)
+plot(find(p_res1_p<ALPHA),n_p_atx(find(p_res1_p<ALPHA),1),'k.','markersize',20)
+plot(find(p_res1_n<ALPHA),n_n_atx(find(p_res1_n<ALPHA),1),'k.','markersize',20)
 
 plot(prctile(idx_R_res1_n,95),'linewidth',1,'color','b','linestyle',':')
 plot(prctile(idx_R_res1_p,95),'linewidth',1,'color','r','linestyle',':')
@@ -606,8 +606,8 @@ axis([1 14 -0.05 0.55])
 ylabel('Altered corr. [%]'); xlabel('Frequency [Hz]')
 title('Rest')
 
-plot(find(p_res2_p<0.05),n_p_dpz(find(p_res2_p<0.05),1),'k.','markersize',20)
-plot(find(p_res2_n<0.05),n_n_dpz(find(p_res2_n<0.05),1),'k.','markersize',20)
+plot(find(p_res2_p<ALPHA),n_p_dpz(find(p_res2_p<ALPHA),1),'k.','markersize',20)
+plot(find(p_res2_n<ALPHA),n_n_dpz(find(p_res2_n<ALPHA),1),'k.','markersize',20)
 
 plot(prctile(idx_R_res2_n,95),'linewidth',1,'color','b','linestyle',':')
 plot(prctile(idx_R_res2_p,95),'linewidth',1,'color','r','linestyle',':')
@@ -621,8 +621,8 @@ set(gca,'tickdir','out','ytick',[0 0.1 0.2 0.3 0.4 0.5],'yticklabel',[0 10 20 30
 ylabel('Altered corr. [%]'); xlabel('Frequency [Hz]')
 title('Task')
 axis([1 14 -0.05 0.55])
-plot(find(p_cnt1_p<0.05),n_p_atx(find(p_cnt1_p<0.05),2),'k.','markersize',20)
-plot(find(p_cnt1_n<0.05),n_p_atx(find(p_cnt1_n<0.05),2),'k.','markersize',20)
+plot(find(p_cnt1_p<ALPHA),n_p_atx(find(p_cnt1_p<ALPHA),2),'k.','markersize',20)
+plot(find(p_cnt1_n<ALPHA),n_p_atx(find(p_cnt1_n<ALPHA),2),'k.','markersize',20)
 
 plot(prctile(idx_R_cnt1_n,95),'linewidth',1,'color','b','linestyle',':')
 plot(prctile(idx_R_cnt1_p,95),'linewidth',1,'color','r','linestyle',':')
@@ -638,8 +638,8 @@ title('Task')
 
 ylabel('Altered corr. [%]'); xlabel('Frequency [Hz]')
 
-plot(find(p_cnt2_p<0.025),n_p_dpz(find(p_cnt2_p<0.025),2),'k.','markersize',20)
-plot(find(p_cnt2_n<0.025),n_n_dpz(find(p_cnt2_n<0.025),2),'k.','markersize',20)
+plot(find(p_cnt2_p<ALPHA),n_p_dpz(find(p_cnt2_p<ALPHA),2),'k.','markersize',20)
+plot(find(p_cnt2_n<ALPHA),n_n_dpz(find(p_cnt2_n<ALPHA),2),'k.','markersize',20)
 
 plot(prctile(idx_R_cnt2_n,95),'linewidth',1,'color','b','linestyle',':')
 plot(prctile(idx_R_cnt2_p,95),'linewidth',1,'color','r','linestyle',':')
@@ -658,8 +658,8 @@ set(gca,'tickdir','out','ytick',[-0.5 -0.25 0 0.25 0.5],'yticklabel',[-50 -25 0 
 ylabel('Altered corr. [%]'); xlabel('Frequency [Hz]')
 title('Context')
 axis([1 14 -0.6 0.6])
-plot(find(p_atx_context_p_corr<0.05),dp(find(p_atx_context_p_corr<0.05)),'k.','markersize',20)
-plot(find(p_atx_context_n_corr<0.05),dn(find(p_atx_context_n_corr<0.05)),'k.','markersize',20)
+plot(find(p_atx_context_p_corr<ALPHA),dp(find(p_atx_context_p_corr<ALPHA)),'k.','markersize',20)
+plot(find(p_atx_context_n_corr<ALPHA),dn(find(p_atx_context_n_corr<ALPHA)),'k.','markersize',20)
 
 % plot(prctile(idx_R_cnt1_n,95),'linewidth',1,'color','b','linestyle',':')
 % plot(prctile(idx_R_cnt1_p,95),'linewidth',1,'color','r','linestyle',':')
@@ -676,8 +676,8 @@ set(gca,'tickdir','out','ytick',[-0.5 -0.25 0 0.25 0.5],'yticklabel',[-50 -25 0 
 ylabel('Altered corr. [%]'); xlabel('Frequency [Hz]')
 title('Context')
 axis([1 14 -0.6 0.6])
-plot(find(p_dpz_context_p_corr<0.05),dp(find(p_dpz_context_p_corr<0.05)),'k.','markersize',20)
-plot(find(p_dpz_context_n_corr<0.05),dn(find(p_dpz_context_n_corr<0.05)),'k.','markersize',20)
+plot(find(p_dpz_context_p_corr<ALPHA),dp(find(p_dpz_context_p_corr<ALPHA)),'k.','markersize',20)
+plot(find(p_dpz_context_n_corr<ALPHA),dn(find(p_dpz_context_n_corr<ALPHA)),'k.','markersize',20)
 
 % plot(prctile(idx_R_cnt1_n,95),'linewidth',1,'color','b','linestyle',':')
 % plot(prctile(idx_R_cnt1_p,95),'linewidth',1,'color','r','linestyle',':')
@@ -696,7 +696,7 @@ set(gca,'tickdir','out','ytick',[-0.5 -0.25 0 0.25 0.5],'yticklabel',[-50 -25 0 
 ylabel('Double difference [%]'); xlabel('Frequency [Hz]')
 title('Double dissociation')
 axis([1 14 -0.75 0.75])
-plot(find(p_doubledissociation_corr<0.05),doubledissociation_emp(find(p_doubledissociation_corr<0.05)),'k.','markersize',20)
+plot(find(p_doubledissociation_corr<ALPHA),doubledissociation_emp(find(p_doubledissociation_corr<ALPHA)),'k.','markersize',20)
 
 % plot(prctile(idx_R_cnt1_n,95),'linewidth',1,'color','b','linestyle',':')
 % plo
@@ -739,6 +739,6 @@ set(gca,'tickdir','out','ytick',[-0.5 -0.25 0 0.25 0.5],'yticklabel',[-50 -25 0 
 ylabel(sprintf('Fraction of \n altered correlations [%%]')); xlabel('Frequency [Hz]')
 title('Double dissociation')
 axis([1 14 -0.05 0.5])
-plot(find(pval_taskvsrest_n_corr<0.05),taskvsrest_n(find(pval_taskvsrest_n_corr<0.05)),'k.','markersize',20)
+plot(find(pval_taskvsrest_n_corr<ALPHA),taskvsrest_n(find(pval_taskvsrest_n_corr<ALPHA)),'k.','markersize',20)
 
 print(gcf,'-dpdf',sprintf('~/pupmod/plots/pupmod_src_taskvsrest.pdf'))

@@ -1,6 +1,6 @@
 
 
-v = 13;
+v = 12
 
 %%
 
@@ -158,10 +158,9 @@ for ifoi = 1 : 13
   
 end
 
-%%
 
 %% PLOT P-VALUES
-figure;
+figure;  set(gcf,'color','white')
 
 subplot(3,2,1); hold on
 plot(-log10(tp_res1_n),'b-','linewidth',3)
@@ -218,75 +217,188 @@ axis([0 14 0 4])
 set(gca,'tickdir','out','ytick',[0 1 2 3],'yticklabel',[0 0.1 0.01 0.001])
 set(gca,'tickdir','out','xtick',[1 3 5 7 9 11 13],'xticklabel',[2 4 8 16 32 64 128])
 xlabel('Carrier frequency [Hz]'); ylabel('P-Value (uncorrected)')
-
+% tp_editplots
 print(gcf,'-dpdf',sprintf('~/pupmod/plots/pupmod_src_powcorr_taskrestcomp_pval.pdf'));
 
 %%
-
-
-figure;
+figure; set(gcf,'color','w')
 
 subplot(3,2,1); hold on
 plot(n_p_atx(:,1),'r-','linewidth',3)
 plot(n_n_atx(:,1),'b-','linewidth',3)
 set(gca,'tickdir','out','xtick',[1 3 5 7 9 11 13],'xticklabel',[2 4 8 16 32 64 128])
-set(gca,'tickdir','out','ytick',[0 0.1 0.2 0.3],'yticklabel',[0 10 20 30])
+set(gca,'tickdir','out','ytick',[0 0.1 0.2 0.25 0.3 0.4 0.5],'yticklabel',[0 10 20 25 30 40 50])
 ylabel('Altered corr. [%]')
 title('Rest')
 axis([1 14 -0.05 0.5])
 plot(find(tp_res1_p<0.025),n_p_atx(find(tp_res1_p<0.025),1),'k.','markersize',30)
 plot(find(tp_res1_n<0.025),n_n_atx(find(tp_res1_n<0.025),1),'k.','markersize',30)
+tp_editplots
 
 subplot(3,2,2); hold on
 plot(n_p_dpz(:,1),'r-','linewidth',3)
 plot(n_n_dpz(:,1),'b-','linewidth',3)
 set(gca,'tickdir','out','xtick',[1 3 5 7 9 11 13],'xticklabel',[2 4 8 16 32 64 128])
-set(gca,'tickdir','out','ytick',[0 0.1 0.2 0.3],'yticklabel',[0 10 20 30])
+set(gca,'tickdir','out','ytick',[0 0.1 0.2 0.25 0.3 0.4 0.5],'yticklabel',[0 10 20 25 30 40 50])
 axis([1 14 -0.05 0.5])
 plot(find(tp_res2_p<0.025),n_p_dpz(find(tp_res2_p<0.025),1),'k.','markersize',30)
 plot(find(tp_res2_n<0.025),n_n_dpz(find(tp_res2_n<0.025),1),'k.','markersize',30)
+tp_editplots
 
 subplot(3,2,3); hold on
 plot(n_p_atx(:,2),'r-','linewidth',3)
 plot(n_n_atx(:,2),'b-','linewidth',3)
 set(gca,'tickdir','out','xtick',[1 3 5 7 9 11 13],'xticklabel',[2 4 8 16 32 64 128])
-set(gca,'tickdir','out','ytick',[0 0.1 0.2 0.3],'yticklabel',[0 10 20 30])
+set(gca,'tickdir','out','ytick',[0 0.1 0.2 0.25 0.3 0.4 0.5],'yticklabel',[0 10 20 25 30 40 50])
 ylabel('Altered corr. [%]')
 title('Task')
 axis([1 14 -0.05 0.5])
 plot(find(tp_cnt1_p<0.025),n_p_atx(find(tp_cnt1_p<0.025),2),'k.','markersize',30)
 plot(find(tp_cnt1_n<0.025),n_p_atx(find(tp_cnt1_n<0.025),2),'k.','markersize',30)
+tp_editplots
 
 subplot(3,2,4); hold on
 plot(n_p_dpz(:,2),'r-','linewidth',3)
 plot(n_n_dpz(:,2),'b-','linewidth',3)
 set(gca,'tickdir','out','xtick',[1 3 5 7 9 11 13],'xticklabel',[2 4 8 16 32 64 128])
-set(gca,'tickdir','out','ytick',[0 0.1 0.2 0.3],'yticklabel',[0 10 20 30])
+set(gca,'tickdir','out','ytick',[0 0.1 0.2 0.25 0.3 0.4 0.5],'yticklabel',[0 10 20 25 30 40 50])
 axis([1 14 -0.05 0.5])
 plot(find(tp_cnt2_p<0.025),n_p_dpz(find(tp_cnt2_p<0.025),2),'k.','markersize',30)
 plot(find(tp_cnt2_n<0.025),n_n_dpz(find(tp_cnt2_n<0.025),2),'k.','markersize',30)
+tp_editplots
 
 subplot(3,2,5); hold on
 plot(d1_n,'b-','linewidth',3)
 plot(d1_p,'r-','linewidth',3)
-axis([0 14 -0.5 0.5])
-% set(gca,'tickdir','out','ytick',[0 1 2 3],'yticklabel',[0 0.1 0.01 0.001])
+axis([0 14 -0.55 0.55])
+set(gca,'tickdir','out','ytick',[-0.5 0 0.5],'yticklabel',[-50 0 50])
 set(gca,'tickdir','out','xtick',[1 3 5 7 9 11 13],'xticklabel',[2 4 8 16 32 64 128])
 xlabel('Carrier frequency [Hz]'); ylabel('Difference')
 plot(find(p_d1_p<0.025),d1_p(find(p_d1_p<0.025)),'k.','markersize',30)
 plot(find(p_d1_n<0.025),d1_n(find(p_d1_n<0.025)),'k.','markersize',30)
+tp_editplots
 
 subplot(3,2,6); hold on
 plot(d2_n,'b-','linewidth',3)
 plot(d2_p,'r-','linewidth',3)
-axis([0 14 -0.5 0.5])
-% set(gca,'tickdir','out','ytick',[0 1 2 3],'yticklabel',[0 0.1 0.01 0.001])
+axis([0 14 -0.55 0.55])
+set(gca,'tickdir','out','ytick',[-0.5 0 0.5],'yticklabel',[-50 0 50])
 set(gca,'tickdir','out','xtick',[1 3 5 7 9 11 13],'xticklabel',[2 4 8 16 32 64 128])
 xlabel('Carrier frequency [Hz]'); 
 plot(find(p_d2_p<0.025),d2_p(find(p_d2_p<0.025)),'k.','markersize',30)
 plot(find(p_d2_n<0.025),d2_n(find(p_d2_n<0.025)),'k.','markersize',30)
+tp_editplots
 
-print(gcf,'-dpdf',sprintf('~/pupmod/plots/pupmod_src_powcorr_taskrestcomp.pdf'));
+print(gcf,'-dpdf',sprintf('~/pupmod/plots/pupmod_all_src_powcorr_drugeffects_lineplots.pdf'));
+
+%% SINGLE THRESHOLD PERMUTATION CORRECTION
+
+max_D_cnt1_n = max(perm_n_n_atx(:,:,2),[],2);
+max_D_cnt1_p = max(perm_n_p_atx(:,:,2),[],2);
+max_D_cnt2_n = max(perm_n_n_dpz(:,:,2),[],2);
+max_D_cnt2_p = max(perm_n_p_dpz(:,:,2),[],2);
+max_D_res1_n = max(perm_n_n_atx(:,:,1),[],2);
+max_D_res1_p = max(perm_n_p_atx(:,:,1),[],2);
+max_D_res2_n = max(perm_n_n_dpz(:,:,1),[],2);
+max_D_res2_p = max(perm_n_p_dpz(:,:,1),[],2);
+
+
+for ifreq = 1 : 13
+
+  p_res1_p(ifreq) = 1-sum(n_p_atx(ifreq,1)>max_D_res1_p)/nperm;
+  p_res1_n(ifreq) = 1-sum(n_n_atx(ifreq,1)>max_D_res1_n)/nperm;
+  p_cnt1_p(ifreq) = 1-sum(n_p_atx(ifreq,2)>max_D_cnt1_p)/nperm;
+  p_cnt1_n(ifreq) = 1-sum(n_n_atx(ifreq,2)>max_D_cnt1_n)/nperm;
+  p_res2_p(ifreq) = 1-sum(n_p_dpz(ifreq,1)>max_D_res2_p)/nperm;
+  p_res2_n(ifreq) = 1-sum(n_n_dpz(ifreq,1)>max_D_res2_n)/nperm;
+  p_cnt2_p(ifreq) = 1-sum(n_p_dpz(ifreq,2)>max_D_cnt2_p)/nperm;
+  p_cnt2_n(ifreq) = 1-sum(n_n_dpz(ifreq,2)>max_D_cnt2_n)/nperm;
+
+end
+
+%% PLOT CORRECTED RESULTS
+
+%%
+figure; set(gcf,'color','w')
+
+subplot(3,2,1); hold on
+plot(n_p_atx(:,1),'r-','linewidth',3)
+plot(n_n_atx(:,1),'b-','linewidth',3)
+set(gca,'tickdir','out','xtick',[1 3 5 7 9 11 13],'xticklabel',[2 4 8 16 32 64 128])
+set(gca,'tickdir','out','ytick',[0 0.1 0.2 0.25 0.3 0.4 0.5],'yticklabel',[0 10 20 25 30 40 50])
+ylabel('Altered corr. [%]')
+title('Rest')
+axis([1 14 -0.05 0.55])
+plot(find(p_res1_p<0.05),n_p_atx(find(p_res1_p<0.05),1),'k.','markersize',30)
+plot(find(p_res1_n<0.05),n_n_atx(find(p_res1_n<0.05),1),'k.','markersize',30)
+tp_editplots
+
+subplot(3,2,2); hold on
+plot(n_p_dpz(:,1),'r-','linewidth',3)
+plot(n_n_dpz(:,1),'b-','linewidth',3)
+set(gca,'tickdir','out','xtick',[1 3 5 7 9 11 13],'xticklabel',[2 4 8 16 32 64 128])
+set(gca,'tickdir','out','ytick',[0 0.1 0.2 0.25 0.3 0.4 0.5],'yticklabel',[0 10 20 25 30 40 50])
+axis([1 14 -0.05 0.55])
+plot(find(p_res2_p<0.05),n_p_dpz(find(p_res2_p<0.05),1),'k.','markersize',30)
+plot(find(p_res2_n<0.05),n_n_dpz(find(p_res2_n<0.05),1),'k.','markersize',30)
+tp_editplots
+
+subplot(3,2,3); hold on
+plot(n_p_atx(:,2),'r-','linewidth',3)
+plot(n_n_atx(:,2),'b-','linewidth',3)
+set(gca,'tickdir','out','xtick',[1 3 5 7 9 11 13],'xticklabel',[2 4 8 16 32 64 128])
+set(gca,'tickdir','out','ytick',[0 0.1 0.2 0.25 0.3 0.4 0.5],'yticklabel',[0 10 20 25 30 40 50])
+ylabel('Altered corr. [%]')
+title('Task')
+axis([1 14 -0.05 0.55])
+plot(find(p_cnt1_p<0.05),n_p_atx(find(p_cnt1_p<0.05),2),'k.','markersize',30)
+plot(find(p_cnt1_n<0.05),n_p_atx(find(p_cnt1_n<0.05),2),'k.','markersize',30)
+tp_editplots
+
+subplot(3,2,4); hold on
+plot(n_p_dpz(:,2),'r-','linewidth',3)
+plot(n_n_dpz(:,2),'b-','linewidth',3)
+set(gca,'tickdir','out','xtick',[1 3 5 7 9 11 13],'xticklabel',[2 4 8 16 32 64 128])
+set(gca,'tickdir','out','ytick',[0 0.1 0.2 0.25 0.3 0.4 0.5],'yticklabel',[0 10 20 25 30 40 50])
+axis([1 14 -0.05 0.55])
+plot(find(p_cnt2_p<0.05),n_p_dpz(find(p_cnt2_p<0.05),2),'k.','markersize',30)
+plot(find(p_cnt2_n<0.05),n_n_dpz(find(p_cnt2_n<0.05),2),'k.','markersize',30)
+tp_editplots
+
+subplot(3,2,5); hold on
+plot(d1_n,'b-','linewidth',3)
+plot(d1_p,'r-','linewidth',3)
+axis([0 14 -0.55 0.55])
+set(gca,'tickdir','out','ytick',[-0.5 0 0.5],'yticklabel',[-50 0 50])
+set(gca,'tickdir','out','xtick',[1 3 5 7 9 11 13],'xticklabel',[2 4 8 16 32 64 128])
+xlabel('Carrier frequency [Hz]'); ylabel('Difference')
+plot(find(p_d1_p<0.025),d1_p(find(p_d1_p<0.025)),'k.','markersize',30)
+plot(find(p_d1_n<0.025),d1_n(find(p_d1_n<0.025)),'k.','markersize',30)
+tp_editplots
+
+subplot(3,2,6); hold on
+plot(d2_n,'b-','linewidth',3)
+plot(d2_p,'r-','linewidth',3)
+axis([0 14 -0.55 0.55])
+set(gca,'tickdir','out','ytick',[-0.5 0 0.5],'yticklabel',[-50 0 50])
+set(gca,'tickdir','out','xtick',[1 3 5 7 9 11 13],'xticklabel',[2 4 8 16 32 64 128])
+xlabel('Carrier frequency [Hz]'); 
+plot(find(p_d2_p<0.025),d2_p(find(p_d2_p<0.025)),'k.','markersize',30)
+plot(find(p_d2_n<0.025),d2_n(find(p_d2_n<0.025)),'k.','markersize',30)
+tp_editplots
+
+print(gcf,'-dpdf',sprintf('~/pupmod/plots/pupmod_all_src_powcorr_drugeffects_lineplots_corrected.pdf'));
+
+subplot(3,2,5); hold on
+plot(d2_n,'b-','linewidth',3)
+plot(d2_p,'r-','linewidth',3)
+axis([0 14 -0.55 0.55])
+set(gca,'tickdir','out','ytick',[-0.5 0 0.5],'yticklabel',[-50 0 50])
+set(gca,'tickdir','out','xtick',[1 3 5 7 9 11 13],'xticklabel',[2 4 8 16 32 64 128])
+xlabel('Carrier frequency [Hz]'); 
+plot(find(p_d2_p<0.025),d2_p(find(p_d2_p<0.025)),'k.','markersize',30)
+plot(find(p_d2_n<0.025),d2_n(find(p_d2_n<0.025)),'k.','markersize',30)
+tp_editplots
 
 
 %% MULTIPLE COMPARISONS CORRECTION (HAWELLEK ET AL., xxxx)
@@ -352,40 +464,4 @@ for ifreq = 1 : 13
 
 end
 
-%%
-nperm = 5000;
 
-contr = [1 2; 1 3];
-
-icontr = 2;
-
-clear t_max
-
-ifoi = 6;
-
- s_fc = cleandat(:,:,:,contr(icontr,:),:,ifoi);
-
- [h,p,~,s]=ttest(s_fc(:,:,:,2,2),s_fc(:,:,:,1,2),'dim',3);
- 
- for i = 1 : nperm
-  
-  fprintf('Perm%d ...\n',i)
-   
-  idx(:,1) = randi(2,[28 1]);
-  idx(:,2) = 3-idx(:,1);
-  
-  for isubj  = 1 : 28
-    
-    permdat(:,:,isubj,1,:) = squeeze(s_fc(:,:,isubj,idx(isubj,1),:));
-    permdat(:,:,isubj,2,:) = squeeze(s_fc(:,:,isubj,idx(isubj,2),:));
-
-  end
-  
-  [h,p,~,s]=ttest(permdat(:,:,:,2,2),permdat(:,:,:,1,2),'dim',3);
-  
-  t_max(i) = max(s.tstat(:));
-  
- end
- 
- %% PLOT FC MATRICES FOR ALPHA
-    

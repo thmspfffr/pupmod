@@ -1,5 +1,7 @@
 %% pupmod_src_powcorr_permtest
 
+% 
+
 clear 
 
 addpath /home/gnolte/meg_toolbox/toolbox/
@@ -14,7 +16,7 @@ addpath /home/tpfeffer/pconn/matlab/
 
 %%
 clear s s1 s2 fc_mean
-v = 13;
+v = 14;
 
 SUBJLIST  = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
 
@@ -150,24 +152,26 @@ for iperm = 1 : par.allperms
     
     for ifoi = 1 : 13
       
+      % CHANGED TO LOG-TRANSFORMED DATA (28-05-2018)
+      % -----------
       % compute ttest during task and atomoxetine
-      [t_cnt1,~,~,s] = ttest(permdat_cnt1(:,:,:,2,ifoi),permdat_cnt1(:,:,:,1,ifoi),'dim',3,'alpha',alp);
+      [t_cnt1,~,~,s] = ttest(atanh(permdat_cnt1(:,:,:,2,ifoi)),atanh(permdat_cnt1(:,:,:,1,ifoi)),'dim',3,'alpha',alp);
       t_cnt1 = t_cnt1.*sign(s.tstat); clear s
       % compute ttest during rest and atomoxetine
-      [t_res1,~,~,s] = ttest(permdat_res1(:,:,:,2,ifoi),permdat_res1(:,:,:,1,ifoi),'dim',3,'alpha',alp);
+      [t_res1,~,~,s] = ttest(atanh(permdat_res1(:,:,:,2,ifoi)),atanh(permdat_res1(:,:,:,1,ifoi)),'dim',3,'alpha',alp);
       t_res1 = t_res1.*sign(s.tstat); clear s
       % compute ttest during task and donepezil
-      [t_cnt2,~,~,s] = ttest(permdat_cnt2(:,:,:,2,ifoi),permdat_cnt2(:,:,:,1,ifoi),'dim',3,'alpha',alp);
+      [t_cnt2,~,~,s] = ttest(atanh(permdat_cnt2(:,:,:,2,ifoi)),atanh(permdat_cnt2(:,:,:,1,ifoi)),'dim',3,'alpha',alp);
       t_cnt2 = t_cnt2.*sign(s.tstat); clear s
       % compute ttest during rest and donepezil
-      [t_res2,~,~,s] = ttest(permdat_res2(:,:,:,2,ifoi),permdat_res2(:,:,:,1,ifoi),'dim',3,'alpha',alp);
+      [t_res2,~,~,s] = ttest(atanh(permdat_res2(:,:,:,2,ifoi)),atanh(permdat_res2(:,:,:,1,ifoi)),'dim',3,'alpha',alp);
       t_res2 = t_res2.*sign(s.tstat); clear s
       
       % compute double contrast, test connections for context-dependence
-      [t_all1,~,~,s] = ttest(permdat_res1(:,:,:,2,ifoi)-permdat_res1(:,:,:,1,ifoi),permdat_cnt1(:,:,:,2,ifoi)-permdat_cnt1(:,:,:,1,ifoi),'dim',3,'alpha',alp);
+      [t_all1,~,~,s] = ttest(atanh(permdat_res1(:,:,:,2,ifoi))-atanh(permdat_res1(:,:,:,1,ifoi)),atanh(permdat_cnt1(:,:,:,2,ifoi))-atanh(permdat_cnt1(:,:,:,1,ifoi)),'dim',3,'alpha',alp);
       t_all1 = t_all1.*sign(s.tstat); clear s
       % compute double contrast, test connections for context-dependence
-      [t_all2,~,~,s] = ttest(permdat_res2(:,:,:,2,ifoi)-permdat_res2(:,:,:,1,ifoi),permdat_cnt2(:,:,:,2,ifoi)-permdat_cnt2(:,:,:,1,ifoi),'dim',3,'alpha',alp);
+      [t_all2,~,~,s] = ttest(atanh(permdat_res2(:,:,:,2,ifoi))-atanh(permdat_res2(:,:,:,1,ifoi)),atanh(permdat_cnt2(:,:,:,2,ifoi))-atanh(permdat_cnt2(:,:,:,1,ifoi)),'dim',3,'alpha',alp);
       t_all2 = t_all2.*sign(s.tstat); clear s
       
       % NUMBER OF ALTERED CORRELATONS -------------------------------------
@@ -220,7 +224,6 @@ for iperm = 1 : par.allperms
       
       par.tperm_taskvsrest_p(kperm,ifoi) = nansum(nansum(t_tvsr>0))./nvox;
       par.tperm_taskvsrest_n(kperm,ifoi) = nansum(nansum(t_tvsr<0))./nvox;
-      
       
     end
   end

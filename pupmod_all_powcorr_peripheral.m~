@@ -2,12 +2,13 @@
 % heart beats and blinks projected out of the FC matrices across subjects
 % pupmod_all_powcorr_periphereal
 
+% See pupmod_src_powcorr_permtest.m for 
 clear
 
 % -------------------------------------------------------------------------
 % VERSION 01 - ignore saccades, *interpolate* blinks
 % -------------------------------------------------------------------------
-v = 12;
+v = 14;
 v_pup = 2;
 % -------------------------------------------------------------------------
 
@@ -117,14 +118,14 @@ hb_all_cnt(hb_all_cnt==0) = NaN;
 hb(:,:,1)  = squeeze(nanmean(hb_all,2));
 hb(:,:,2)  = squeeze(nanmean(hb_all_cnt,2));
 %%
-v = 12;
+v = 14;
 clear p1 p2
 
 outdir = '~/pupmod/proc/conn/';
 
 ord = pconn_randomization;
-s_fc = single(zeros(400,400,34,3,2,13));
-% s_fc = single(zeros(90,90,34,3,2,13));
+% s_fc = single(zeros(400,400,34,3,2,13));
+s_fc = single(zeros(90,90,34,3,2,13));
 
 for ifoi = 1:13
   ifoi
@@ -141,15 +142,15 @@ for ifoi = 1:13
         
         p1(:,:,iblock) = single(powcorr);
         
-%         load(sprintf([outdir 'pupmod_task_src_powcorr_s%d_m%d_b%d_f%d_v%d.mat'],isubj,im,iblock,ifoi,v));
-% %        size(powcorr)
-%         p2(:,:,iblock) = single(powcorr);
+        load(sprintf([outdir 'pupmod_task_src_powcorr_s%d_m%d_b%d_f%d_v%d.mat'],isubj,im,iblock,ifoi,v));
+%        size(powcorr)
+        p2(:,:,iblock) = single(powcorr);
         
         
       end
       
       s_fc(:,:,isubj,m,1,ifoi) = nanmean(p1,3);
-%       s_fc(:,:,isubj,m,2,ifoi) = nanmean(p2,3);
+      s_fc(:,:,isubj,m,2,ifoi) = nanmean(p2,3);
       
       clear p1 p2
       
@@ -162,17 +163,16 @@ s_fc = s_fc(:,:,SUBJLIST,:,:,:);
 
 error('!')
 
-
-
 %%
 
 if ~exist(sprintf('~/pupmod/proc/conn/pupmod_src_powcorr_cleaned_v%d.mat',v))
-for icont = 1 : 1
+for icont = 1 : 2
   for im = 1 : 3
     for ifoi = 1:13
       for i = 1 : size(s_fc,1)
+        fprintf('Cond %d Session %d freq %d node %d...\n',icont,im,ifoi,i)
         for j = 1 : size(s_fc,1)
-
+      
           dat = atanh(squeeze(s_fc(i,j,:,im,icont,ifoi)))-mean(atanh(squeeze(s_fc(i,j,:,im,icont,ifoi))));
           x   = zscore(hb(:,im,icont));
           ref = x./norm(x);
@@ -203,8 +203,6 @@ clear s_fc;
 %%
 s_res = squeeze(cleandat(:,:,:,:,1,:));
 s_cnt = squeeze(cleandat(:,:,:,:,2,:));
-
-
 
 % v = 1;
 clear permdat_cnt1
@@ -293,23 +291,23 @@ for iperm = 1 : par.allperms
       [t_all2,~,~,s] = ttest(permdat_res2(:,:,:,2,ifoi)-permdat_res2(:,:,:,1,ifoi),permdat_cnt2(:,:,:,2,ifoi)-permdat_cnt2(:,:,:,1,ifoi),'dim',3,'alpha',alp);
       t_all2 = t_all2.*sign(s.tstat); clear s
       
-      par.tperm_cnt1_n(kperm,ifoi)=nansum(nansum(t_cnt1<0))./8010;
-      par.tperm_cnt1_p(kperm,ifoi)=nansum(nansum(t_cnt1>0))./8010;
+      par.tperm_cnt1_n(kperm,ifoi)=nansum(nansum(t_cnt1<0))./(size(cleandat,1)*size(cleandat,1)-size(cleandat,1));
+      par.tperm_cnt1_p(kperm,ifoi)=nansum(nansum(t_cnt1>0))./(size(cleandat,1)*size(cleandat,1)-size(cleandat,1));
       
-      par.tperm_res1_n(kperm,ifoi)=nansum(nansum(t_res1<0))./8010;
-      par.tperm_res1_p(kperm,ifoi)=nansum(nansum(t_res1>0))./8010;
+      par.tperm_res1_n(kperm,ifoi)=nansum(nansum(t_res1<0))./(size(cleandat,1)*size(cleandat,1)-size(cleandat,1));
+      par.tperm_res1_p(kperm,ifoi)=nansum(nansum(t_res1>0))./(size(cleandat,1)*size(cleandat,1)-size(cleandat,1));
       
-      par.tperm_cnt2_n(kperm,ifoi)=nansum(nansum(t_cnt2<0))./8010;
-      par.tperm_cnt2_p(kperm,ifoi)=nansum(nansum(t_cnt2>0))./8010;
+      par.tperm_cnt2_n(kperm,ifoi)=nansum(nansum(t_cnt2<0))./(size(cleandat,1)*size(cleandat,1)-size(cleandat,1));
+      par.tperm_cnt2_p(kperm,ifoi)=nansum(nansum(t_cnt2>0))./(size(cleandat,1)*size(cleandat,1)-size(cleandat,1));
       
-      par.tperm_res2_n(kperm,ifoi)=nansum(nansum(t_res2<0))./8010;
-      par.tperm_res2_p(kperm,ifoi)=nansum(nansum(t_res2>0))./8010;
+      par.tperm_res2_n(kperm,ifoi)=nansum(nansum(t_res2<0))./(size(cleandat,1)*size(cleandat,1)-size(cleandat,1));
+      par.tperm_res2_p(kperm,ifoi)=nansum(nansum(t_res2>0))./(size(cleandat,1)*size(cleandat,1)-size(cleandat,1));
       
-      par.tperm_all1_n(kperm,ifoi)=nansum(nansum(t_all1<0))./8010;
-      par.tperm_all1_p(kperm,ifoi)=nansum(nansum(t_all1>0))./8010;
+      par.tperm_all1_n(kperm,ifoi)=nansum(nansum(t_all1<0))./(size(cleandat,1)*size(cleandat,1)-size(cleandat,1));
+      par.tperm_all1_p(kperm,ifoi)=nansum(nansum(t_all1>0))./(size(cleandat,1)*size(cleandat,1)-size(cleandat,1));
       
-      par.tperm_all2_n(kperm,ifoi)=nansum(nansum(t_all2<0))./8010;
-      par.tperm_all2_p(kperm,ifoi)=nansum(nansum(t_all2>0))./8010;
+      par.tperm_all2_n(kperm,ifoi)=nansum(nansum(t_all2<0))./(size(cleandat,1)*size(cleandat,1)-size(cleandat,1));
+      par.tperm_all2_p(kperm,ifoi)=nansum(nansum(t_all2>0))./(size(cleandat,1)*size(cleandat,1)-size(cleandat,1));
       
     end
   end

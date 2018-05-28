@@ -310,19 +310,24 @@ end
 %% IMAGE RESULTS
 
 ifoi = 7;
-var2plot = n_p_task_atx(:,ifoi).*(p_p_task_atx(:,ifoi)<0.3);
+% var2plot = n_p_task_atx(:,ifoi).*(p_p_task_atx(:,ifoi)<0.025);
+var2plot = n_n_rest_dpz(:,ifoi).*(p_n_rest_dpz(:,ifoi)<0.05);
 
 
 if ~exist('sa_meg_template','var')
   load sa_meg_template;
 end
 
+cmap = cbrewer('seq', 'Blues', 256,'pchip'); %cmap(end:-1:1,:);
+% cmap = inferno;
+% cmap(1:100,:)=0.98*ones(100,3);
 
 mri   = sa_meg_template.mri;
+
 vc    = sa_meg_template.vc;
 g1    = grid;
 g2    = sa_meg_template.cortex10K.vc;
-dd    = .5;
+dd    = .75;
 
 z2 = spatfiltergauss(var2plot(:),g1,dd,g2);
 
@@ -330,8 +335,8 @@ para = [] ;
 para.colorlimits = [min(var2plot) max(var2plot)];
 
 viewdir = [-.5 -.5 .5; .5 -.5 .5; .5 .5 .5; -.5 .5 .5];
-cmap = inferno;
-cmap(1:100,:)=0.98*ones(100,3);
+
+para.filename = sprintf('~/pupmod/plots/pupmod_all_src_powcorr_map_permtest_f%d_v%d.png',ifoi,v)
 
 tp_showsource(z2,cmap,sa_meg_template,para);
 
