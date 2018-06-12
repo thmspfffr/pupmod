@@ -1,8 +1,12 @@
 %% pupmod_src_powcorr_permtest
+% counts number of altered correlations and computes permututation test
+% see hawellek et al. (2013) for details
+% cleaned data is generated in pupmod_all_powcorr_periphereal
 
-% 
+% last update: 28-05-2018
 
 clear 
+v = 15;
 
 addpath /home/gnolte/meg_toolbox/toolbox/
 addpath /home/gnolte/meg_toolbox/fieldtrip_utilities/
@@ -13,45 +17,9 @@ addpath /home/tpfeffer/Documents/MATLAB/fieldtrip-20130925/
 outdir   = '/home/tpfeffer/pupmod/proc/conn/';
 addpath /home/tpfeffer/pconn/matlab/
 
-
-%%
-clear s s1 s2 fc_mean
-v = 14;
-
 SUBJLIST  = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
 
 addpath ~/pconn/matlab/
-% 
-% ord = pconn_randomization;
-% 
-% for ifoi = 1:13
-%   
-%   for isubj = SUBJLIST
-%     disp(isubj)
-%     for m = 1 : 3
-%       
-%       im = find(ord(isubj,:)==m);
-%       
-%       for iblock = 1 : 2
-%         
-%         load(sprintf([outdir 'pupmod_task_src_powcorr_s%d_m%d_b%d_f%d_v%d.mat'],isubj,im,iblock,ifoi,v));
-%         p2(:,:,iblock) =  single(powcorr); clear powcorr
-%         load(sprintf([outdir 'pupmod_src_powcorr_s%d_m%d_b%d_f%d_v%d.mat'],isubj,im,iblock,ifoi,v));
-%         p1(:,:,iblock) =  single(powcorr); clear powcorr
-%         
-%       end
-%       s_cnt(:,:,isubj,m,ifoi) = single(nanmean(p2,3)); clear p2
-%       s_res(:,:,isubj,m,ifoi) = single(nanmean(p1,3)); clear p1
-%       
-%     end
-%   end
-% end
-% 
-% % save('~/pupmod/proc/pupmod_src_fcd.mat','h')
-% 
-% s_res = squeeze(s_res(:,:,SUBJLIST,:,:));
-% s_cnt = squeeze(s_cnt(:,:,SUBJLIST,:,:));
-
 
 load(sprintf('~/pupmod/proc/conn/pupmod_src_powcorr_cleaned_v%d.mat',v));
 
@@ -61,11 +29,6 @@ s_cnt = squeeze(cleandat(:,:,:,:,2,:));
 nvox = size(cleandat,1)*size(cleandat,1)-size(cleandat,1);
 
 %%
-% v = 1;
-clear permdat_cnt1
-clear permdat_cnt2
-clear permdat_res1
-clear permdat_res2
 
 tmp = clock;
 
@@ -73,9 +36,8 @@ seed = ((tmp(1)+tmp(2)*tmp(3))/tmp(4)+tmp(5))*tmp(6);
 
 rng(seed,'twister')
 
-% v = 12;
 % alp: standard for all 0.05!!! except verison 13
-nperm = 10000; alp = 0.1;
+nperm = 10000; alp = 0.05;
 
 par.subs = 100;
 par.allperms = nperm/par.subs;
@@ -107,8 +69,7 @@ for iperm = 1 : par.allperms
     
     iiperm = (iperm-1)*par.subs+kperm;
     
-    % within subjects permutation test
-    
+    % within subjects permutation test 
     disp(sprintf('Perm #%d',kperm));
     
     idx1 = all_idx1(:,iiperm);
@@ -152,7 +113,7 @@ for iperm = 1 : par.allperms
     
     for ifoi = 1 : 13
       
-      % CHANGED TO LOG-TRANSFORMED DATA (28-05-2018)
+      % CHANGED TO FISHER-Z-TRANSFORMED DATA (28-05-2018)
       % -----------
       % compute ttest during task and atomoxetine
       [t_cnt1,~,~,s] = ttest(atanh(permdat_cnt1(:,:,:,2,ifoi)),atanh(permdat_cnt1(:,:,:,1,ifoi)),'dim',3,'alpha',alp);
@@ -174,8 +135,7 @@ for iperm = 1 : par.allperms
       [t_all2,~,~,s] = ttest(atanh(permdat_res2(:,:,:,2,ifoi))-atanh(permdat_res2(:,:,:,1,ifoi)),atanh(permdat_cnt2(:,:,:,2,ifoi))-atanh(permdat_cnt2(:,:,:,1,ifoi)),'dim',3,'alpha',alp);
       t_all2 = t_all2.*sign(s.tstat); clear s
       
-      % NUMBER OF ALTERED CORRELATONS -------------------------------------
-      
+      % NUMBER OF ALTERED CORRELATONS ------------------------------------- 
       % count number of altered connections (atx, task)
       par.tperm_cnt1_n(kperm,ifoi)=nansum(nansum(t_cnt1<0))./nvox;
       par.tperm_cnt1_p(kperm,ifoi)=nansum(nansum(t_cnt1>0))./nvox;
@@ -188,23 +148,20 @@ for iperm = 1 : par.allperms
       % count number of altered connections (dpz, rest)
       par.tperm_res2_n(kperm,ifoi)=nansum(nansum(t_res2<0))./nvox;
       par.tperm_res2_p(kperm,ifoi)=nansum(nansum(t_res2>0))./nvox;
-      
-      % number of altered connections, irrespective of direction (atx)
+     	% number of altered connections, irrespective of direction (atx)
       par.tperm_atx_during_task(kperm,ifoi)=nansum(nansum(abs(t_cnt1)))./nvox;
       par.tperm_atx_during_rest(kperm,ifoi)=nansum(nansum(abs(t_res1)))./nvox;
       % number of altered connections, irrespective of direction (dpz)
       par.tperm_dpz_during_task(kperm,ifoi)=nansum(nansum(abs(t_cnt2)))./nvox;
       par.tperm_dpz_during_rest(kperm,ifoi)=nansum(nansum(abs(t_res2)))./nvox;
       
-      % CONTEXT DEPENDENCE ------------------------------------------------
-      
+      % CONTEXT DEPENDENCE ------------------------------------------------  
       % context dependence: diff in counts (atx) between task and rest
       par.tperm_context_diff_atx_n(kperm,ifoi)= par.tperm_cnt1_n(kperm,ifoi) - par.tperm_res1_n(kperm,ifoi);
       par.tperm_context_diff_atx_p(kperm,ifoi)= par.tperm_cnt1_p(kperm,ifoi) - par.tperm_res1_p(kperm,ifoi);
       % context dependence: diff in counts (dpz) between task and rest
       par.tperm_context_diff_dpz_n(kperm,ifoi)= par.tperm_cnt2_n(kperm,ifoi) - par.tperm_res2_n(kperm,ifoi);
-      par.tperm_context_diff_dpz_p(kperm,ifoi)= par.tperm_cnt2_p(kperm,ifoi) - par.tperm_res2_p(kperm,ifoi);
-      
+      par.tperm_context_diff_dpz_p(kperm,ifoi)= par.tperm_cnt2_p(kperm,ifoi) - par.tperm_res2_p(kperm,ifoi);  
       % context-dependence: diff in counts, irrespective of direction 
       par.tperm_atx_context(kperm,ifoi)=par.tperm_atx_during_task(kperm,ifoi)-par.tperm_atx_during_rest(kperm,ifoi);
       par.tperm_dpz_context(kperm,ifoi)=par.tperm_dpz_during_task(kperm,ifoi)-par.tperm_dpz_during_rest(kperm,ifoi);     
@@ -220,7 +177,7 @@ for iperm = 1 : par.allperms
           
       % TASK VS REST ------------------------------------------------------
       [t_tvsr,~,~,s] = ttest(taskvsrest_perm(:,:,:,2,ifoi),taskvsrest_perm(:,:,:,1,ifoi),'dim',3,'alpha',alp);
-       t_tvsr = t_tvsr.*sign(s.tstat); clear s   
+      t_tvsr = t_tvsr.*sign(s.tstat); clear s   
       
       par.tperm_taskvsrest_p(kperm,ifoi) = nansum(nansum(t_tvsr>0))./nvox;
       par.tperm_taskvsrest_n(kperm,ifoi) = nansum(nansum(t_tvsr<0))./nvox;

@@ -1,6 +1,9 @@
 %% pupmod_task_src_powcorr
 
-clear 
+% Call pupmod_all_powcorr_periphereal.m next, in order to clean
+% estimated FCs from artifacts. 
+
+clear
 
 % --------------------------------------------------------
 % VERSION 1 - WEIGHTED AAL
@@ -103,12 +106,32 @@ clear
 % --------------------------------------------------------
 % VERSION 14 - LCMV + moving average
 % --------------------------------------------------------
-v               = 14;
+% v               = 14;
+% v_postproc      = 6;
+% fsample         = 400;
+% SUBJLIST        = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
+% allpara.filt    = 'jh_lcmv';
+% allpara.grid    = 'aal_4mm';
+% foi_range       = unique(round(2.^[1:.5:7]));
+% para.segleng    = 9 ./ foi_range;
+% para.bpfreq     = [foi_range-(foi_range./2)/2; foi_range+(foi_range./2)/2]';
+% para.epleng     = 60;
+% lpc             = 0;
+% timevariant     = 0;
+% para.wavelet    = 'bp_filt';
+% para.scnd_filt  = 1;
+% allpara.reg     = 0.05;
+% allpara.weigh   = 1;
+% allpara.tau     = nan;
+% --------------------------------------------------------
+% VERSION 15 - GENE EXPRESSION MAPS
+% --------------------------------------------------------
+v               = 15;
 v_postproc      = 6;
 fsample         = 400;
 SUBJLIST        = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
 allpara.filt    = 'jh_lcmv';
-allpara.grid    = 'aal_4mm';
+allpara.grid    = 'genemaps_aal';
 foi_range       = unique(round(2.^[1:.5:7]));
 para.segleng    = 9 ./ foi_range;
 para.bpfreq     = [foi_range-(foi_range./2)/2; foi_range+(foi_range./2)/2]';
@@ -116,11 +139,12 @@ para.epleng     = 60;
 lpc             = 0;
 timevariant     = 0;
 para.wavelet    = 'bp_filt';
-para.scnd_filt  = 1;
+para.scnd_filt  = 0;
 allpara.reg     = 0.05;
-allpara.weigh   = 1;
+allpara.weigh   = 0;
 allpara.tau     = nan;
 % --------------------------------------------------------
+
 
 if strcmp(allpara.grid,'xcoarse')
   v_grid = 2;
@@ -138,6 +162,10 @@ elseif strcmp(allpara.grid,'m758_4mm')
   v_grid = 8;
 elseif strcmp(allpara.grid, 'cortex_lowres')
   v_grid = 9;
+elseif strcmp(allpara.grid,'genemaps')
+  v_grid = 13;
+elseif strcmp(allpara.grid,'genemaps_aal')
+  v_grid = 14;
 end
 
 addpath /home/gnolte/meg_toolbox/toolbox/
@@ -152,24 +180,19 @@ run ~/Documents/MATLAB/toolboxes/NBT-NBTv0.5.3-alpha/installNBT.m
 siginfo = nbt_Info;
 siginfo.converted_sample_frequency = 400;
 
-t = license('test','signal_toolbox');
-% if t
-% %   continue
-% else
-%   error('Toolbox not available');
-% end
+
 %% LOAD DATA COMPUTE SRC TIME COURSES
 
 for isubj = SUBJLIST
   for m = 1 : 3
-    for ifoi = 1:length(foi_range)
+    for ifoi = [6 7]%1:length(foi_range)
       
       if ~exist(sprintf([outdir 'pupmod_task_src_powcorr_s%d_m%d_f%d_v%d_processing.txt'],isubj,m,ifoi,v))
         system(['touch ' outdir sprintf('pupmod_task_src_powcorr_s%d_m%d_f%d_v%d_processing.txt',isubj,m,ifoi,v)]);
       else
         continue
       end
-%       
+      %
       fprintf('Processing s%d m%d f%d ...\n', isubj,m,ifoi)
       
       
@@ -180,19 +203,21 @@ for isubj = SUBJLIST
         sa        = load(pars.sa);
         
         fprintf('Loading MEG data ...\n');
-
-        try 
+        
+        try
           load(sprintf('/home/tpfeffer/pconn_cnt/proc/preproc/pconn_cnt_postpostproc_s%d_m%d_b%d_v%d.mat',isubj,m,iblock,1))
         catch me
           if ~exist(sprintf('/home/tpfeffer/pconn_cnt/proc/preproc/pconn_cnt_postpostproc_s%d_m%d_b%d_v%d.mat',isubj,m,iblock,1))
             if strcmp(allpara.grid,'cortex_lowres')
-                powcorr = nan(400,400);
+              powcorr = nan(400,400);
             elseif strcmp(allpara.grid,'aal_4mm')
               powcorr = nan(90,90);
             elseif strcmp(allpara.grid,'aal_6mm')
               powcorr = nan(90,90);
+            elseif strcmp(allpara.grid,'genemaps_aal')
+              powcorr = nan(378,378);
             end
-          
+            
             save(sprintf([outdir 'pupmod_task_src_powcorr_s%d_m%d_b%d_f%d_v%d.mat'],isubj,m,iblock,ifoi,v),'powcorr');
             continue
           else
@@ -201,19 +226,19 @@ for isubj = SUBJLIST
         end
         
         dat = megdata2mydata(data); clear data
-
+        
         pars = [];
         
         pars.fsample   = 400;
         
         if strcmp(para.wavelet,'bp_filt')
-          pars.segleng   = round(para.segleng.*fsample); 
+          pars.segleng   = round(para.segleng.*fsample);
           pars.segshift  = round(fsample*para.segleng/2);
         else
           pars.segleng   = round(para.segleng(ifoi).*fsample);
           pars.segshift  = round(fsample*para.segleng(ifoi)/2);
         end
-                
+        
         if ~any(size(foi_range)==1)
           pars.foi       = foi_range(ifoi,:);
         else
@@ -258,22 +283,22 @@ for isubj = SUBJLIST
             powcorr = tp_lpc(dat,pars,filt,filt);
           end
         end
-
-         if size(powcorr,1) < 100 && size(powcorr,1) > 80
+        
+        if size(powcorr,1) < 100 && size(powcorr,1) > 80
           pars = [];
           pars.grid = 'medium';
           pars.N = 91;
           powcorr = tp_match_aal(pars,powcorr);
-          
         end
-       save(sprintf([outdir 'pupmod_task_src_powcorr_s%d_m%d_b%d_f%d_v%d.mat'],isubj,m,iblock,ifoi,v),'powcorr');
+        
+        save(sprintf([outdir 'pupmod_task_src_powcorr_s%d_m%d_b%d_f%d_v%d.mat'],isubj,m,iblock,ifoi,v),'powcorr');
         
       end
     end
   end
 end
-  
-  
+
+
 error('!')
 
 %%
@@ -286,20 +311,20 @@ for m = 1 : 3
   for isubj = SUBJLIST
     for ifoi = 1:13
       for iblock = 1 : 2
-%         ifoi
+        %         ifoi
         if exist(sprintf([outdir 'pupmod_task_src_powcorr_s%d_m%d_b%d_f%d_v%d.mat'],isubj,m,iblock,ifoi,v)) && exist(sprintf([outdir 'pupmod_task_src_powcorr_s%d_m%d_f%d_v%d_processing.txt'],isubj,m,ifoi,v))
           cnt_exist = cnt_exist + 1;
-
+          
           continue
         elseif exist(sprintf([outdir 'pupmod_task_src_powcorr_s%d_m%d_b%d_f%d_v%d.mat'],isubj,iblock,m,ifoi,v)) && ~exist(sprintf([outdir 'pupmod_task_src_powcorr_s%d_m%d_f%d_v%d_processing.txt'],isubj,m,ifoi,v))
           system(['touch ' outdir sprintf('pupmod_task_src_powcorr_s%d_m%d_f%d_v%d_processing.txt',isubj,m,ifoi,v)]);
-
+          
         elseif exist(sprintf([outdir 'pupmod_task_src_powcorr_s%d_m%d_f%d_v%d_processing.txt'],isubj,m,ifoi,v)) && ~exist(sprintf([outdir 'pupmod_task_src_powcorr_s%d_m%d_b%d_f%d_v%d.mat'],isubj,m,iblock,ifoi,v))
           warning(sprintf('Deleting stuff: s%d m%df %d',isubj,m,ifoi))
-%           delete(sprintf([outdir 'pupmod_task_src_powcorr_s%d_m%d_f%d_v%d_processing.txt'],isubj,m,ifoi,v))
+          %           delete(sprintf([outdir 'pupmod_task_src_powcorr_s%d_m%d_f%d_v%d_processing.txt'],isubj,m,ifoi,v))
           cnt = cnt + 1;
-                    fprintf('S%dm%df%db%d\n',isubj,m,ifoi,iblock)
-
+          fprintf('S%dm%df%db%d\n',isubj,m,ifoi,iblock)
+          
         elseif ~exist(sprintf([outdir 'pupmod_task_src_powcorr_s%d_m%d_f%d_v%d_processing.txt'],isubj,m,ifoi,v)) && exist(sprintf([outdir 'pupmod_task_src_fpowcorr_s%d_m%d_b%d_f%d_v%d.mat'],isubj,m,iblock,ifoi,v))
           system(['touch ' outdir sprintf('pupmod_task_src_powcorr_s%d_m%d_f%d_v%d_processing.txt',isubj,m,ifoi,v)]);
         else
@@ -312,11 +337,11 @@ for m = 1 : 3
   end
 end
 cnt
-  
+
 
 %%
 par_interp = spatfiltergauss(dat,g1,dd,g2);
-   
+
 figure; set(gcf,'color','white'); hold on;
 
 para = [] ;
@@ -348,8 +373,8 @@ end
 
 %%
 for i = 1 : 90
-   
-
+  
+  
   for j = 1 : 90
     
     idx1 = find(aalgrid.mask==i)

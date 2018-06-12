@@ -9,7 +9,7 @@ clear
 % -------------------------------------------------------------------------
 % VERSION 01 - ignore saccades, *interpolate* blinks
 % -------------------------------------------------------------------------
-v = 14;
+v = 15;
 v_pup = 2;
 v_hrv = 1;
 % -------------------------------------------------------------------------
@@ -119,9 +119,10 @@ clear p1 p2
 
 outdir = '~/pupmod/proc/conn/';
 % s_fc = single(zeros(400,400,34,3,2,13));
-s_fc = single(zeros(90,90,34,3,2,13));
+% s_fc = single(zeros(90,90,34,3,2,13));
+s_fc = single(zeros(  378 ,  378 ,34,3,2,13));
 
-for ifoi = 1:13
+for ifoi = 6:7
   ifoi
   
   for isubj = SUBJLIST
@@ -137,32 +138,25 @@ for ifoi = 1:13
         p1(:,:,iblock) = single(powcorr);
         
         load(sprintf([outdir 'pupmod_task_src_powcorr_s%d_m%d_b%d_f%d_v%d.mat'],isubj,im,iblock,ifoi,v));
-%        size(powcorr)
         p2(:,:,iblock) = single(powcorr);
-        
-        
+          
       end
       
-      s_fc(:,:,isubj,m,1,ifoi) = nanmean(p1,3);
-      s_fc(:,:,isubj,m,2,ifoi) = nanmean(p2,3);
+      s_fc(:,:,isubj,m,1,ifoi) = tanh(nanmean(atanh(p1),3));
+      s_fc(:,:,isubj,m,2,ifoi) = tanh(nanmean(atanh(p2),3));
       
       clear p1 p2
-      
-      
+          
     end
   end
 end
 
 s_fc = s_fc(:,:,SUBJLIST,:,:,:);
 
-error('!')
-
 %%
-
-if ~exist(sprintf('~/pupmod/proc/conn/pupmod_src_powcorr_cleaned_v%d.mat',v))
 for icont = 1 : 2
   for im = 1 : 3
-    for ifoi = 1:13
+    for ifoi = 6:7
       for i = 1 : size(s_fc,1)
         fprintf('Cond %d Session %d freq %d node %d...\n',icont,im,ifoi,i)
         for j = 1 : size(s_fc,1)
@@ -189,9 +183,6 @@ for icont = 1 : 2
 end
 
 save(sprintf('~/pupmod/proc/conn/pupmod_src_powcorr_cleaned_v%d.mat',v),'cleandat','-v7.3');
-else
-  load(sprintf('~/pupmod/proc/conn/pupmod_src_powcorr_cleaned_v%d.mat',v));
-end
 
 clear s_fc;
 
