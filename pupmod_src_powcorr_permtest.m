@@ -6,7 +6,7 @@
 % last update: 28-05-2018
 
 clear 
-v = 15;
+v = 12;
 
 addpath /home/gnolte/meg_toolbox/toolbox/
 addpath /home/gnolte/meg_toolbox/fieldtrip_utilities/
@@ -37,7 +37,7 @@ seed = ((tmp(1)+tmp(2)*tmp(3))/tmp(4)+tmp(5))*tmp(6);
 rng(seed,'twister')
 
 % alp: standard for all 0.05!!! except verison 13
-nperm = 10000; alp = 0.05;
+nperm = 50000; alp = 0.05;
 
 par.subs = 100;
 par.allperms = nperm/par.subs;
@@ -76,13 +76,10 @@ for iperm = 1 : par.allperms
     idx2 = 3-idx1;
     
     for i = 1 : length(idx1)
-      
       permdat_cnt1(:,:,i,1,:) = dat_cnt1(:,:,i,idx1(i),:);
-      permdat_cnt1(:,:,i,2,:) = dat_cnt1(:,:,i,idx2(i),:);
-      
+      permdat_cnt1(:,:,i,2,:) = dat_cnt1(:,:,i,idx2(i),:);     
       permdat_res1(:,:,i,1,:) = dat_res1(:,:,i,idx1(i),:);
       permdat_res1(:,:,i,2,:) = dat_res1(:,:,i,idx2(i),:);
-      
     end
     
     % should this be the same as for ATX??
@@ -90,25 +87,19 @@ for iperm = 1 : par.allperms
     idx2 = 3-idx1;
     
     for i = 1 : length(idx1)
-      
       permdat_cnt2(:,:,i,1,:) = dat_cnt2(:,:,i,idx1(i),:);
       permdat_cnt2(:,:,i,2,:) = dat_cnt2(:,:,i,idx2(i),:);
-      
       permdat_res2(:,:,i,1,:) = dat_res2(:,:,i,idx1(i),:);
-      permdat_res2(:,:,i,2,:) = dat_res2(:,:,i,idx2(i),:);
-      
+      permdat_res2(:,:,i,2,:) = dat_res2(:,:,i,idx2(i),:); 
     end
-    
-    
+
     % TASK VS REST ------------------------------------------------------
     idx1 = all_idx1(:,iiperm);
     idx2 = 3-idx1;
     
-    for i = 1 : length(idx1)
-      
+    for i = 1 : length(idx1)     
       taskvsrest_perm(:,:,i,1,:) = taskvsrest(:,:,i,idx1(i),:);
-      taskvsrest_perm(:,:,i,2,:) = taskvsrest(:,:,i,idx2(i),:);
-          
+      taskvsrest_perm(:,:,i,2,:) = taskvsrest(:,:,i,idx2(i),:);       
     end
     
     for ifoi = 1 : 13
@@ -134,8 +125,9 @@ for iperm = 1 : par.allperms
       % compute double contrast, test connections for context-dependence
       [t_all2,~,~,s] = ttest(atanh(permdat_res2(:,:,:,2,ifoi))-atanh(permdat_res2(:,:,:,1,ifoi)),atanh(permdat_cnt2(:,:,:,2,ifoi))-atanh(permdat_cnt2(:,:,:,1,ifoi)),'dim',3,'alpha',alp);
       t_all2 = t_all2.*sign(s.tstat); clear s
-      
-      % NUMBER OF ALTERED CORRELATONS ------------------------------------- 
+      % -----------------------
+      % NUMBER OF ALTERED CORRELATONS - across space
+      % -----------------------
       % count number of altered connections (atx, task)
       par.tperm_cnt1_n(kperm,ifoi)=nansum(nansum(t_cnt1<0))./nvox;
       par.tperm_cnt1_p(kperm,ifoi)=nansum(nansum(t_cnt1>0))./nvox;
@@ -155,7 +147,31 @@ for iperm = 1 : par.allperms
       par.tperm_dpz_during_task(kperm,ifoi)=nansum(nansum(abs(t_cnt2)))./nvox;
       par.tperm_dpz_during_rest(kperm,ifoi)=nansum(nansum(abs(t_res2)))./nvox;
       
-      % CONTEXT DEPENDENCE ------------------------------------------------  
+      % -----------------------
+      % NUMBER OF ALTERED CORRELATONS - per voxel
+      % -----------------------
+      % count number of altered connections (atx, task)
+      par.tperm_cnt1_pervoxel_n(:,kperm,ifoi)=nansum(t_cnt1<0)./size(cleandat,1);
+      par.tperm_cnt1_pervoxel_p(:,kperm,ifoi)=nansum(t_cnt1>0)./size(cleandat,1);
+      % count number of altered connections (atx, rest)
+      par.tperm_res1_pervoxel_n(:,kperm,ifoi)=nansum(t_res1<0)./size(cleandat,1);
+      par.tperm_res1_pervoxel_p(:,kperm,ifoi)=nansum(t_res1>0)./size(cleandat,1);
+      % count number of altered connections (dpz, task)
+      par.tperm_cnt2_pervoxel_n(:,kperm,ifoi)=nansum(t_cnt2<0)./size(cleandat,1);
+      par.tperm_cnt2_pervoxel_p(:,kperm,ifoi)=nansum(t_cnt2>0)./size(cleandat,1);
+      % count number of altered connections (dpz, rest)
+      par.tperm_res2_pervoxel_n(:,kperm,ifoi)=nansum(t_res2<0)./size(cleandat,1);
+      par.tperm_res2_pervoxel_p(:,kperm,ifoi)=nansum(t_res2>0)./size(cleandat,1);
+     	% number of altered connections, irrespective of direction (atx)
+      par.tperm_atx_during_task_pervoxel(:,kperm,ifoi)=nansum(abs(t_cnt1))./size(cleandat,1);
+      par.tperm_atx_during_rest_pervoxel(:,kperm,ifoi)=nansum(abs(t_res1))./size(cleandat,1);
+      % number of altered connections, irrespective of direction (dpz)
+      par.tperm_dpz_during_task_pervoxel(:,kperm,ifoi)=nansum(abs(t_cnt2))./size(cleandat,1);
+      par.tperm_dpz_during_rest_pervoxel(:,kperm,ifoi)=nansum(abs(t_res2))./size(cleandat,1);
+      
+      % -----------------------
+      % CONTEXT DEPENDENCE - across space
+      % -----------------------
       % context dependence: diff in counts (atx) between task and rest
       par.tperm_context_diff_atx_n(kperm,ifoi)= par.tperm_cnt1_n(kperm,ifoi) - par.tperm_res1_n(kperm,ifoi);
       par.tperm_context_diff_atx_p(kperm,ifoi)= par.tperm_cnt1_p(kperm,ifoi) - par.tperm_res1_p(kperm,ifoi);
@@ -166,6 +182,16 @@ for iperm = 1 : par.allperms
       par.tperm_atx_context(kperm,ifoi)=par.tperm_atx_during_task(kperm,ifoi)-par.tperm_atx_during_rest(kperm,ifoi);
       par.tperm_dpz_context(kperm,ifoi)=par.tperm_dpz_during_task(kperm,ifoi)-par.tperm_dpz_during_rest(kperm,ifoi);     
        
+      % -----------------------
+      % CONTEXT DEPENDENCE - per voxel
+      % -----------------------
+      % context dependence: diff in counts (atx) between task and rest
+      par.tperm_context_diff_atx_n_pervoxel(:,kperm,ifoi) = par.tperm_cnt1_pervoxel_n(:,kperm,ifoi) - par.tperm_res1_pervoxel_n(:,kperm,ifoi);
+      par.tperm_context_diff_atx_p_pervoxel(:,kperm,ifoi) = par.tperm_cnt1_pervoxel_p(:,kperm,ifoi) - par.tperm_res1_pervoxel_p(:,kperm,ifoi);
+      % context dependence: diff in counts (dpz) between task and rest
+      par.tperm_context_diff_dpz_n_pervoxel(:,kperm,ifoi) = par.tperm_cnt2_pervoxel_n(:,kperm,ifoi) - par.tperm_res2_pervoxel_n(:,kperm,ifoi);
+      par.tperm_context_diff_dpz_p_pervoxel(:,kperm,ifoi) = par.tperm_cnt2_pervoxel_p(:,kperm,ifoi) - par.tperm_res2_pervoxel_p(:,kperm,ifoi);
+
       % test double dissociation (atx vs. dpz, rest vs. task)
       a = par.tperm_context_diff_atx_n(kperm,ifoi)+par.tperm_context_diff_atx_p(kperm,ifoi);
       b = par.tperm_context_diff_dpz_n(kperm,ifoi)+par.tperm_context_diff_dpz_p(kperm,ifoi);
@@ -181,6 +207,9 @@ for iperm = 1 : par.allperms
       
       par.tperm_taskvsrest_p(kperm,ifoi) = nansum(nansum(t_tvsr>0))./nvox;
       par.tperm_taskvsrest_n(kperm,ifoi) = nansum(nansum(t_tvsr<0))./nvox;
+      
+      par.tperm_taskvsrest_pervox_p(:,kperm,ifoi) = nansum(t_tvsr>0)./size(cleandat,1);
+      par.tperm_taskvsrest_pervox_n(:,kperm,ifoi) = nansum(t_tvsr<0)./size(cleandat,1);
       
     end
   end

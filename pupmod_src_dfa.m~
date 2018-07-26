@@ -23,7 +23,7 @@ allpara.reg     = 0.05;
 allpara.weigh   = 1;
 allpara.tau     = nan;
 % --------------------------------------------------------
-% VERSION 2 - SAME AS V1, but includes exp decay fits
+% VERSION 2 - SAME AS V1, but includ
 % --------------------------------------------------------
 v               = 2;
 v_postproc      = 6;
@@ -43,7 +43,6 @@ allpara.reg     = 0.05;
 allpara.weigh   = 1;
 allpara.tau     = nan;
 % ------------------------
-
 addpath /home/gnolte/meg_toolbox/toolbox/
 addpath /home/gnolte/meg_toolbox/fieldtrip_utilities/
 addpath /home/gnolte/meg_toolbox/toolbox_nightly/
@@ -80,11 +79,11 @@ for isubj = SUBJLIST
   for m = 1:3
     for ifoi = 1:length(foi_range)
 % %         
-      if ~exist(sprintf([outdir 'pupmod_src_dfa_s%d_m%d_f%d_v%d_processing.txt'],isubj,m,ifoi,v))
-        system(['touch ' outdir sprintf('pupmod_src_dfa_s%d_m%d_f%d_v%d_processing.txt',isubj,m,ifoi,v)]);
-      else
-        continue
-      end
+%       if ~exist(sprintf([outdir 'pupmod_src_dfa_s%d_m%d_f%d_v%d_processing.txt'],isubj,m,ifoi,v))
+%         system(['touch ' outdir sprintf('pupmod_src_dfa_s%d_m%d_f%d_v%d_processing.txt',isubj,m,ifoi,v)]);
+%       else
+%         continue
+%       end
 % %       
       fprintf('Processing s%d m%d f%d ...\n', isubj,m,ifoi)
       
@@ -134,12 +133,10 @@ for isubj = SUBJLIST
         pars.weigh     = allpara.weigh;
         
         % COMPUTE POWER CORRELATIONS
-        [dfa, acorr, lambda] = tp_dfa_src_weighted(dat,pars,sa);
-        out.dfa = dfa.exp;
-        out.acorr = acorr;
-        out.lambda = lambda;
+        [dfa acorr] = tp_dfa_src_weighted(dat,pars,sa);
+        dfa = dfa.exp;
   
-        save(sprintf([outdir 'pupmod_src_dfa_s%d_m%d_b%d_f%d_v%d.mat'],isubj,m,iblock,ifoi,v),'out');
+        save(sprintf([outdir 'pupmod_src_dfa_s%d_m%d_b%d_f%d_v%d.mat'],isubj,m,iblock,ifoi,v),'dfa');
         
       end
     end
