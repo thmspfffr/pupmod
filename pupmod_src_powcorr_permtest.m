@@ -49,6 +49,20 @@ else
   load(sprintf('~/pupmod/proc/pupmod_src_powcorr_permtest_perms_subs%d_nperm%d_v%d.mat',par.subs,nperm,v));
 end
 
+if ~exist(sprintf('~/pupmod/proc/pupmod_src_powcorr_permtest_corrected_pvalues_subs%d_nperm%d_v%d.mat',par.subs,nperm,v))
+  load(sprintf('~/pupmod/proc/pupmod_src_powcorr_permtest_corrected_pvalues_subs%d_nperm%d_v%d.mat',par.subs,nperm,v))
+%   par.p_atx_p(:,1)  = bwlabel(p_res1_p<0.025);
+%   par.p_atx_p(:,2)  = bwlabel(p_cnt1_p);
+%   par.p_atx_n(:,1)  = bwlabel(p_res1_n);
+%   par.p_atx_n(:,2)  = bwlabel(p_cnt1_n);
+%   par.p_dpz_p(:,1)  = bwlabel(p_res2_p);
+%   par.p_dpz_p(:,2)  = bwlabel(p_cnt2_p);
+%   par.p_dpz_n(:,1)  = bwlabel(p_res2_n);
+%   par.p_dpz_n(:,2)  = bwlabel(p_cnt2_n);
+%   par.p_tvr_p       = bwlabel(p_tvr_p);
+%   par.p_tvr_n       = bwlabel(p_tvr_n);
+end
+
 dat_cnt1 = s_cnt(:,:,:,[1 2],:);  
 dat_res1 = s_res(:,:,:,[1 2],:);  
 dat_cnt2 = s_cnt(:,:,:,[1 3],:); clear s_cnt
