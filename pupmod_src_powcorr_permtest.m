@@ -49,18 +49,26 @@ else
   load(sprintf('~/pupmod/proc/pupmod_src_powcorr_permtest_perms_subs%d_nperm%d_v%d.mat',par.subs,nperm,v));
 end
 
-if ~exist(sprintf('~/pupmod/proc/pupmod_src_powcorr_permtest_corrected_pvalues_subs%d_nperm%d_v%d.mat',par.subs,nperm,v))
+if exist(sprintf('~/pupmod/proc/pupmod_src_powcorr_permtest_corrected_pvalues_subs%d_nperm%d_v%d.mat',par.subs,nperm,v))
   load(sprintf('~/pupmod/proc/pupmod_src_powcorr_permtest_corrected_pvalues_subs%d_nperm%d_v%d.mat',par.subs,nperm,v))
-%   par.p_atx_p(:,1)  = bwlabel(p_res1_p<0.025);
-%   par.p_atx_p(:,2)  = bwlabel(p_cnt1_p);
-%   par.p_atx_n(:,1)  = bwlabel(p_res1_n);
-%   par.p_atx_n(:,2)  = bwlabel(p_cnt1_n);
-%   par.p_dpz_p(:,1)  = bwlabel(p_res2_p);
-%   par.p_dpz_p(:,2)  = bwlabel(p_cnt2_p);
-%   par.p_dpz_n(:,1)  = bwlabel(p_res2_n);
-%   par.p_dpz_n(:,2)  = bwlabel(p_cnt2_n);
-%   par.p_tvr_p       = bwlabel(p_tvr_p);
-%   par.p_tvr_n       = bwlabel(p_tvr_n);
+  
+  % Atomoxetine
+  idx.p_res1_p = find(bwlabel(outp.atx.p_res1_p<0.025));    
+  idx.p_res1_n = find(bwlabel(outp.atx.p_res1_n<0.025));
+  idx.p_cnt1_p = find(bwlabel(outp.atx.p_cnt1_p<0.025));
+  idx.p_cnt1_n = find(bwlabel(outp.atx.p_cnt1_n<0.025));
+  % Donepezil
+  idx.p_cnt2_p = find(bwlabel(outp.dpz.p_cnt2_p<0.025));
+  idx.p_cnt2_n = find(bwlabel(outp.dpz.p_cnt2_n<0.025));
+  idx.p_cnt2_p = find(bwlabel(outp.dpz.p_cnt2_p<0.025));
+  idx.p_cnt2_n = find(bwlabel(outp.dpz.p_cnt2_n<0.025));
+  % Task vs Rest
+  idx.p_tvr_p = find(bwlabel(outp.p_tvr_p<0.025));
+  idx.p_tvr_n = find(bwlabel(outp.p_tvr_n<0.025));
+ 
+  pooled_permutation = 1;
+else
+  pooled_permutation = 0;
 end
 
 dat_cnt1 = s_cnt(:,:,:,[1 2],:);  

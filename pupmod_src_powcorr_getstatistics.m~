@@ -315,8 +315,8 @@ if strcmp(para.correction_method, 'ranks')
       
     elseif strcmp(para.cond,'taskvsrest')
       % TASK VS REST
-      [~,R_tvr_p(:,ifreq)] = sort(taskvsrest_p_perm(:,ifreq,1),'ascend');
-      [~,R_tvr_n(:,ifreq)] = sort(taskvsrest_n_perm(:,ifreq,1),'ascend');
+      [~,R_tvr_p(:,ifreq)] = sort(perm_taskvsrest_n_p(:,ifreq,1),'ascend');
+      [~,R_tvr_n(:,ifreq)] = sort(perm_taskvsrest_n_n(:,ifreq,1),'ascend');
     end
   end
   
@@ -396,8 +396,8 @@ if strcmp(para.correction_method, 'ranks')
         Dmax_cnt2_p_corr(irank,ifreq) = perm_n_p_dpz( R_cnt2_p(:,ifreq) == Rmax_cnt2_p(irank), ifreq, 2);
         Dmax_cnt2_n_corr(irank,ifreq) = perm_n_n_dpz( R_cnt2_n(:,ifreq) == Rmax_cnt2_n(irank), ifreq, 2);
       elseif strcmp(para.cond,'taskvsrest')
-        Dmax_tvr_n_corr(irank,ifreq) = taskvsrest_n_perm( R_tvr_n(:,ifreq) == Rmax_tvr_n(irank), ifreq);
-        Dmax_tvr_p_corr(irank,ifreq) = taskvsrest_p_perm( R_tvr_p(:,ifreq) == Rmax_tvr_p(irank), ifreq);
+        Dmax_tvr_n_corr(irank,ifreq) = perm_taskvsrest_n_p( R_tvr_n(:,ifreq) == Rmax_tvr_n(irank), ifreq);
+        Dmax_tvr_p_corr(irank,ifreq) = perm_taskvsrest_n_n( R_tvr_p(:,ifreq) == Rmax_tvr_p(irank), ifreq);
       end
     end
     

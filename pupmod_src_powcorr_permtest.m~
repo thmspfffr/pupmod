@@ -51,16 +51,20 @@ end
 
 if ~exist(sprintf('~/pupmod/proc/pupmod_src_powcorr_permtest_corrected_pvalues_subs%d_nperm%d_v%d.mat',par.subs,nperm,v))
   load(sprintf('~/pupmod/proc/pupmod_src_powcorr_permtest_corrected_pvalues_subs%d_nperm%d_v%d.mat',par.subs,nperm,v))
-  par.p_atx_p(:,1)  = p_res1_p; 
-  par.p_atx_p(:,2)  = p_cnt1_p;
-  par.p_atx_n(:,1)  = p_res1_n;
-  par.p_atx_n(:,2)  = p_cnt1_n;
-  par.p_dpz_p(:,1)  = p_res2_p;
-  par.p_dpz_p(:,2)  = p_cnt2_p;
-  par.p_dpz_n(:,1)  = p_res2_n;
-  par.p_dpz_n(:,2)  = p_cnt2_n;
-  par.p_tvr_p       = p_tvr_p;
-  par.p_tvr_n       = p_tvr_n;
+  
+  idx.p_res1_p = find(bwlabel(outp.atx.p_res1_p<0.025));    
+  idx.p_res1_n = find(bwlabel(outp.atx.p_res1_n<0.025));
+  idx.p_cnt1_p = find(bwlabel(outp.atx.p_cnt1_p<0.025));
+  idx.p_cnt1_n = find(bwlabel(outp.atx.p_cnt1_n<0.025));
+  idx.p_cnt2_p = find(bwlabel(outp.dpz.p_cnt2_p<0.025));
+  idx.p_cnt2_n = find(bwlabel(outp.dpz.p_cnt2_n<0.025));
+  idx.p_cnt2_p = find(bwlabel(outp.dpz.p_cnt2_p<0.025));
+  idx.p_cnt2_n = find(bwlabel(outp.dpz.p_cnt2_n<0.025));
+  
+  idx.p_tvrbwlabel(outp.p_tvr_p<0.025)
+  bwlabel(outp.p_tvr_n<0.025)
+  
+
 end
 
 dat_cnt1 = s_cnt(:,:,:,[1 2],:);  

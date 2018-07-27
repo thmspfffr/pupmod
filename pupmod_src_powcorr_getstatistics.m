@@ -1,4 +1,4 @@
-function outp = pupmod_src_powcorr_getstatistics(para)
+function [outp, emp] = pupmod_src_powcorr_getstatistics(para)
 %% OBTAIN CORRECTED STATISTICAL THRESHOLDS FROM PERMUTATION DISTRIBUTIONS
 % This function obtains corrected statstical thresholds based on Hawellek
 % et al. (2013) Journal of Neuroscience.
@@ -38,7 +38,7 @@ function outp = pupmod_src_powcorr_getstatistics(para)
 %   (2c)
 %
 % ------------------
-% Last edited 26-07/2018
+% Last edited 27-07/2018
 % ------------------
 % Things to add:
 % - Double dissociation per voxel
@@ -62,6 +62,9 @@ end
 if ~isfield(para,'nfreq')
   para.nfreq = 13;
 end
+if ~isfield(para,'correction_method')
+  para.correction_method = 'ranks';
+end
 
 if strcmp(para.type,'local') && strcmp(para.correction_method,'single_threshold')
   error('Correction method based on single thresholds is not implemented on a voxel-level! Use ''ranks'' instead.')
@@ -78,7 +81,7 @@ for ifoi = 1:para.nfreq
   % task data
   s_fc(:,:,:,:,2) = cleandat(:,:,:,:,2,ifoi);
   
-  % *_p_* = number of increased cortopprelations
+  % *_p_* = number of increased correlations
   % *_n_* = number of decreased correlations
   
   % -------------------------
@@ -86,84 +89,84 @@ for ifoi = 1:para.nfreq
   % -------------------------
   % during rest (condition label = 1)
   [h,~,~,s]=ttest(atanh(s_fc(:,:,:,2,1)),atanh(s_fc(:,:,:,1,1)),'dim',3,'alpha',ALPHA);
-  n_p_atx(ifoi,1) = nansum(nansum((h.*sign(s.tstat))>0))./(size(s_fc,1)*size(s_fc,1)-size(s_fc,1));
-  n_n_atx(ifoi,1) = nansum(nansum((h.*sign(s.tstat))<0))./(size(s_fc,1)*size(s_fc,1)-size(s_fc,1));
+  emp.n_p_atx(ifoi,1) = nansum(nansum((h.*sign(s.tstat))>0))./(size(s_fc,1)*size(s_fc,1)-size(s_fc,1));
+  emp.n_n_atx(ifoi,1) = nansum(nansum((h.*sign(s.tstat))<0))./(size(s_fc,1)*size(s_fc,1)-size(s_fc,1));
   % during task (condition label = 2)
   [h,~,~,s]=ttest(atanh(s_fc(:,:,:,2,2)),atanh(s_fc(:,:,:,1,2)),'dim',3,'alpha',ALPHA);
-  n_p_atx(ifoi,2) = nansum(nansum((h.*sign(s.tstat))>0))./(size(s_fc,1)*size(s_fc,1)-size(s_fc,1));
-  n_n_atx(ifoi,2) = nansum(nansum((h.*sign(s.tstat))<0))./(size(s_fc,1)*size(s_fc,1)-size(s_fc,1));
+  emp.n_p_atx(ifoi,2) = nansum(nansum((h.*sign(s.tstat))>0))./(size(s_fc,1)*size(s_fc,1)-size(s_fc,1));
+  emp.n_n_atx(ifoi,2) = nansum(nansum((h.*sign(s.tstat))<0))./(size(s_fc,1)*size(s_fc,1)-size(s_fc,1));
   % context dependence
   [h,~,~,s]=ttest(atanh(s_fc(:,:,:,2,1))-atanh(s_fc(:,:,:,1,1)),atanh(s_fc(:,:,:,2,2))-atanh(s_fc(:,:,:,1,2)),'dim',3,'alpha',ALPHA);
-  n_p_context_atx(ifoi,1) = nansum(nansum((h.*sign(s.tstat))>0))./(size(s_fc,1)*size(s_fc,1)-size(s_fc,1));
-  n_n_context_atx(ifoi,1) = nansum(nansum((h.*sign(s.tstat))<0))./(size(s_fc,1)*size(s_fc,1)-size(s_fc,1));
+  emp.n_p_context_atx(ifoi,1) = nansum(nansum((h.*sign(s.tstat))>0))./(size(s_fc,1)*size(s_fc,1)-size(s_fc,1));
+  emp.n_n_context_atx(ifoi,1) = nansum(nansum((h.*sign(s.tstat))<0))./(size(s_fc,1)*size(s_fc,1)-size(s_fc,1));
   
   % ATOMOXETINE: number of altered correlations (irrespective of sign)
   % --------------------------
   % during rest (condition label = 1)
   h=ttest(s_fc(:,:,:,2,1),s_fc(:,:,:,1,1),'dim',3,'alpha',ALPHA);
-  atx(ifoi,1) = nansum(nansum((h)))./(size(s_fc,1)*size(s_fc,1)-size(s_fc,1));
+  emp.atx(ifoi,1) = nansum(nansum((h)))./(size(s_fc,1)*size(s_fc,1)-size(s_fc,1));
   % during task (condition label = 1)
   h=ttest(s_fc(:,:,:,2,2),s_fc(:,:,:,1,2),'dim',3,'alpha',ALPHA);
-  atx(ifoi,2) = nansum(nansum((h)))./(size(s_fc,1)*size(s_fc,1)-size(s_fc,1));
+  emp.atx(ifoi,2) = nansum(nansum((h)))./(size(s_fc,1)*size(s_fc,1)-size(s_fc,1));
   % context dependence
-  context_allconn_emp_atx(ifoi) = atx(ifoi,2)-atx(ifoi,1);
+  emp.context_allconn_emp_atx(ifoi) = emp.atx(ifoi,2)-emp.atx(ifoi,1);
   
   % ATOMOXETINE: local changes
   % --------------------------
   % during rest (condition label = 1)
   [h,~,~,s]=ttest(atanh(s_fc(:,:,:,2,1)),atanh(s_fc(:,:,:,1,1)),'dim',3,'alpha',ALPHA);
-  n_p_atx_pervoxel(:,ifoi,1) = nansum((h.*sign(s.tstat))>0)./(size(s_fc,1)-1);
-  n_n_atx_pervoxel(:,ifoi,1) = nansum((h.*sign(s.tstat))<0)./(size(s_fc,1)-1);
+  emp.n_p_atx_pervoxel(:,ifoi,1) = nansum((h.*sign(s.tstat))>0)./(size(s_fc,1)-1);
+  emp.n_n_atx_pervoxel(:,ifoi,1) = nansum((h.*sign(s.tstat))<0)./(size(s_fc,1)-1);
   % during task (condition label = 2)
   [h,~,~,s]=ttest(atanh(s_fc(:,:,:,2,2)),atanh(s_fc(:,:,:,1,2)),'dim',3,'alpha',ALPHA);
-  n_p_atx_pervoxel(:,ifoi,2) = nansum((h.*sign(s.tstat))>0)./(size(s_fc,1)-1);
-  n_n_atx_pervoxel(:,ifoi,2) = nansum((h.*sign(s.tstat))<0)./(size(s_fc,1)-1);
+  emp.n_p_atx_pervoxel(:,ifoi,2) = nansum((h.*sign(s.tstat))>0)./(size(s_fc,1)-1);
+  emp.n_n_atx_pervoxel(:,ifoi,2) = nansum((h.*sign(s.tstat))<0)./(size(s_fc,1)-1);
   % context dependence: atx-pbo(rest) vs. atx-pbo(task)
   [h,~,~,s]=ttest(atanh(s_fc(:,:,:,2,1))-atanh(s_fc(:,:,:,1,1)),atanh(s_fc(:,:,:,2,2))-atanh(s_fc(:,:,:,1,2)),'dim',3,'alpha',ALPHA);
-  n_p_context_atx_pervoxel(:,ifoi,1) = nansum((h.*sign(s.tstat))>0)./(size(s_fc,1)-1);
-  n_n_context_atx_pervoxel(:,ifoi,1) = nansum((h.*sign(s.tstat))<0)./(size(s_fc,1)-1);
+  emp.n_p_context_atx_pervoxel(:,ifoi,1) = nansum((h.*sign(s.tstat))>0)./(size(s_fc,1)-1);
+  emp.n_n_context_atx_pervoxel(:,ifoi,1) = nansum((h.*sign(s.tstat))<0)./(size(s_fc,1)-1);
   
   % --------------------------
   % DONEPEZIL
   % --------------------------
   % during rest (condition label = 1)
   [h,~,~,s]=ttest(atanh(s_fc(:,:,:,3,1)),atanh(s_fc(:,:,:,1,1)),'dim',3,'alpha',ALPHA);
-  n_p_dpz(ifoi,1) = nansum(nansum((h.*sign(s.tstat))>0))./(size(s_fc,1)*size(s_fc,1)-size(s_fc,1));
-  n_n_dpz(ifoi,1) = nansum(nansum((h.*sign(s.tstat))<0))./(size(s_fc,1)*size(s_fc,1)-size(s_fc,1));
+  emp.n_p_dpz(ifoi,1) = nansum(nansum((h.*sign(s.tstat))>0))./(size(s_fc,1)*size(s_fc,1)-size(s_fc,1));
+  emp.n_n_dpz(ifoi,1) = nansum(nansum((h.*sign(s.tstat))<0))./(size(s_fc,1)*size(s_fc,1)-size(s_fc,1));
   % during task (condition label = 2)
   [h,~,~,s]=ttest(atanh(s_fc(:,:,:,3,2)),atanh(s_fc(:,:,:,1,2)),'dim',3,'alpha',ALPHA);
-  n_p_dpz(ifoi,2) = nansum(nansum((h.*sign(s.tstat))>0))./(size(s_fc,1)*size(s_fc,1)-size(s_fc,1));
-  n_n_dpz(ifoi,2) = nansum(nansum((h.*sign(s.tstat))<0))./(size(s_fc,1)*size(s_fc,1)-size(s_fc,1));
+  emp.n_p_dpz(ifoi,2) = nansum(nansum((h.*sign(s.tstat))>0))./(size(s_fc,1)*size(s_fc,1)-size(s_fc,1));
+  emp.n_n_dpz(ifoi,2) = nansum(nansum((h.*sign(s.tstat))<0))./(size(s_fc,1)*size(s_fc,1)-size(s_fc,1));
   % context dependence: dpz-pbo(rest) vs. dpz-pbo(task)
   [h,~,~,s]=ttest(atanh(s_fc(:,:,:,3,1))-atanh(s_fc(:,:,:,1,1)),atanh(s_fc(:,:,:,3,2))-atanh(s_fc(:,:,:,1,2)),'dim',3,'alpha',ALPHA);
-  n_p_context_dpz(ifoi,1) = nansum(nansum((h.*sign(s.tstat))>0))./(size(s_fc,1)*size(s_fc,1)-size(s_fc,1));
-  n_n_context_dpz(ifoi,1) = nansum(nansum((h.*sign(s.tstat))<0))./(size(s_fc,1)*size(s_fc,1)-size(s_fc,1));
+  emp.n_p_context_dpz(ifoi,1) = nansum(nansum((h.*sign(s.tstat))>0))./(size(s_fc,1)*size(s_fc,1)-size(s_fc,1));
+  emp.n_n_context_dpz(ifoi,1) = nansum(nansum((h.*sign(s.tstat))<0))./(size(s_fc,1)*size(s_fc,1)-size(s_fc,1));
   
   % DONEPEZIL: number of altered correlations (irrespective of sign)
   % --------------------------
   % during rest (condition label = 1)
   h=ttest(atanh(s_fc(:,:,:,3,1)),atanh(s_fc(:,:,:,1,1)),'dim',3,'alpha',ALPHA);
-  dpz(ifoi,1) = nansum(nansum((h)))./(size(s_fc,1)*size(s_fc,1)-size(s_fc,1));
+  emp.dpz(ifoi,1) = nansum(nansum((h)))./(size(s_fc,1)*size(s_fc,1)-size(s_fc,1));
   % during task (condition label = 2)
   h=ttest(atanh(s_fc(:,:,:,3,2)),atanh(s_fc(:,:,:,1,2)),'dim',3,'alpha',ALPHA);
-  dpz(ifoi,2) = nansum(nansum((h)))./(size(s_fc,1)*size(s_fc,1)-size(s_fc,1));
+  emp.dpz(ifoi,2) = nansum(nansum((h)))./(size(s_fc,1)*size(s_fc,1)-size(s_fc,1));
   % context dependence
-  context_allconn_emp_dpz(ifoi) = dpz(ifoi,2)-dpz(ifoi,1);
+  emp.context_allconn_emp_dpz(ifoi) = emp.dpz(ifoi,2)-emp.dpz(ifoi,1);
   
   % DONEPEZIL: local changes
   % --------------------------
   % during rest (condition label = 1)
   [h,~,~,s]=ttest(atanh(s_fc(:,:,:,3,1)),atanh(s_fc(:,:,:,1,1)),'dim',3,'alpha',ALPHA);
-  n_p_dpz_pervoxel(:,ifoi,1) = nansum((h.*sign(s.tstat))>0)./(size(s_fc,1)-1);
-  n_n_dpz_pervoxel(:,ifoi,1) = nansum((h.*sign(s.tstat))<0)./(size(s_fc,1)-1);
+  emp.n_p_dpz_pervoxel(:,ifoi,1) = nansum((h.*sign(s.tstat))>0)./(size(s_fc,1)-1);
+  emp.n_n_dpz_pervoxel(:,ifoi,1) = nansum((h.*sign(s.tstat))<0)./(size(s_fc,1)-1);
   % during task (condition label = 2)
   [h,~,~,s]=ttest(atanh(s_fc(:,:,:,3,2)),atanh(s_fc(:,:,:,1,2)),'dim',3,'alpha',ALPHA);
-  n_p_dpz_pervoxel(:,ifoi,2) = nansum((h.*sign(s.tstat))>0)./(size(s_fc,1)-1);
-  n_n_dpz_pervoxel(:,ifoi,2) = nansum((h.*sign(s.tstat))<0)./(size(s_fc,1)-1);
+  emp.n_p_dpz_pervoxel(:,ifoi,2) = nansum((h.*sign(s.tstat))>0)./(size(s_fc,1)-1);
+  emp.n_n_dpz_pervoxel(:,ifoi,2) = nansum((h.*sign(s.tstat))<0)./(size(s_fc,1)-1);
   % context dependence: atx-pbo(rest) vs. atx-pbo(task)
   [h,~,~,s]=ttest(atanh(s_fc(:,:,:,3,1))-atanh(s_fc(:,:,:,1,1)),atanh(s_fc(:,:,:,3,2))-atanh(s_fc(:,:,:,1,2)),'dim',3,'alpha',ALPHA);
-  n_p_context_dpz_pervoxel(:,ifoi,1) = nansum((h.*sign(s.tstat))>0)./(size(s_fc,1)-1);
-  n_n_context_dpz_pervoxel(:,ifoi,1) = nansum((h.*sign(s.tstat))<0)./(size(s_fc,1)-1);
+  emp.n_p_context_dpz_pervoxel(:,ifoi,1) = nansum((h.*sign(s.tstat))>0)./(size(s_fc,1)-1);
+  emp.n_n_context_dpz_pervoxel(:,ifoi,1) = nansum((h.*sign(s.tstat))<0)./(size(s_fc,1)-1);
   
   % --------------------------
   % TASK VS REST (during placebo only)
@@ -171,11 +174,11 @@ for ifoi = 1:para.nfreq
   % global changes
   [t_tvsr,~,~,s] = ttest(s_fc(:,:,:,1,2),s_fc(:,:,:,1,1),'dim',3,'alpha',ALPHA);
   t_tvsr = t_tvsr.*sign(s.tstat); clear s
-  taskvsrest_p(ifoi) = nansum(nansum(t_tvsr>0))./(size(s_fc,1)*size(s_fc,1)-size(s_fc,1));
-  taskvsrest_n(ifoi) = nansum(nansum(t_tvsr<0))./(size(s_fc,1)*size(s_fc,1)-size(s_fc,1));
+  emp.taskvsrest_p(ifoi) = nansum(nansum(t_tvsr>0))./(size(s_fc,1)*size(s_fc,1)-size(s_fc,1));
+  emp.taskvsrest_n(ifoi) = nansum(nansum(t_tvsr<0))./(size(s_fc,1)*size(s_fc,1)-size(s_fc,1));
   % local changes
-  taskvsrest_p_pervoxel(:,ifoi) = nansum(t_tvsr>0)./(size(s_fc,1)-1);
-  taskvsrest_n_pervoxel(:,ifoi) = nansum(t_tvsr<0)./(size(s_fc,1)-1);
+  emp.taskvsrest_p_pervoxel(:,ifoi) = nansum(t_tvsr>0)./(size(s_fc,1)-1);
+  emp.taskvsrest_n_pervoxel(:,ifoi) = nansum(t_tvsr<0)./(size(s_fc,1)-1);
   
 end
 
@@ -185,7 +188,10 @@ end
 % global effects
 doubledissociation_emp = context_allconn_emp_atx-context_allconn_emp_dpz;
 % --------------------------
-
+if isfield(para,'stats')
+  return 
+end
+  
 clear cleandat s_fc
 %% LOAD PERMUTATION DISTRIBUTION
 % --------------------------
@@ -315,8 +321,8 @@ if strcmp(para.correction_method, 'ranks')
       
     elseif strcmp(para.cond,'taskvsrest')
       % TASK VS REST
-      [~,R_tvr_p(:,ifreq)] = sort(taskvsrest_p_perm(:,ifreq,1),'ascend');
-      [~,R_tvr_n(:,ifreq)] = sort(taskvsrest_n_perm(:,ifreq,1),'ascend');
+      [~,R_tvr_p(:,ifreq)] = sort(perm_taskvsrest_n_p(:,ifreq,1),'ascend');
+      [~,R_tvr_n(:,ifreq)] = sort(perm_taskvsrest_n_n(:,ifreq,1),'ascend');
     end
   end
   
@@ -396,8 +402,8 @@ if strcmp(para.correction_method, 'ranks')
         Dmax_cnt2_p_corr(irank,ifreq) = perm_n_p_dpz( R_cnt2_p(:,ifreq) == Rmax_cnt2_p(irank), ifreq, 2);
         Dmax_cnt2_n_corr(irank,ifreq) = perm_n_n_dpz( R_cnt2_n(:,ifreq) == Rmax_cnt2_n(irank), ifreq, 2);
       elseif strcmp(para.cond,'taskvsrest')
-        Dmax_tvr_n_corr(irank,ifreq) = taskvsrest_n_perm( R_tvr_n(:,ifreq) == Rmax_tvr_n(irank), ifreq);
-        Dmax_tvr_p_corr(irank,ifreq) = taskvsrest_p_perm( R_tvr_p(:,ifreq) == Rmax_tvr_p(irank), ifreq);
+        Dmax_tvr_n_corr(irank,ifreq) = perm_taskvsrest_n_p( R_tvr_n(:,ifreq) == Rmax_tvr_n(irank), ifreq);
+        Dmax_tvr_p_corr(irank,ifreq) = perm_taskvsrest_n_n( R_tvr_p(:,ifreq) == Rmax_tvr_p(irank), ifreq);
       end
     end
     
@@ -405,18 +411,18 @@ if strcmp(para.correction_method, 'ranks')
     % OBTAIN CORRECTED P-VALUES
     % ---------------------------
     if strcmp(para.cond,'atx')
-      outp.p_res1_p(ifreq) = 1-sum(n_p_atx(ifreq,1)>Dmax_res1_p_corr(:,ifreq))/para.nperm;
-      outp.p_res1_n(ifreq) = 1-sum(n_n_atx(ifreq,1)>Dmax_res1_n_corr(:,ifreq))/para.nperm;
-      outp.p_cnt1_p(ifreq) = 1-sum(n_p_atx(ifreq,2)>Dmax_cnt1_p_corr(:,ifreq))/para.nperm;
-      outp.p_cnt1_n(ifreq) = 1-sum(n_n_atx(ifreq,2)>Dmax_cnt1_n_corr(:,ifreq))/para.nperm;
+      outp.p_res1_p(ifreq) = 1-sum(emp.n_p_atx(ifreq,1)>Dmax_res1_p_corr(:,ifreq))/para.nperm;
+      outp.p_res1_n(ifreq) = 1-sum(emp.n_n_atx(ifreq,1)>Dmax_res1_n_corr(:,ifreq))/para.nperm;
+      outp.p_cnt1_p(ifreq) = 1-sum(emp.n_p_atx(ifreq,2)>Dmax_cnt1_p_corr(:,ifreq))/para.nperm;
+      outp.p_cnt1_n(ifreq) = 1-sum(emp.n_n_atx(ifreq,2)>Dmax_cnt1_n_corr(:,ifreq))/para.nperm;
     elseif strcmp(para.cond,'dpz')
-      outp.p_res2_p(ifreq) = 1-sum(n_p_dpz(ifreq,1)>Dmax_res2_p_corr(:,ifreq))/para.nperm;
-      outp.p_res2_n(ifreq) = 1-sum(n_n_dpz(ifreq,1)>Dmax_res2_n_corr(:,ifreq))/para.nperm;
-      outp.p_cnt2_p(ifreq) = 1-sum(n_p_dpz(ifreq,2)>Dmax_cnt2_p_corr(:,ifreq))/para.nperm;
-      outp.p_cnt2_n(ifreq) = 1-sum(n_n_dpz(ifreq,2)>Dmax_cnt2_n_corr(:,ifreq))/para.nperm;
+      outp.p_res2_p(ifreq) = 1-sum(emp.n_p_dpz(ifreq,1)>Dmax_res2_p_corr(:,ifreq))/para.nperm;
+      outp.p_res2_n(ifreq) = 1-sum(emp.n_n_dpz(ifreq,1)>Dmax_res2_n_corr(:,ifreq))/para.nperm;
+      outp.p_cnt2_p(ifreq) = 1-sum(emp.n_p_dpz(ifreq,2)>Dmax_cnt2_p_corr(:,ifreq))/para.nperm;
+      outp.p_cnt2_n(ifreq) = 1-sum(emp.n_n_dpz(ifreq,2)>Dmax_cnt2_n_corr(:,ifreq))/para.nperm;
     elseif strcmp(para.cond,'taskvsrest')
-      outp.p_tvr_p(ifreq) = 1-sum(taskvsrest_p(ifreq)>Dmax_tvr_p_corr(:,ifreq))/para.nperm;
-      outp.p_tvr_n(ifreq) = 1-sum(taskvsrest_n(ifreq)>Dmax_tvr_n_corr(:,ifreq))/para.nperm;
+      outp.p_tvr_p(ifreq) = 1-sum(emp.taskvsrest_p(ifreq)>Dmax_tvr_p_corr(:,ifreq))/para.nperm;
+      outp.p_tvr_n(ifreq) = 1-sum(emp.taskvsrest_n(ifreq)>Dmax_tvr_n_corr(:,ifreq))/para.nperm;
     end
   end
   
@@ -435,7 +441,7 @@ if strcmp(para.correction_method, 'ranks')
       end
       % OBTAIN CORRECTED P-VALUES
       for ivox = 1 : para.fcsize
-        outp.p_atx_pervoxel_corrected(ivox) = 1 - sum(n_p_atx_pervoxel(ivox,6,2) > D2_adj) / para.nperm;
+        outp.p_atx_pervoxel_corrected(ivox) = 1 - sum(emp.n_p_atx_pervoxel(ivox,6,2) > D2_adj) / para.nperm;
       end
 
     elseif strcmp(para.cond,'dpz')
@@ -445,7 +451,7 @@ if strcmp(para.correction_method, 'ranks')
       end
       % OBTAIN CORRECTED P-VALUES
       for ivox = 1 : para.fcsize
-        outp.p_dpz_pervoxel_corrected(ivox) = 1 - sum(n_p_dpz_pervoxel(ivox,7,1) > D2_adj) / para.nperm;
+        outp.p_dpz_pervoxel_corrected(ivox) = 1 - sum(emp.n_p_dpz_pervoxel(ivox,7,1) > D2_adj) / para.nperm;
       end
     elseif strcmp(para.cond,'taskvsrest')
       error('Does currently not work!')
@@ -490,26 +496,26 @@ elseif strcmp(para.correction_method,'single_threshold')
     if strcmp(para.cond,'atx') && strcmp(para.type,'global')
       % ATOMOXETINE
       % ------------------
-      outp.p_res1_p(ifreq) = 1-sum(abs(n_p_atx(ifreq,1))>abs(idx_R_res1_p))/nperm;
-      outp.p_res1_n(ifreq) = 1-sum(abs(n_n_atx(ifreq,1))>abs(idx_R_res1_n))/nperm;
-      outp.p_cnt1_p(ifreq) = 1-sum(abs(n_p_atx(ifreq,2))>abs(idx_R_cnt1_p))/nperm;
-      outp.p_cnt1_n(ifreq) = 1-sum(abs(n_n_atx(ifreq,2))>abs(idx_R_cnt1_n))/nperm;
-      outp.p_cnt_atx_all(ifreq) = 1-sum(abs(atx(ifreq,2))>abs(idx_R_cnt1_all))/nperm;
-      outp.p_res_atx_all(ifreq) = 1-sum(abs(atx(ifreq,1))>abs(idx_R_res1_all))/nperm;
+      outp.p_res1_p(ifreq) = 1-sum(abs(emp.n_p_atx(ifreq,1))>abs(idx_R_res1_p))/nperm;
+      outp.p_res1_n(ifreq) = 1-sum(abs(emp.n_n_atx(ifreq,1))>abs(idx_R_res1_n))/nperm;
+      outp.p_cnt1_p(ifreq) = 1-sum(abs(emp.n_p_atx(ifreq,2))>abs(idx_R_cnt1_p))/nperm;
+      outp.p_cnt1_n(ifreq) = 1-sum(abs(emp.n_n_atx(ifreq,2))>abs(idx_R_cnt1_n))/nperm;
+      outp.p_cnt_atx_all(ifreq) = 1-sum(abs(emp.atx(ifreq,2))>abs(idx_R_cnt1_all))/nperm;
+      outp.p_res_atx_all(ifreq) = 1-sum(abs(emp.atx(ifreq,1))>abs(idx_R_res1_all))/nperm;
       
     elseif strcmp(para.cond,'dpz') && strcmp(para.type,'global')
       % DONEPEZIL
       % ------------------
-      outp.p_res2_p(ifreq) = 1-sum(abs(n_p_dpz(ifreq,1))>abs(idx_R_res2_p))/nperm;
-      outp.p_res2_n(ifreq) = 1-sum(abs(n_n_dpz(ifreq,1))>abs(idx_R_res2_n))/nperm;
-      outp.p_cnt2_p(ifreq) = 1-sum(abs(n_p_dpz(ifreq,2))>abs(idx_R_cnt2_p))/nperm;
-      outp.p_cnt2_n(ifreq) = 1-sum(abs(n_n_dpz(ifreq,2))>abs(idx_R_cnt2_n))/nperm;
-      outp.p_cnt_dpz_all(ifreq) = 1-sum(abs(dpz(ifreq,2))>idx_R_cnt2_all)/nperm;
-      outp.p_res_dpz_all(ifreq) = 1-sum(abs(dpz(ifreq,1))>idx_R_res2_all)/nperm;
+      outp.p_res2_p(ifreq) = 1-sum(abs(emp.n_p_dpz(ifreq,1))>abs(idx_R_res2_p))/nperm;
+      outp.p_res2_n(ifreq) = 1-sum(abs(emp.n_n_dpz(ifreq,1))>abs(idx_R_res2_n))/nperm;
+      outp.p_cnt2_p(ifreq) = 1-sum(abs(emp.n_p_dpz(ifreq,2))>abs(idx_R_cnt2_p))/nperm;
+      outp.p_cnt2_n(ifreq) = 1-sum(abs(emp.n_n_dpz(ifreq,2))>abs(idx_R_cnt2_n))/nperm;
+      outp.p_cnt_dpz_all(ifreq) = 1-sum(abs(emp.dpz(ifreq,2))>idx_R_cnt2_all)/nperm;
+      outp.p_res_dpz_all(ifreq) = 1-sum(abs(emp.dpz(ifreq,1))>idx_R_res2_all)/nperm;
       
     elseif strcmp(para.cond,'taskvsrest') && strcmp(para.type,'global')
-      outp.pval_taskvsrest_p_corr(ifreq) = 1-sum(abs(taskvsrest_p(ifreq))>idx_R_taskvsrest_p(:,ifreq))/nperm;
-      outp.pval_taskvsrest_n_corr(ifreq) = 1-sum(abs(taskvsrest_n(ifreq))>idx_R_taskvsrest_n(:,ifreq))/nperm;
+      outp.pval_taskvsrest_p_corr(ifreq) = 1-sum(abs(emp.taskvsrest_p(ifreq))>idx_R_taskvsrest_p(:,ifreq))/nperm;
+      outp.pval_taskvsrest_n_corr(ifreq) = 1-sum(abs(emp.taskvsrest_n(ifreq))>idx_R_taskvsrest_n(:,ifreq))/nperm;
     end
   end
 end
