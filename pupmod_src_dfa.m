@@ -154,7 +154,7 @@ SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31
 outdir   = '/home/tpfeffer/pupmod/proc/conn/';
 foi_range       = unique(round(2.^[1:.5:7]))
 clear dfa_all;
-v = 1
+v = 2
 ord = pconn_randomization;
 for isubj = SUBJLIST
   for m = 1:3
@@ -167,16 +167,18 @@ for isubj = SUBJLIST
         
         load(sprintf([outdir 'pupmod_src_dfa_s%d_m%d_b%d_f%d_v%d.mat'],isubj,im,iblock,ifoi,v));
 
-        dfa_all(:,isubj,m,ifoi,iblock) = dfa(1:90);
+        outp.dfa_all(:,isubj,m,ifoi,iblock) = out.dfa(1:90);
+        outp.acorr_all(:,isubj,m,ifoi,iblock) = out.acorr(1:90);
+        outp.lambda_all(:,isubj,m,ifoi,iblock) = out.lambda(1:90);
         
       end
     end
   end
 end
 
-dfa_all = nanmean(dfa_all(:,SUBJLIST,:,:,:),5);
+outp.dfa_all = nanmean(outp.dfa_all(:,SUBJLIST,:,:,:),5);
+outp.acorr_all = nanmean(outp.acorr_all(:,SUBJLIST,:,:,:),5);
+outp.lambda_all = nanmean(outp.lambda_all(:,SUBJLIST,:,:,:),5);
 
-
-
-%%
+save(sprintf([outdir 'pupmod_src_dfa_v%d.mat'],v),'outp');
 

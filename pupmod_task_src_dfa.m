@@ -1,11 +1,31 @@
-%% pupmod_src_dfa
+%% pupmod_task_src_dfa
 
 clear 
 
 % --------------------------------------------------------
 % VERSION 1 - WEIGHTED AAL
 % --------------------------------------------------------
-v               = 1;
+% v               = 1;
+% v_postproc      = 6;
+% fsample         = 400;
+% SUBJLIST        = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
+% allpara.filt    = 'jh_lcmv';
+% allpara.grid    = 'aal_4mm';
+% foi_range       = [11 16];
+% para.segleng    = 9 ./ foi_range;
+% para.bpfreq     = [foi_range-(foi_range./2)/2; foi_range+(foi_range./2)/2]';
+% para.epleng     = 60;
+% lpc             = 0;
+% timevariant     = 0;
+% para.wavelet    = 'bp_filt';
+% para.scnd_filt  = 0;
+% allpara.reg     = 0.05;
+% allpara.weigh   = 1;
+% allpara.tau     = nan;
+% --------------------------------------------------------
+% VERSION 2 - SAME AS V1, but includes exp decay fits
+% --------------------------------------------------------
+v               = 2;
 v_postproc      = 6;
 fsample         = 400;
 SUBJLIST        = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
@@ -22,7 +42,7 @@ para.scnd_filt  = 0;
 allpara.reg     = 0.05;
 allpara.weigh   = 1;
 allpara.tau     = nan;
-% --------------------------------------------------------
+% ------------------------
 
 addpath /home/gnolte/meg_toolbox/toolbox/
 addpath /home/gnolte/meg_toolbox/fieldtrip_utilities/
@@ -114,17 +134,12 @@ for isubj = SUBJLIST
         pars.weigh     = allpara.weigh;
         
         % COMPUTE POWER CORRELATIONS
-        dfa = tp_dfa_ortho_weight(dat,pars,sa);
-        
-        if size(dfa,1) < 100 && size(dfa,1) > 80
-          pars = [];
-          pars.grid = 'medium';
-          dfa = tp_match_aal(pars,dfa);
-        end
-        
-        dfa = dfa.exp;
+        [dfa, acorr, lambda] = tp_dfa_src_weighted(dat,pars,sa);
+        out.dfa = dfa.exp;
+        out.acorr = acorr;
+        out.lambda = lambda;
 %    
-        save(sprintf([outdir 'pupmod_task_src_dfa_s%d_m%d_b%d_f%d_v%d.mat'],isubj,m,iblock,ifoi,v),'dfa');
+        save(sprintf([outdir 'pupmod_task_src_dfa_s%d_m%d_b%d_f%d_v%d.mat'],isubj,m,iblock,ifoi,v),'out');
         
       end
     end
@@ -136,8 +151,11 @@ error('!')
 
 %% 
 
-clear dfa_all;
-
+SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
+outdir   = '/home/tpfeffer/pupmod/proc/conn/';
+foi_range       = unique(round(2.^[1:.5:7]))
+clear dfa_all outp 
+v = 2
 ord = pconn_randomization;
 for isubj = SUBJLIST
   for m = 1:3
@@ -150,22 +168,35 @@ for isubj = SUBJLIST
         
         load(sprintf([outdir 'pupmod_src_dfa_s%d_m%d_b%d_f%d_v%d.mat'],isubj,im,iblock,ifoi,v));
 
-        dfa_all(:,isubj,m,ifoi,1,iblock) = dfa(1:90);
+        outp.dfa_all(:,isubj,m,ifoi,iblock,1) = out.dfa(1:90);
+        outp.acorr_all(:,isubj,m,ifoi,iblock,1) = out.acorr(1:90);
+        outp.lambda_all(:,isubj,m,ifoi,iblock,1) = out.lambda(1:90);
+        clear out
+        
         try 
-        load(sprintf([outdir 'pupmod_task_src_dfa_s%d_m%d_b%d_f%d_v%d.mat'],isubj,im,iblock,ifoi,v));
-
-        dfa_all(:,isubj,m,ifoi,2,iblock) = dfa(1:90);
+          load(sprintf([outdir 'pupmod_task_src_dfa_s%d_m%d_b%d_f%d_v%d.mat'],isubj,im,iblock,ifoi,v));
+          outp.dfa_all(:,isubj,m,ifoi,iblock,2) = out.dfa(1:90);
+          outp.acorr_all(:,isubj,m,ifoi,iblock,2) = out.acorr(1:90);
+          outp.lambda_all(:,isubj,m,ifoi,iblock,2) = out.lambda(1:90);
         catch me
-          dfa_all(:,isubj,m,ifoi,2,iblock) = nan(1,90);
+          warning('fof')
+          outp.dfa_all(:,isubj,m,ifoi,iblock,2) = nan(1,90);
+          outp.acorr_all(:,isubj,m,ifoi,iblock,2) = nan(1,90);
+          outp.lambda_all(:,isubj,m,ifoi,iblock,2) = nan(1,90);
         end
+        clear out
       end
     end
   end
 end
 
-dfa_all = nanmean(dfa_all(:,SUBJLIST,:,:,:,:),6);
+outp.dfa_all = squeeze(nanmean(outp.dfa_all(:,SUBJLIST,:,:,:,:),5));
+outp.acorr_all = squeeze(nanmean(outp.acorr_all(:,SUBJLIST,:,:,:,:),5));
+outp.lambda_all = squeeze(nanmean(outp.lambda_all(:,SUBJLIST,:,:,:,:),5));
 
-save(sprintf([outdir 'pupmod_src_dfa_v%d.mat'],1),'dfa_all');
+save(sprintf(['~/pupmod/proc/conn/pupmod_src_dfa_v%d.mat'],v),'outp');
+
+
 %%
 
 [h,p]=ttest(squeeze(nanmean(dfa_all(:,1:18,2,1,2),1)), squeeze(nanmean(dfa_all(:,1:18,1,1,2))))%,'dim',2)

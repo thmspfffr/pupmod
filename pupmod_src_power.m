@@ -54,14 +54,14 @@ clear
 % --------------------------------------------------------
 % VERSION 5 - BROADBAND
 % --------------------------------------------------------
-v               = 4;
-v_postproc      = 6;
-fsample         = 400;
-SUBJLIST        = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
-allpara.filt    = 'jh_lcmv';
-allpara.grid    = 'vtpm_6mm';
-f               = [2 100]; % relevant for beamformer csd
-segleng         = 400;
+% v               = 4;
+% v_postproc      = 6;
+% fsample         = 400;
+% SUBJLIST        = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
+% allpara.filt    = 'jh_lcmv';
+% allpara.grid    = 'vtpm_6mm';
+% f               = [2 100]; % relevant for beamformer csd
+% segleng         = 400;
 % --------------------------------------------------------
 
 
@@ -237,7 +237,7 @@ for isubj = SUBJLIST
       f_select = find(all_freq>=peak_range(1) & all_freq<=peak_range(2));
       
       para.f       = all_freq;
-      para.fselect = f_select;
+      para.f_select = f_select;
       para.method  = 'com';
       para.win     = 5;
       para.detrend = 0;
@@ -288,8 +288,8 @@ subplot(3,2,[1 3]); hold on
 mp_res = squeeze(nanmean(pow_all_res,2));
 mp_tsk = squeeze(nanmean(pow_all_tsk,2));
 
-mp_res = detrend(mp_res);
-mp_tsk = detrend(mp_tsk);
+% mp_res = detrend(mp_res);
+% mp_tsk = detrend(mp_tsk);
 plot(all_freq(1:length(mp_res)),mp_res,'linewidth',2)
 plot(all_freq(1:length(mp_tsk)),mp_tsk,'linewidth',2)
 axis square
@@ -302,6 +302,8 @@ for i = 1 : 3
   m_res(i) = tp_peakfreq(squeeze(nanmean(pow_all_res(:,:,i),2)),para);
   m_tsk(i) = tp_peakfreq(squeeze(nanmean(pow_all_tsk(:,:,i),2)),para);
 end
+
+save([outdir sprintf('pupmod_src_peakfreq_v%d.mat',v)],'m_res','m_tsk');
 
 % [~,i_res]=max(mean(mean(pow_all_res(f_select,:,:,:),4),2))
 % [~,i_tsk]=max(mean(mean(pow_all_tsk(f_select,:,:,:),4),2))
@@ -381,15 +383,15 @@ print(gcf,'-dpdf',sprintf('~/pupmod/plots/pupmod_src_power_v%d.pdf',v))
 
 % [~,i] = max(nanmean(pow_res(f_select,:,:),2));
 % peak_freq_res = all_freq(f_select(i));
-peak_freq_res(1) = tp_peakfreq(nanmean(pow_res(:,:,1),2)',para)
-peak_freq_res(2) = tp_peakfreq(nanmean(pow_res(:,:,2),2)',para)
-peak_freq_res(3) = tp_peakfreq(nanmean(pow_res(:,:,3),2)',para)
+peak_freq_res(1) = tp_peakfreq(nanmean(pow_all_res(:,:,1),2)',para)
+peak_freq_res(2) = tp_peakfreq(nanmean(pow_all_res(:,:,2),2)',para)
+peak_freq_res(3) = tp_peakfreq(nanmean(pow_all_res(:,:,3),2)',para)
 
 % [~,i] = max(nanmean(pow_tsk(f_select,:,:),2));
 % peak_freq_tsk = all_freq(f_select(i));
-peak_freq_tsk(1) = tp_peakfreq(nanmean(pow_tsk(:,:,1),2)',para)
-peak_freq_tsk(2) = tp_peakfreq(nanmean(pow_tsk(:,:,2),2)',para)
-peak_freq_tsk(3) = tp_peakfreq(nanmean(pow_tsk(:,:,3),2)',para)
+peak_freq_tsk(1) = tp_peakfreq(nanmean(pow_all_tsk(:,:,1),2)',para)
+peak_freq_tsk(2) = tp_peakfreq(nanmean(pow_all_tsk(:,:,2),2)',para)
+peak_freq_tsk(3) = tp_peakfreq(nanmean(pow_all_tsk(:,:,3),2)',para)
 
 % -------------------
 % PERMUTATION TEST: SETTINGS
@@ -405,8 +407,8 @@ para.method = 'gaussian'
 % PERMUTATION TEST: Atomoxetine vs. placebo (resting state)
 % -------------------
 
-dat(:,:,1) = pow_res(:,:,1);
-dat(:,:,2) = pow_res(:,:,2);
+dat(:,:,1) = pow_all_res(:,:,1);
+dat(:,:,2) = pow_all_res(:,:,2);
 
 peak_freq_perm = tp_permtest_peakfreq(dat,para)
 
@@ -419,8 +421,8 @@ p(1) = 1-sum(emp_diff<perm_diff)/para.nperm;
 % PERMUTATION TEST: Donepezil vs. placebo (resting state)
 % -------------------
 
-dat(:,:,1) = pow_res(:,:,1);
-dat(:,:,2) = pow_res(:,:,3);
+dat(:,:,1) = pow_all_res(:,:,1);
+dat(:,:,2) = pow_all_res(:,:,3);
 
 peak_freq_perm = tp_permtest_peakfreq(dat,para)
 
@@ -433,8 +435,8 @@ p(2) = 1-sum(emp_diff<perm_diff)/para.nperm;
 % PERMUTATION TEST: Task vs rest
 % -------------------
 
-dat(:,:,1) = nanmean(pow_res,3);
-dat(:,:,2) = nanmean(pow_tsk,3);
+dat(:,:,1) = nanmean(pow_all_res,3);
+dat(:,:,2) = nanmean(pow_all_tsk,3);
 
 peak_freq_perm = tp_permtest_peakfreq(dat,para)
 

@@ -115,7 +115,7 @@ for iperm = 1 : par.allperms
     
   end
   
-  save(sprintf(['~/pupmod/proc/pupmod_src_degree_permtest_iperm%d_nperm%d_v%d_processing.txt'],iperm,nperm,v),'outp');
+  save(sprintf(['~/pupmod/proc/pupmod_src_degree_permtest_iperm%d_nperm%d_v%d.mat'],iperm,nperm,v),'outp');
 
 end
 
