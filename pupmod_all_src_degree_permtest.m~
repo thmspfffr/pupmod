@@ -1,4 +1,4 @@
-%% pupmod_all_src_degree
+%% pupmod_all_src_degree_permtest
 % Computes stats for degree centrality based on a permutation procedure.
 % The pharma labels are exchanged randomly *nperm* times and degree is
 % computed for each permutation. For each permutation, the maximum degree
@@ -49,11 +49,11 @@ clear cleandat
 
 for iperm = 1 : par.allperms
   
-  if ~exist(sprintf(['~/pupmod/proc/' 'pupmod_src_degree_permtest_iperm%d_nperm%d_v%d_processing.txt'],iperm,nperm,v))
-    system(['touch ' '~/pupmod/proc/' sprintf('pupmod_src_degree_permtest_iperm%d_nperm%d_v%d_processing.txt',iperm,nperm,v)]);
-  else
-    continue
-  end
+%   if ~exist(sprintf(['~/pupmod/proc/' 'pupmod_src_degree_permtest_iperm%d_nperm%d_v%d_processing.txt'],iperm,nperm,v))
+%     system(['touch ' '~/pupmod/proc/' sprintf('pupmod_src_degree_permtest_iperm%d_nperm%d_v%d_processing.txt',iperm,nperm,v)]);
+%   else
+%     continue
+%   end
   
   for kperm = 1 : par.subs
     
@@ -97,17 +97,17 @@ for iperm = 1 : par.allperms
       para.alpha = 0.01;
       para.nfreq = 13;
 
-      deg_atx = tp_degree(permdat_atx(:,:,:,:,icond,:),para);
-      deg_dpz = tp_degree(permdat_dpz(:,:,:,:,icond,:),para);
+      deg_atx(:,:,:,:,icond) = tp_degree(permdat_atx(:,:,:,:,icond,:),para);
+      deg_dpz(:,:,:,:,icond) = tp_degree(permdat_dpz(:,:,:,:,icond,:),para);
 
     end
     
     % compute global degree 
-    outp.perm_k_atx(:,:,kperm) = squeeze(nansum(reshape(deg_atx,[fcsize^2 13 2]))/fcsize^2);
-    outp.perm_k_dpz(:,:,kperm) = squeeze(nansum(reshape(deg_dpz,[fcsize^2 13 2]))/fcsize^2);
+    outp.perm_k_atx(:,:,:,kperm) = squeeze(nansum(reshape(deg_atx,[fcsize^2 13 2 2]))/fcsize^2);
+    outp.perm_k_dpz(:,:,:,kperm) = squeeze(nansum(reshape(deg_dpz,[fcsize^2 13 2 2]))/fcsize^2);
     % compute degree per voxel
-    outp.perm_k_atx_pervoxel(:,:,:,kperm) = squeeze(nansum((deg_atx)))/fcsize;
-    outp.perm_k_dpz_pervoxel(:,:,:,kperm) = squeeze(nansum((deg_dpz)))/fcsize;
+    outp.perm_k_atx_pervoxel(:,:,:,:,kperm) = squeeze(nansum((deg_atx)))/fcsize;
+    outp.perm_k_dpz_pervoxel(:,:,:,:,kperm) = squeeze(nansum((deg_dpz)))/fcsize;
     % compute both for task vs rest
     deg_tvr = tp_degree(taskvsrest_perm,para);
     outp.perm_k_tvr(:,:,:,kperm) = nansum(reshape(deg_tvr,[fcsize^2 13 2]))/fcsize^2;
@@ -115,7 +115,7 @@ for iperm = 1 : par.allperms
     
   end
   
-  save(sprintf(['~/pupmod/proc/pupmod_src_degree_permtest_iperm%d_nperm%d_v%d_processing.txt'],iperm,nperm,v),'outp');
+  save(sprintf(['~/pupmod/proc/pupmod_src_degree_permtest_iperm%d_nperm%d_v%d.mat'],iperm,nperm,v),'outp');
 
 end
 
@@ -123,16 +123,15 @@ error('!')
 
 %% CONCATENATE PERMUTATONS AND COMPUTE STATS
 
-par.subs = 100;
-par.allperms = nperm/par.subs;
-alpha = 0.05;
-alp = 0.05;
-
 for iperm = 1 : par.allperms
-    
-    load(sprintf('~/pupmod/proc/pupmod_src_degree_permtest_iperm%d_nperm%d_v%d.mat',iperm,nperm,v),'par')
-    
-    perm_n_p_atx((iperm-1)*par.subs+1:(iperm)*par.subs,:,1)=par.tperm_res1_p;
-    perm_n_p_atx((iperm-1)*par.subs+1:(iperm)*par.subs,:,2)=par.tperm_cnt1_p;
-    
-
+  
+  load(sprintf('~/pupmod/proc/pupmod_src_degree_permtest_iperm%d_nperm%d_v%d.mat',iperm,nperm,v),'par')
+  
+  perm_k_atx((iperm-1)*par.subs+1:(iperm)*par.subs,:,:) = outp.perm_k_atx;
+  perm_k_dpz((iperm-1)*par.subs+1:(iperm)*par.subs,:,:) = outp.perm_k_dpz;
+  perm_k_atx_pervoxel((iperm-1)*par.subs+1:(iperm)*par.subs,:,:,:) = outp.perm_k_atx_pervoxel;
+  perm_k_dpz_pervoxel((iperm-1)*par.subs+1:(iperm)*par.subs,:,:,:) = outp.perm_k_dpz_pervoxel;
+  perm_k_tvr((iperm-1)*par.subs+1:(iperm)*par.subs,:,:) = outp.perm_k_tvr;
+  perm_k_tvr_pervoxel((iperm-1)*par.subs+1:(iperm)*par.subs,:,:,:) = outp.perm_k_tvr_pervoxel;
+  
+end

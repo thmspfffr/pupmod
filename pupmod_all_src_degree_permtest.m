@@ -97,24 +97,24 @@ for iperm = 1 : par.allperms
       para.alpha = 0.01;
       para.nfreq = 13;
 
-      deg_atx = tp_degree(permdat_atx(:,:,:,:,icond,:),para);
-      deg_dpz = tp_degree(permdat_dpz(:,:,:,:,icond,:),para);
+      deg_atx(:,:,:,:,icond) = tp_degree(permdat_atx(:,:,:,:,icond,:),para);
+      deg_dpz(:,:,:,:,icond) = tp_degree(permdat_dpz(:,:,:,:,icond,:),para);
 
     end
     
     % compute global degree 
-    outp.perm_k_atx(:,:,kperm) = squeeze(nansum(reshape(deg_atx,[fcsize^2 13 2]))/fcsize^2);
-    outp.perm_k_dpz(:,:,kperm) = squeeze(nansum(reshape(deg_dpz,[fcsize^2 13 2]))/fcsize^2);
+    outp.perm_k_atx(:,:,:,kperm) = squeeze(nansum(reshape(deg_atx,[fcsize^2 13 2 2]))/fcsize^2);
+    outp.perm_k_dpz(:,:,:,kperm) = squeeze(nansum(reshape(deg_dpz,[fcsize^2 13 2 2]))/fcsize^2);
     % compute degree per voxel
-    outp.perm_k_atx_pervoxel(:,:,:,kperm) = squeeze(nansum((deg_atx)))/fcsize;
-    outp.perm_k_dpz_pervoxel(:,:,:,kperm) = squeeze(nansum((deg_dpz)))/fcsize;
+    outp.perm_k_atx_pervoxel(:,:,:,:,kperm) = squeeze(nansum((deg_atx)))/fcsize;
+    outp.perm_k_dpz_pervoxel(:,:,:,:,kperm) = squeeze(nansum((deg_dpz)))/fcsize;
     % compute both for task vs rest
     deg_tvr = tp_degree(taskvsrest_perm,para);
     outp.perm_k_tvr(:,:,:,kperm) = nansum(reshape(deg_tvr,[fcsize^2 13 2]))/fcsize^2;
     outp.perm_k_tvr_pervoxel(:,:,:,kperm) = squeeze(nansum((deg_tvr)))/fcsize;
     
   end
-  
+    
   save(sprintf(['~/pupmod/proc/pupmod_src_degree_permtest_iperm%d_nperm%d_v%d.mat'],iperm,nperm,v),'outp');
 
 end
