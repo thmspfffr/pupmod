@@ -5,142 +5,23 @@ clear
 % --------------------------------------------------------
 % VERSION 1 - WEIGHTED AAL
 % --------------------------------------------------------
-% v               = 1;
-% v_postproc      = 6;
-% fsample         = 400;
-% SUBJLIST        = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
-% allpara.filt    = 'jh_lcmv';
-% allpara.grid    = 'aal_4mm';
-% foi_range       = unique(round(2.^[1:.5:7]));
-% para.segleng    = 9 ./ foi_range;
-% para.bpfreq     = [foi_range-(foi_range./2)/2; foi_range+(foi_range./2)/2]';
-% para.epleng     = 60;
-% lpc             = 0;
-% timevariant     = 0;
-% para.wavelet    = 'bp_filt';
-% para.scnd_filt  = 0;
-% allpara.reg     = 0.05;
-% allpara.weigh   = 1;
-% allpara.tau     = nan;
-% --------------------------------------------------------
-% VERSION 2 - SUM OVER ALL AAL VOXELS
-% --------------------------------------------------------
-% v               = 2;
-% v_postproc      = 6;
-% fsample         = 400;
-% SUBJLIST        = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
-% allpara.filt    = 'jh_lcmv';
-% allpara.grid    = 'aal_4mm';
-% foi_range       = unique(round(2.^[1:.5:7]));
-% para.segleng    = 9 ./ foi_range;
-% para.bpfreq     = [foi_range-(foi_range./2)/2; foi_range+(foi_range./2)/2]';
-% para.epleng     = 60;
-% lpc             = 0;
-% timevariant     = 0;
-% para.wavelet    = 'bp_filt';
-% para.scnd_filt  = 0;
-% allpara.reg     = 0.05;
-% allpara.weigh   = 2;
-% allpara.tau     = nan;
-% --------------------------------------------------------
-% VERSION 2 - M758
-% --------------------------------------------------------
-% v               = 3;
-% v_postproc      = 6;
-% fsample         = 400;
-% SUBJLIST        = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
-% allpara.filt    = 'jh_lcmv';
-% allpara.grid    = 'm758_4mm';
-% foi_range       = unique(round(2.^[1:.5:7]));
-% para.segleng    = 9 ./ foi_range;
-% para.bpfreq     = [foi_range-(foi_range./2)/2; foi_range+(foi_range./2)/2]';
-% para.epleng     = 60;
-% lpc             = 0;
-% timevariant     = 0;
-% para.wavelet    = 'bp_filt';
-% para.scnd_filt  = 0;
-% allpara.reg     = 0.05;
-% allpara.weigh   = 1;
-% allpara.tau     = nan;
-% --------------------------------------------------------
-% VERSION 5 - XCOARSE
-% --------------------------------------------------------
-% v               = 5;
-% v_postproc      = 6;
-% fsample         = 400;
-% SUBJLIST        = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
-% allpara.filt    = 'jh_lcmv';
-% allpara.grid    = 'xcoarse';
-% foi_range       = unique(round(2.^[1:.5:7]));
-% para.segleng    = 9 ./ foi_range;
-% para.bpfreq     = [foi_range-(foi_range./2)/2; foi_range+(foi_range./2)/2]';
-% para.epleng     = 60;
-% lpc             = 0;
-% timevariant     = 0;
-% para.wavelet    = 'bp_filt';
-% para.scnd_filt  = 0;
-% allpara.reg     = 0.05;
-% allpara.weigh   = 0;
-% allpara.tau     = nan;
-% --------------------------------------------------------
-% VERSION 6 - XCOARSE
-% --------------------------------------------------------
-% v               = 6;
-% v_postproc      = 6;
-% fsample         = 400;
-% SUBJLIST        = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
-% allpara.filt    = 'jh_lcmv';
-% allpara.grid    = 'cortex';
-% foi_range       = unique(round(2.^[1:.5:7]));
-% para.segleng    = 9 ./ foi_range;
-% para.bpfreq     = [foi_range-(foi_range./2)/2; foi_range+(foi_range./2)/2]';
-% para.epleng     = 60;
-% lpc             = 0;
-% timevariant     = 0;
-% para.wavelet    = 'bp_filt';
-% para.scnd_filt  = 0;
-% allpara.reg     = 0.05;
-% allpara.weigh   = 0;
-% allpara.tau     = 10;
-% --------------------------------------------------------
-% VERSION 10 - new wavelets & lambda = 5% (instead of 1%) - timevariant
-% --------------------------------------------------------
-% v               = 10;
-% v_postproc      = 6;
-% fsample         = 400;
-% SUBJLIST        = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
-% allpara.filt    = 'jh_lcmv';
-% allpara.grid    = 'aal';
-% foi_range       = unique(round(2.^[1:.5:7]));
-% para.segleng    = 9 ./ foi_range;
-% para.epleng     = 60;
-% lpc             = 0;
-% timevariant     = 0;
-% para.wavelet    = 'bp_filt';
-% para.scnd_filt  = 0;
-% allpara.tau     = nan;
-% allpara.reg = 0.05;
-% allpara.weigh     = 0;
-% --------------------------------------------------------
-% VERSION 11 - SAME AS VERSION 1, but original AAL order
-% --------------------------------------------------------
-% v               = 11;
-% v_postproc      = 6;
-% fsample         = 400;
-% SUBJLIST        = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
-% allpara.filt    = 'jh_lcmv';
-% allpara.grid    = 'aal_4mm';
-% foi_range       = unique(round(2.^[1:.5:7]));
-% para.segleng    = 9 ./ foi_range;
-% para.bpfreq     = [foi_range-(foi_range./2)/2; foi_range+(foi_range./2)/2]';
-% para.epleng     = 60;
-% lpc             = 0;
-% timevariant     = 0;
-% para.wavelet    = 'bp_filt';
-% para.scnd_filt  = 0;
-% allpara.reg     = 0.05;
-% allpara.weigh   = 1;
-% allpara.tau     = nan;
+v               = 1;
+v_postproc      = 6;
+fsample         = 400;
+SUBJLIST        = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
+allpara.filt    = 'jh_lcmv';
+allpara.grid    = 'aal_4mm';
+foi_range       = unique(round(2.^[1:.5:7]));
+para.segleng    = 9 ./ foi_range;
+para.bpfreq     = [foi_range-(foi_range./2)/2; foi_range+(foi_range./2)/2]';
+para.epleng     = 60;
+lpc             = 0;
+timevariant     = 0;
+para.wavelet    = 'bp_filt';
+para.scnd_filt  = 0;
+allpara.reg     = 0.05;
+allpara.weigh   = 1;
+allpara.tau     = nan;
 % --------------------------------------------------------
 % VERSION 12 - VOXEL LEVEL, 400 samples cortex
 % --------------------------------------------------------
@@ -160,46 +41,6 @@ clear
 % para.scnd_filt  = 0;
 % allpara.reg     = 0.05;
 % allpara.weigh   = 0;
-% allpara.tau     = nan;
-% --------------------------------------------------------
-% VERSION 111 - SAME as V1, but original AAL order
-% --------------------------------------------------------
-% v               = 111;
-% v_postproc      = 6;
-% fsample         = 400;
-% SUBJLIST        = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
-% allpara.filt    = 'jh_lcmv';
-% allpara.grid    = 'aal_4mm';
-% foi_range       = unique(round(2.^[1:.5:7]));
-% para.segleng    = 9 ./ foi_range;
-% para.bpfreq     = [foi_range-(foi_range./2)/2; foi_range+(foi_range./2)/2]';
-% para.epleng     = 60;
-% lpc             = 0;
-% timevariant     = 0;
-% para.wavelet    = 'bp_filt';
-% para.scnd_filt  = 0;
-% allpara.reg     = 0.05;
-% allpara.weigh   = 1;
-% allpara.tau     = nan;
-% --------------------------------------------------------
-% VERSION 13 - ELORETA
-% --------------------------------------------------------
-% v               = 13;
-% v_postproc      = 6;
-% fsample         = 400;
-% SUBJLIST        = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
-% allpara.filt    = 'eloreta';
-% allpara.grid    = 'aal_4mm';
-% foi_range       = unique(round(2.^[1:.5:7]));
-% para.segleng    = 9 ./ foi_range;
-% para.bpfreq     = [foi_range-(foi_range./2)/2; foi_range+(foi_range./2)/2]';
-% para.epleng     = 60;
-% lpc             = 0;
-% timevariant     = 0;
-% para.wavelet    = 'bp_filt';
-% para.scnd_filt  = 0;
-% allpara.reg     = 0.05;
-% allpara.weigh   = 1;
 % allpara.tau     = nan;
 % --------------------------------------------------------
 % VERSION 14 - LCMV + moving average
@@ -224,23 +65,23 @@ clear
 % --------------------------------------------------------
 % VERSION 15 - GENE EXPRESSION MAPS
 % --------------------------------------------------------
-v               = 15;
-v_postproc      = 6;
-fsample         = 400;
-SUBJLIST        = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
-allpara.filt    = 'jh_lcmv';
-allpara.grid    = 'genemaps_aal';
-foi_range       = unique(round(2.^[1:.5:7]));
-para.segleng    = 9 ./ foi_range;
-para.bpfreq     = [foi_range-(foi_range./2)/2; foi_range+(foi_range./2)/2]';
-para.epleng     = 60;
-lpc             = 0;
-timevariant     = 0;
-para.wavelet    = 'bp_filt';
-para.scnd_filt  = 0;
-allpara.reg     = 0.05;
-allpara.weigh   = 0;
-allpara.tau     = nan;
+% v               = 15;
+% v_postproc      = 6;
+% fsample         = 400;
+% SUBJLIST        = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
+% allpara.filt    = 'jh_lcmv';
+% allpara.grid    = 'genemaps_aal';
+% foi_range       = unique(round(2.^[1:.5:7]));
+% para.segleng    = 9 ./ foi_range;
+% para.bpfreq     = [foi_range-(foi_range./2)/2; foi_range+(foi_range./2)/2]';
+% para.epleng     = 60;
+% lpc             = 0;
+% timevariant     = 0;
+% para.wavelet    = 'bp_filt';
+% para.scnd_filt  = 0;
+% allpara.reg     = 0.05;
+% allpara.weigh   = 0;
+% allpara.tau     = nan;
 % --------------------------------------------------------
 
 
@@ -283,7 +124,7 @@ end
 
 for isubj = SUBJLIST
   for m = 1:3
-    for ifoi = [6 7]%1:length(foi_range)
+    for ifoi = 1:length(foi_range)
       
       if ~exist(sprintf([outdir 'pupmod_src_powcorr_s%d_m%d_f%d_v%d_processing.txt'],isubj,m,ifoi,v))
         system(['touch ' outdir sprintf('pupmod_src_powcorr_s%d_m%d_f%d_v%d_processing.txt',isubj,m,ifoi,v)]);

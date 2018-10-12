@@ -8,23 +8,23 @@ clear
 % --------------------------------------------------------
 % VERSION 1 - WEIGHTED AAL
 % --------------------------------------------------------
-% v               = 1;
-% v_postproc      = 6;
-% fsample         = 400;
-% SUBJLIST        = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
-% allpara.filt    = 'jh_lcmv';
-% allpara.grid    = 'aal_4mm';
-% foi_range       = unique(round(2.^[1:.5:7]));
-% para.segleng    = 9 ./ foi_range;
-% para.bpfreq     = [foi_range-(foi_range./2)/2; foi_range+(foi_range./2)/2]';
-% para.epleng     = 60;
-% lpc             = 0;
-% timevariant     = 0;
-% para.wavelet    = 'bp_filt';
-% para.scnd_filt  = 0;
-% allpara.reg     = 0.05;
-% allpara.weigh   = 1;
-% allpara.tau     = 0;
+v               = 1;
+v_postproc      = 6;
+fsample         = 400;
+SUBJLIST        = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
+allpara.filt    = 'jh_lcmv';
+allpara.grid    = 'aal_4mm';
+foi_range       = unique(round(2.^[1:.5:7]));
+para.segleng    = 9 ./ foi_range;
+para.bpfreq     = [foi_range-(foi_range./2)/2; foi_range+(foi_range./2)/2]';
+para.epleng     = 60;
+lpc             = 0;
+timevariant     = 0;
+para.wavelet    = 'bp_filt';
+para.scnd_filt  = 0;
+allpara.reg     = 0.05;
+allpara.weigh   = 1;
+allpara.tau     = 0;
 % --------------------------------------------------------
 % VERSION 2 - SUM OVER ALL AAL VOXELS
 % --------------------------------------------------------
@@ -126,23 +126,23 @@ clear
 % --------------------------------------------------------
 % VERSION 15 - GENE EXPRESSION MAPS
 % --------------------------------------------------------
-v               = 15;
-v_postproc      = 6;
-fsample         = 400;
-SUBJLIST        = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
-allpara.filt    = 'jh_lcmv';
-allpara.grid    = 'genemaps_aal';
-foi_range       = unique(round(2.^[1:.5:7]));
-para.segleng    = 9 ./ foi_range;
-para.bpfreq     = [foi_range-(foi_range./2)/2; foi_range+(foi_range./2)/2]';
-para.epleng     = 60;
-lpc             = 0;
-timevariant     = 0;
-para.wavelet    = 'bp_filt';
-para.scnd_filt  = 0;
-allpara.reg     = 0.05;
-allpara.weigh   = 0;
-allpara.tau     = nan;
+% v               = 15;
+% v_postproc      = 6;
+% fsample         = 400;
+% SUBJLIST        = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
+% allpara.filt    = 'jh_lcmv';
+% allpara.grid    = 'genemaps_aal';
+% foi_range       = unique(round(2.^[1:.5:7]));
+% para.segleng    = 9 ./ foi_range;
+% para.bpfreq     = [foi_range-(foi_range./2)/2; foi_range+(foi_range./2)/2]';
+% para.epleng     = 60;
+% lpc             = 0;
+% timevariant     = 0;
+% para.wavelet    = 'bp_filt';
+% para.scnd_filt  = 0;
+% allpara.reg     = 0.05;
+% allpara.weigh   = 0;
+% allpara.tau     = nan;
 % --------------------------------------------------------
 
 
@@ -185,7 +185,7 @@ siginfo.converted_sample_frequency = 400;
 
 for isubj = SUBJLIST
   for m = 1 : 3
-    for ifoi = [6 7]%1:length(foi_range)
+    for ifoi = 1:length(foi_range)
       
       if ~exist(sprintf([outdir 'pupmod_task_src_powcorr_s%d_m%d_f%d_v%d_processing.txt'],isubj,m,ifoi,v))
         system(['touch ' outdir sprintf('pupmod_task_src_powcorr_s%d_m%d_f%d_v%d_processing.txt',isubj,m,ifoi,v)]);
@@ -259,29 +259,23 @@ for isubj = SUBJLIST
         % COMPUTE POWER CORRELATIONS
         % dat should be n x nchans
         if ~timevariant
-          if ~lpc
+          
             if allpara.weigh == 0
               [powcorr] = tp_powcorr_ortho(dat,pars,sa);
             else
               [powcorr] = tp_powcorr_ortho_weight(dat,pars,sa);
             end
-          else
-            powcorr = tp_data2lpc_jackknife(dat,pars,filt,filt);
-          end
+      
         else
           
           pars.epleng   = para.epleng*pars.fsample;
           pars.epshift  = round(pars.epleng/16);
           
-          if ~lpc
             if allpara.weigh == 0
               [powcorr] = tp_powcorr_ortho(dat,pars,sa);
             else
               [powcorr] = tp_powcorr_ortho_weight(dat,pars,sa);
             end
-          else
-            powcorr = tp_lpc(dat,pars,filt,filt);
-          end
         end
         
         if size(powcorr,1) < 100 && size(powcorr,1) > 80
