@@ -211,9 +211,9 @@ for isubj = SUBJLIST
             if strcmp(allpara.grid,'cortex_lowres')
               powcorr = nan(400,400);
             elseif strcmp(allpara.grid,'aal_4mm')
-              powcorr = nan(90,90);
+              powcorr = nan(91,91);
             elseif strcmp(allpara.grid,'aal_6mm')
-              powcorr = nan(90,90);
+              powcorr = nan(91,91);
             elseif strcmp(allpara.grid,'genemaps_aal')
               powcorr = nan(378,378);
             end
@@ -276,13 +276,6 @@ for isubj = SUBJLIST
             else
               [powcorr] = tp_powcorr_ortho_weight(dat,pars,sa);
             end
-        end
-        
-        if size(powcorr,1) < 100 && size(powcorr,1) > 80
-          pars = [];
-          pars.grid = 'medium';
-          pars.N = 91;
-          powcorr = tp_match_aal(pars,powcorr);
         end
         
         save(sprintf([outdir 'pupmod_task_src_powcorr_s%d_m%d_b%d_f%d_v%d.mat'],isubj,m,iblock,ifoi,v),'powcorr');

@@ -9,7 +9,7 @@ clear
 % -------------------------------------------------------------------------
 % VERSION 01 - ignore saccades, *interpolate* blinks
 % -------------------------------------------------------------------------
-v = 15;
+v = 1;
 v_pup = 2;
 v_hrv = 1;
 % -------------------------------------------------------------------------
@@ -119,10 +119,10 @@ clear p1 p2
 
 outdir = '~/pupmod/proc/conn/';
 % s_fc = single(zeros(400,400,34,3,2,13));
-% s_fc = single(zeros(90,90,34,3,2,13));
-s_fc = single(zeros(  378 ,  378 ,34,3,2,13));
+s_fc = single(zeros(91,91,34,3,2,13));
+% s_fc = single(zeros(  378 ,  378 ,34,3,2,13));
 
-for ifoi = 6:7
+for ifoi = 1:13
   ifoi
   
   for isubj = SUBJLIST
@@ -151,12 +151,12 @@ for ifoi = 6:7
   end
 end
 
-s_fc = s_fc(:,:,SUBJLIST,:,:,:);
+s_fc = s_fc(1:90,1:90,SUBJLIST,:,:,:);
 
 %%
 for icont = 1 : 2
   for im = 1 : 3
-    for ifoi = 6:7
+    for ifoi = 1:13
       for i = 1 : size(s_fc,1)
         fprintf('Cond %d Session %d freq %d node %d...\n',icont,im,ifoi,i)
         for j = 1 : size(s_fc,1)
@@ -182,6 +182,9 @@ for icont = 1 : 2
   end
 end
 
+if size(cleandat,1)==91
+  cleandat=cleandat(1:90,1:90,:,:,:,:);
+end
 save(sprintf('~/pupmod/proc/conn/pupmod_src_powcorr_cleaned_v%d.mat',v),'cleandat','-v7.3');
 
 clear s_fc;

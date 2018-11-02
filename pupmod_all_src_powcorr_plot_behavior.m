@@ -23,41 +23,94 @@ mask = find(triu(ones(400))-eye(400));
 fc_all = reshape(cleandat(:,:,:,1:3,1:2,:),[400*400 28 3 2 13]);
 fc_all = fc_all(mask,:,:,:,:); %clear cleandat
 
-load ~/pconn_bttn/proc/behav_counting_upload.mat
+% load ~/pconn_bttn/proc/behav_counting_upload.mat
 load ~/pconn_bttn/proc/behav_pressing_upload.mat
 
 behav = (behav_pressing + behav_counting) / 2;
 behav(7,2) = behav_counting(7,2);
 behav(27,2) = behav_counting(27,2);
+% behav([7,27],:) = []
 
-% behav =
 clear outp
 
-% behav=behav_counting;
-% outp.rr = zeros(size(fc_all,1),13);
-% outp.pp = zeros(size(fc_all,1),13);
+
+%% CORRELATE CHANGE IN BEHAVIOR WITH CHANGE IN FC
+% Preselect only connections that are altered through task
+for ifoi = 1:13
+  ifoi
+  idx1 = ttest(fc_all(:,:,2,2,ifoi),fc_all(:,:,1,2,ifoi),'dim',2,'alpha',0.01);
+  idx2 = ttest(fc_all(:,:,2,2,ifoi),fc_all(:,:,2,1,ifoi),'dim',2,'alpha',0.01);
+
+  fc = mean(fc_all(find(idx1),:,2,2,ifoi)-fc_all(find(idx1),:,1,2,ifoi));
+
+  [outp.rr1(:,ifoi) outp.pp1(:,ifoi)] = corr(fc',behav(:,2)-behav(:,1));
+  
+  fc = mean(fc_all(find(idx1&idx2),:,2,2,ifoi)-fc_all(find(idx1&idx2),:,1,2,ifoi));
+  
+  [outp.rr2(:,ifoi) outp.pp2(:,ifoi)] = corr(fc',behav(:,2)-behav(:,1));
+  
+  fc = mean(fc_all(find(idx1),:,2,2,ifoi)-fc_all(find(idx1),:,1,2,ifoi));
+
+  [outp.rr3(:,ifoi) outp.pp3(:,ifoi)] = corr(fc',behav_counting(:,2)-behav_counting(:,1));
+  
+  fc = mean((fc_all(find(idx1&idx2),:,2,2,ifoi)-fc_all(find(idx1&idx2),:,1,2,ifoi)));
+  
+  [outp.rr4(:,ifoi) outp.pp4(:,ifoi)] = corr(fc',behav_counting(:,2)-behav_counting(:,1));
+  
+end
+
+figure; set(gcf,'color','w'); hold on
+subplot(1,2,1); hold on
+plot(outp.rr1)
+plot(outp.rr2)
+title('Pressing')
+xlabel('Frequencies'); ylabel('Correlation (FC, Behav)'); axis square
+axis([0 14 -0.4 0.2])
+
+subplot(1,2,2); hold on
+plot(outp.rr3)
+plot(outp.rr4)
+title('Counting')
+xlabel('Frequencies'); ylabel('Correlation (FC, Behav)'); axis square
+axis([0 14 -0.4 0.2])
+
+
+%% CORRELATE CHANGE IN BEHAVIOR WITH CHANGE IN FC
+% First find connections that correlate with behavior
 
 for ifoi = 1:13
   ifoi
-  idx1 = ttest((fc_all(:,:,2,2,ifoi)-fc_all(:,:,1,2,ifoi))');
-  idx2 = ttest((fc_all(:,:,2,2,ifoi)-fc_all(:,:,2,1,ifoi))');
+  for i = 1 : 79800
+    i
+    [r(i), p(i)] = corr(fc_all(i,:,1,2,ifoi)',behav(:,1));
+  end
+  idx1 = p<0.05;
   
-%   prc = 100*(fc_all(:,:,2,2,ifoi)-fc_all(:,:,1,2,ifoi))./fc_all(:,:,1,2,ifoi);
-%   idx_prc = prc>prctile(prc,99);
-  fc = fc_all(:,:,2,2,ifoi)-fc_all(:,:,1,2,ifoi);
-  fc = fc(find(idx2),:);
-%   idx2   = ttest(fc_atx');
-%   [outp.rr(:,ifoi) outp.pp(:,ifoi)] = corr(squeeze(fc(find(idx),:))',behav(:,1));
-  [outp.rr(:,ifoi) outp.pp(:,ifoi)] = corr(mean(fc,1)',behav(:,2)-behav(:,1));
+  for i = 1 : 79800
+    i
+    [r(i), p(i)] = corr(fc_all(i,:,1,2,ifoi)',behav_counting(:,1));
+  end
+  fc = mean(fc_all(find(idx1),:,2,2,ifoi)-fc_all(find(idx1),:,1,2,ifoi));
+
+  [outp.rr1(:,ifoi) outp.pp1(:,ifoi)] = corr(fc',behav(:,2)-behav(:,1));
+  [outp.rr2(:,ifoi) outp.pp2(:,ifoi)] = corr(fc',behav_counting(:,2)-behav_counting(:,1));
 
 end
 
-% save('~/pupmod/proc/pupmod_src_behavcorr_tsk_cnt.mat','outp')
+figure; set(gcf,'color','w'); hold on
+subplot(1,2,1); hold on
+plot(outp.rr1)
+plot(outp.rr2)
+title('Pressing')
+xlabel('Frequencies'); ylabel('Correlation (FC, Behav)'); axis square
+axis([0 14 -0.4 0.2])
+
+
 %% load('~/pupmod/proc/pupmod_src_behavcorr_tsk_cnt.mat')
 
 ifoi = 6;
 context = 2;
-drug = 2; % 3 = 
+drug = 2; 
 alpha = 0.05;
 
 [idx] = find(outp.pp(:,ifoi) < alpha);
@@ -75,6 +128,7 @@ axis square
 xlabel('Difference in FC (Atx - Pbo)')
 ylabel('Difference in behavior (Atx - Pbo)')
 tp_editplots
+
 
 % print(gcf,'dpdf','~/Dropbox/projects/phd/pupmod/plots/plot.pdf')
 %% PERMUTAITON TEST

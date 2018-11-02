@@ -3,7 +3,10 @@
 % see hawellek et al. (2013) for details
 % cleaned data is generated in pupmod_all_powcorr_periphereal
 
-% last update: 28-05-2018
+% data is collected in: pupmod_all_powcorr_plot_alteredcorr
+% data is plotted in: pupmod_all_powcorr_plot_alteredcorr.m
+
+% last update: 26-10-2018
 
 clear 
 v = 12;
