@@ -1,42 +1,46 @@
 %% pupmod_all_src_degree
 % plot degree of cleaned signal
 % obtain cleanined signal from pupmod_all_src_peripheral*** *check)
-% Goal: replicate hipp et al., nn
+% Goal: replicate hipp et al., nn and plot stats
+
+
 
 clear
+% version: 12 coarse cortex, 1 AAL
 
-vv = 121;
 v = 12;
-
 outdir = '~/pupmod/proc/conn/';
-  
 load(sprintf('~/pupmod/proc/conn/pupmod_src_powcorr_cleaned_v%d.mat',v));
 
-
-
-%%
+%% COMPUTE "RELATIVE" DEGREE
+% --------------------------------
 
 fcsize = size(cleandat,1);
 para = [];
 para.alpha = 0.01;
 para.nfreq = 13;
 
-
+% Atomoxetine (icond = 2) during Rest 
 deg_atx = tp_degree(cleandat(:,:,:,[1 2],1,:),para);
-% deg_dpz = tp_degree(cleandat(:,:,:,[1 3],1,:),para);
-
+deg_atx_vox = squeeze(nansum(deg_atx)/fcsize);
 deg_atx = squeeze(nansum(reshape(deg_atx,[fcsize^2 13 2]))/fcsize^2);
-% deg_dpz = squeeze(nansum(reshape(deg_dpz,[fcsize^2 13 2]))/fcsize^2);
-
-deg_atx_task = tp_degree(cleandat(:,:,:,[1 2],[2],:),para);
+% Atomoxetine (icond = 3) during Task 
+deg_atx_task = tp_degree(cleandat(:,:,:,[1 2],2,:),para);
+deg_atx_task_vox = squeeze(nansum(deg_atx_task)/fcsize);
 deg_atx_task = squeeze(nansum(reshape(deg_atx_task,[fcsize^2 13 2]))/fcsize^2);
-% 
-% deg_dpz_task = tp_degree(cleandat(:,:,:,[1 3],[2],:),para);
-% deg_dpz_task = squeeze(nansum(reshape(deg_dpz_task,[fcsize^2 13 2]))/fcsize^2);
+% ------------------
+% Donepezil (icond = 3) during Rest 
+deg_dpz = tp_degree(cleandat(:,:,:,[1 3],1,:),para);
+deg_dpz_vox = squeeze(nansum(deg_dpz)/fcsize);
+deg_dpz = squeeze(nansum(reshape(deg_dpz,[fcsize^2 13 2]))/fcsize^2);
+% Donepezil (icond = 3) during Task 
+deg_dpz_task = tp_degree(cleandat(:,:,:,[1 3],2,:),para);
+deg_dpz_task_vox = squeeze(nansum(deg_dpz_task)/fcsize);
+deg_dpz_task = squeeze(nansum(reshape(deg_dpz_task,[fcsize^2 13 2]))/fcsize^2);
+% ------------------
 
-
-%% PLOT BASIC RESULTS
-
+%% PLOT  RESULTS W/O STATISTICS
+% --------------------------------
 
 foi_range = unique(round(2.^[1:0.5:7]));
 
@@ -44,13 +48,42 @@ figure; set(gcf,'color','w'); hold on
 subplot(2,2,1); hold on
 
 area(deg_atx(:,1),'facecolor',[0.8 0.8 0.8],'edgecolor',[1 1 1]);
-% area(deg_atx(:,2),'facecolor',[1 0.5 0.2],'edgecolor',[0.8 0.8 0.8]);
-% alpha(0.9)
-set(gca,'xtick',1:13,'xticklabel',foi_range)
+k = area(deg_atx(:,2),'facecolor',[1 0.5 0.2],'edgecolor',[0.8 0.8 0.8]);
+alpha(k,0.6)
+set(gca,'xtick',1:2:13,'xticklabel',foi_range(1:2:13))
 xlabel('Carrier frequency [Hz]'); ylabel('Degree [%]')
 tp_editplots
-axis([1 13 0 0.3]);
+axis([1 13 0 0.5]);
 
+subplot(2,2,2); hold on
+
+area(deg_atx_task(:,1),'facecolor',[0.8 0.8 0.8],'edgecolor',[1 1 1]);
+k = area(deg_atx_task(:,2),'facecolor',[1 0.5 0.2],'edgecolor',[0.8 0.8 0.8]);
+alpha(k,0.6)
+set(gca,'xtick',(1:2:13),'xticklabel',foi_range(1:2:13))
+xlabel('Carrier frequency [Hz]'); ylabel('Degree [%]')
+tp_editplots
+axis([1 13 0 0.5]);
+
+subplot(2,2,3); hold on
+
+area(deg_dpz(:,1),'facecolor',[0.8 0.8 0.8],'edgecolor',[1 1 1]);
+k = area(deg_dpz(:,2),'facecolor',[0.2 0.5 1],'edgecolor',[0.8 0.8 0.8]);
+alpha(k,0.6)
+set(gca,'xtick',(1:2:13),'xticklabel',foi_range(1:2:13))
+xlabel('Carrier frequency [Hz]'); ylabel('Degree [%]')
+tp_editplots
+axis([1 13 0 0.5]);
+
+subplot(2,2,4); hold on
+
+area(deg_dpz_task(:,1),'facecolor',[0.8 0.8 0.8],'edgecolor',[1 1 1]);
+k = area(deg_dpz_task(:,2),'facecolor',[0.2 0.5 1],'edgecolor',[0.8 0.8 0.8]);
+alpha(k,0.6)
+set(gca,'xtick',(1:2:13),'xticklabel',foi_range(1:2:13))
+xlabel('Carrier frequency [Hz]'); ylabel('Degree [%]')
+tp_editplots
+axis([1 13 0 0.5]);
 
 
 
@@ -65,242 +98,147 @@ for iperm = 1 : par.allperms
   load(sprintf('~/pupmod/proc/pupmod_src_degree_permtest_iperm%d_nperm%d_v%d.mat',iperm,nperm,v))
   
   perm_k_atx(:,:,:,(iperm-1)*par.subs+1:(iperm)*par.subs) = outp.perm_k_atx;
-%   perm_k_dpz(:,:,(iperm-1)*par.subs+1:(iperm)*par.subs) = outp.perm_k_dpz;
-%   perm_k_atx_pervoxel(:,:,:,(iperm-1)*par.subs+1:(iperm)*par.subs) = outp.perm_k_atx_pervoxel;
-%   perm_k_dpz_pervoxel(:,:,:,(iperm-1)*par.subs+1:(iperm)*par.subs) = outp.perm_k_dpz_pervoxel;
-%   perm_k_tvr(:,:,(iperm-1)*par.subs+1:(iperm)*par.subs) = outp.perm_k_tvr;
-%   perm_k_tvr_pervoxel(:,:,:,(iperm-1)*par.subs+1:(iperm)*par.subs) = outp.perm_k_tvr_pervoxel;
-  
+  perm_k_atx_vox(:,:,:,:,(iperm-1)*par.subs+1:(iperm)*par.subs) = outp.perm_k_atx_pervoxel;
+  perm_k_dpz(:,:,:,(iperm-1)*par.subs+1:(iperm)*par.subs)   = outp.perm_k_dpz;
+  perm_k_dpz_vox(:,:,:,:,(iperm-1)*par.subs+1:(iperm)*par.subs) = outp.perm_k_dpz_pervoxel;
+
 end
 
-%% P-VALUES
+clear outp
 
 for ifoi = 1 : 13
-  p_atx_task(ifoi) = 1-sum(deg_atx_task(ifoi,2)-deg_atx_task(ifoi,1) > abs(squeeze(perm_k_atx(ifoi,2,2,:)-perm_k_atx(ifoi,1,2,:))))/50000;
-  p_atx_rest(ifoi) = 1-sum(deg_atx(ifoi,2)-deg_atx(ifoi,2) > abs(squeeze(perm_k_atx(ifoi,2,1,:)-perm_k_atx(ifoi,1,1,:))))/50000;
+  
+  ifoi 
+  p_atx_task(ifoi) = 1-sum(abs(deg_atx_task(ifoi,2)-deg_atx_task(ifoi,1)) > abs(squeeze(perm_k_atx(ifoi,2,2,:)-perm_k_atx(ifoi,1,2,:))))/50000;
+  p_atx_rest(ifoi) = 1-sum(abs(deg_atx(ifoi,2)-deg_atx(ifoi,1)) > abs(squeeze(perm_k_atx(ifoi,2,1,:)-perm_k_atx(ifoi,1,1,:))))/50000;
+  p_dpz_rest(ifoi) = 1-sum(abs(deg_dpz(ifoi,2)-deg_dpz(ifoi,1)) > abs(squeeze(perm_k_dpz(ifoi,2,1,:)-perm_k_dpz(ifoi,1,1,:))))/50000;
+  p_dpz_task(ifoi) = 1-sum(abs(deg_dpz_task(ifoi,2)-deg_dpz_task(ifoi,1)) > abs(squeeze(perm_k_dpz(ifoi,2,2,:)-perm_k_dpz(ifoi,1,2,:))))/50000;
+  
+  p_atx_vox_task(:,ifoi) = 1-sum(abs(deg_atx_task_vox(:,ifoi,2)-deg_atx_task_vox(:,ifoi,1)) > abs(squeeze(perm_k_atx_vox(:,ifoi,2,2,:)-perm_k_atx_vox(:,ifoi,1,2,:))),2)/50000;
+  p_atx_vox_rest(:,ifoi) = 1-sum(abs(deg_atx_vox(:,ifoi,2)-deg_atx_vox(:,ifoi,1)) > abs(squeeze(perm_k_atx_vox(:,ifoi,2,1,:)-perm_k_atx_vox(:,ifoi,1,1,:))),2)/50000;
+  p_dpz_vox_rest(:,ifoi) = 1-sum(abs(deg_dpz_vox(:,ifoi,2)-deg_dpz_vox(:,ifoi,1)) > abs(squeeze(perm_k_dpz_vox(:,ifoi,2,1,:)-perm_k_dpz_vox(:,ifoi,1,1,:))),2)/50000;
+  p_dpz_vox_task(:,ifoi) = 1-sum(abs(deg_dpz_task_vox(:,ifoi,2)-deg_dpz_task_vox(:,ifoi,1)) > abs(squeeze(perm_k_dpz_vox(:,ifoi,2,2,:)-perm_k_dpz_vox(:,ifoi,1,2,:))),2)/50000;
+  
 
-  %   p_dpz_task(ifoi) = 1-sum(deg_dpz(ifoi,1) > squeeze(perm_k_dpz(ifoi,1,:)))/50000;
 end
 
-figure; hold on
-plot(p_atx_rest)
-plot(p_atx_task)
-% plot(p_dpz_rest)
-% plot(p_dpz_task)
-
-
+clear perm_k_atx perm_k_dpz perm_k_atx_vox perm_k_dpz_vox
 %% PLOT ON SURFACE
 v = 12
-ifoi = 6;
+ifoi = 13;
 % icond = 2;
 
-% load(sprintf([outdir 'pupmod_all_src_degree_c%d_f%d_v%d.mat'],icond,ifoi,v));
+% load(sprintf([outdir 'pupmod_all_src_degree_c%d_f%d_v%d.mat'],2,6,v));
 
-var2plot = nansum(deg_atx(:,:,ifoi,2))./400-nansum(deg_atx(:,:,ifoi,1))./400;
+var2plot_atx(:,1) = (deg_atx_vox(:,ifoi,2)-deg_atx_vox(:,ifoi,1)).*(p_atx_vox_rest(:,ifoi)<0.01);
+var2plot_atx(:,2) = (deg_atx_task_vox(:,ifoi,2)-deg_atx_task_vox(:,ifoi,1)).*(p_atx_vox_task(:,ifoi)<0.01);
+var2plot_dpz(:,1) = (deg_dpz_vox(:,ifoi,2)-deg_dpz_vox(:,ifoi,1)).*(p_dpz_vox_rest(:,ifoi)<0.01);
+var2plot_dpz(:,2) = (deg_dpz_task_vox(:,ifoi,2)-deg_dpz_task_vox(:,ifoi,1)).*(p_dpz_vox_task(:,ifoi)<0.05);
 
 if ~exist('sa_meg_template','var')
   load /home/gnolte/meth/templates/mri.mat;
   load /home/gnolte/meth/templates/sa_template.mat;
   load /home/tpfeffer/pconn/proc/src/pconn_sa_s4_m1_b1_v11.mat
   grid = sa.grid_cortex_lowres;
+  addpath /home/gnolte/meg_toolbox/toolbox/
+  addpath /home/gnolte/meg_toolbox/fieldtrip_utilities/
+  addpath /home/gnolte/meg_toolbox/toolbox_nightly/
+  addpath /home/gnolte/meg_toolbox/meg/
 end
 
-% mri   = sa_meg_template.mri;
 vc    = sa_template.vc;
 g1    = grid;
 g2    = sa_template.cortex10K.vc;
 dd    = .5;
 
-z2 = spatfiltergauss_cut(var2plot(:),g1,dd,2,g2);
-% 
-% para = [] ;
-% para.colorlimits = [min(var2plot) max(var2plot)];
-para.colorlimits = [0 0.45]
-% para.colorlimits = [-max(abs(var2plot)) max(abs(var2plot))];
-% 
-% viewdir = [-.5 -.5 .5; .5 -.5 .5; .5 .5 .5; -.5 .5 .5];
-% % 
-igr = 80;
-cmap = inferno;
-c = [linspace(0.98,cmap(igr,1),igr)' linspace(0.98,cmap(igr,2),igr)' linspace(0.98,cmap(igr,3),igr)'];
-cmap(1:igr,:)=c;
-para.filename = sprintf('~/pupmod/plots/pupmod_src_degree_f%d_v%d.png',ifoi,v)
-% 
-tp_showsource(z2,cmap,sa_meg_template,para);
+interp_atx(:,1) = spatfiltergauss(var2plot_atx(:,1),g1,dd,g2);
+interp_atx(:,2) = spatfiltergauss(var2plot_atx(:,2),g1,dd,g2);
+interp_dpz(:,1) = spatfiltergauss(var2plot_dpz(:,1),g1,dd,g2);
+interp_dpz(:,2) = spatfiltergauss(var2plot_dpz(:,2),g1,dd,g2);
 
-  %% PLOT CONTRAST
+%% PLOT ATX DEGREE
+
+% condition: 1 = rest, 2 = task
+cond = 2;
+% interp_atx(abs(interp_atx(:,cond)) < 0.2,cond) = 0;
+
+cmap = hot; cmap = cmap(end:-1:13,:);
+figure; set(gcf,'color','w');
+
+aa=subplot(2,2,1);
+trisurf(sa_template.cortex10K.tri,sa_template.cortex10K.vc(:,1),sa_template.cortex10K.vc(:,2),sa_template.cortex10K.vc(:,3),interp_atx(:,cond))
+shading interp; axis off; colormap(cmap);
+set(gca,'clim',[-0 0.45]);
+view(90,90); daspect([1 1 1])
+h=light; material dull; lighting GOURAUD
+set(h,'Position',[0 0 1]); 
+
+bb=subplot(2,2,2);
+trisurf(sa_template.cortex10K.tri,sa_template.cortex10K.vc(:,1),sa_template.cortex10K.vc(:,2),sa_template.cortex10K.vc(:,3),interp_atx(:,cond))
+shading interp; axis off; colormap(hot);
+set(gca,'clim',[-0 0.45]);
+view(0,0); daspect([1 1 1])
+h=light; material dull; lighting GOURAUD
+set(h,'Position',[0 -1 0]); 
+
+cc=subplot(2,2,3);
+trisurf(sa_template.cortex10K.tri,sa_template.cortex10K.vc(:,1),sa_template.cortex10K.vc(:,2),sa_template.cortex10K.vc(:,3),interp_atx(:,cond))
+shading interp; axis off; colormap(hot);
+set(gca,'clim',[0 0.45]);
+view(3); view(90,0); daspect([1 1 1])
+h=light; material dull; lighting GOURAUD
+set(h,'Position',[1 0 0]);
+
+subplot(2,2,4)
+trisurf(sa_template.cortex10K.tri,sa_template.cortex10K.vc(:,1),sa_template.cortex10K.vc(:,2),sa_template.cortex10K.vc(:,3),interp_atx(:,cond))
+shading interp; axis off; colormap(cmap);
+set(gca,'clim',[-0 0.45]);
+view(3); view(-90,0); daspect([1 1 1])
+h=light; material dull; lighting GOURAUD
+set(h,'Position',[-1 0 0]);
+
+%% PLOT DPZ DEGREE
+
+% condition: 1 = rest, 2 = task
+cond = 2;
+interp_dpz(abs(interp_dpz(:,cond)) < 0.45,cond) = 0;
+cmap = hot; cmap = cmap(end:-1:13,:);
+figure; set(gcf,'color','w');
+
+aa=subplot(2,2,1);
+trisurf(sa_template.cortex10K.tri,sa_template.cortex10K.vc(:,1),sa_template.cortex10K.vc(:,2),sa_template.cortex10K.vc(:,3),interp_dpz(:,cond))
+shading interp; axis off; colormap(cmap);
+set(gca,'clim',[ -0.4 0.4]);
+view(90,90); daspect([1 1 1])
+h=light; material dull; lighting GOURAUD
+set(h,'Position',[0 0 1]); 
+
+bb=subplot(2,2,2);
+trisurf(sa_template.cortex10K.tri,sa_template.cortex10K.vc(:,1),sa_template.cortex10K.vc(:,2),sa_template.cortex10K.vc(:,3),interp_dpz(:,cond))
+shading interp; axis off; colormap(cmap);
+set(gca,'clim',[ -0.4 0.4]);
+view(0,0); daspect([1 1 1])
+h=light; material dull; lighting GOURAUD
+set(h,'Position',[0 -1 0]); 
+
+cc=subplot(2,2,3);
+trisurf(sa_template.cortex10K.tri,sa_template.cortex10K.vc(:,1),sa_template.cortex10K.vc(:,2),sa_template.cortex10K.vc(:,3),interp_dpz(:,cond))
+shading interp; axis off; colormap(cmap);
+set(gca,'clim',[ -0.4 0.4]);
+view(3); view(90,0); daspect([1 1 1])
+h=light; material dull; lighting GOURAUD
+set(h,'Position',[1 0 0]);
+
+subplot(2,2,4)
+trisurf(sa_template.cortex10K.tri,sa_template.cortex10K.vc(:,1),sa_template.cortex10K.vc(:,2),sa_template.cortex10K.vc(:,3),interp_dpz(:,cond))
+shading interp; axis off; colormap(redblue);
+set(gca,'clim',[ -0.4 0.4]);
+view(3); view(-90,0); daspect([1 1 1])
+h=light; material dull; lighting GOURAUD
+set(h,'Position',[-1 0 0]);
+
  
-  igr = 50;
-  
-% cmap1 = cbrewer('seq','YlOrRd',126); cmap1 = cmap1(1:100,:); cmap1 = cmap1(end:-1:1,:);
-% ccmap1 = [linspace(0.98,cmap1(1,1),igr)' linspace(0.98,cmap1(1,2),igr)' linspace(0.98,cmap1(1,3),igr)'];
-% ccmap1 = ccmap1(1:end-1,:); ccmap1 = ccmap1(end:-1:1,:);
-% cmap1 = [ccmap1(end:-1:1,:); cmap1];
-% 
-% cmap2 = cbrewer('seq','YlGnBu',126); cmap2 = cmap2(1:100,:); cmap2 = cmap2(end:-1:1,:);
-% ccmap2 = [linspace(0.98,cmap2(1,1),igr)' linspace(0.98,cmap2(1,2),igr)' linspace(0.98,cmap2(1,3),igr)'];
-% ccmap2 = ccmap2(1:end-1,:); ccmap2 = ccmap2(end:-1:1,:);
-% cmap2 = [ccmap2(end:-1:1,:); cmap2];
-% cmap = [cmap2(end:-1:1,:); ones(20,3); cmap1]
-
-clear cmap1 cmap2 cmap autumn
-% 
-cmap1 = hot(150);
-cmap2 = cmap1(:,[3 2 1]);
-cmap = [cmap2(end-20:-1:30,:); .98*ones(30,3);  cmap1(30:end-20,:)];
-
-% igr = 80;
-% cmap = inferno;
-% c = [linspace(0.98,cmap(igr,1),igr)' linspace(0.98,cmap(igr,2),igr)' linspace(0.98,cmap(igr,3),igr)'];
-% cmap(1:igr,:)=c;
-% 
-% cmap = [cmap(end:-1:1,[3 2 1]); cmap]
 
 %%
 
-v = 121
-
-foi = [1:13];
-cond = [1:2];
-icontr = 2;
-
-for ifoi = foi
-  for icond = cond
-
-load(sprintf([outdir 'pupmod_all_src_degree_c%d_f%d_v%d.mat'],icond,ifoi,v));
-
-if icontr == 1
-  var2plot = k(:,2) -k(:,1);
-elseif icontr == 2
-  var2plot = k(:,3) -k(:,1);
-else
-  var2plot = k(:,2) -k(:,3);
-end
-
-if ~exist('sa_meg_template','var')
-  load sa_meg_template;
-  load /home/tpfeffer/pconn/proc/src/pconn_sa_s4_m1_b1_v11.mat
-  grid = sa.grid_cortex_lowres;
-end
-
-mri   = sa_meg_template.mri;
-vc    = sa_meg_template.vc;
-g1    = grid;
-g2    = sa_meg_template.cortex10K.vc;
-dd    = .5;
-
-z2 = spatfiltergauss(var2plot(:),g1,dd,g2);
-% 
-para = [] ;
-% para.colorlimits = [min(var2plot) max(var2plot)];
-% para.colorlimits = [-max(abs(var2plot)) max(abs(var2plot))];
-para.colorlimits = [-0.45 0.45];
-
-para.viewdir = [-.5 -.5 .5; .5 -.5 .5; .5 .5 .5; -.5 .5 .5];
-% 
-% igr = 80;
-% cmap = cbrewer('div', 'RdBu', 256,'pchip');
-% cmap = cmap(end:-1:1,:);
-
-para.filename = sprintf('~/pupmod/plots/pupmod_src_degree_contr%d_f%d_c%d_v%d.png',icontr,ifoi,icond,v)
-
-tp_showsource(z2,cmap,sa_meg_template,para);
-
-  end
-end
-
-% for icond = 1 : 2
-% for ifoi = 1:13
-% j = 1:90;
-% 
-% 
-% for il = 1 : size(s_fc,1)
-%   
-%   jj = j(j~=il);
-%   
-%   for jl = 1 : size(s_fc,1)
-%     
-%     jjj = j(j~=jl);
-%     
-%     fc_tmp = s_fc(:,:,:,1:3,icond,ifoi);
-%     
-%     fprintf('Computing location %d %d ...\n',il,jl);
-%     
-%     x = squeeze(fc_tmp(il,jl,:,:));
-%     
-%     x_ref1 = squeeze(nanmean(fc_tmp(il,jj,:,:),4));
-%     x_ref2 = squeeze(nanmean(fc_tmp(jjj,jl,:,:),4));
-%     
-%     m1 = mean(x_ref1); s1 = std(x_ref1);
-%     m2 = mean(x_ref2); s2 = std(x_ref2);
-%     
-%     z11 = (x(:,1)' - m1)./s1;
-%     z12 = (x(:,1)' - m2)./s2;
-%     
-%     z21 = (x(:,2)' - m1)./s1;
-%     z22 = (x(:,2)' - m2)./s2;
-%     
-%     z31 = (x(:,3)' - m1)./s1;
-%     z32 = (x(:,3)' - m2)./s2;
-%        
-%     [~,p11] = ttest(z11);
-%     [~,p12] = ttest(z12);
-%     
-%     [~,p21] = ttest(z21);
-%     [~,p22] = ttest(z22);
-%     
-%     [~,p31] = ttest(z31);
-%     [~,p32] = ttest(z32);
-%     
-%     th11(jl,:) = p11 < 0.01/2;
-%     th12(jl,:) = p12 < 0.01/2;
-%     th21(jl,:) = p21 < 0.01/2;
-%     th22(jl,:) = p22 < 0.01/2;
-%     th31(jl,:) = p31 < 0.01/2;
-%     th32(jl,:) = p32 < 0.01/2;
-%     
-%   end
-%   
-%   th11 = th11(jj,:);
-%   th12 = th12(jj,:);
-%   th21 = th21(jj,:);
-%   th22 = th22(jj,:);
-%   th31 = th31(jj,:);
-%   th32 = th32(jj,:);
-%   
-%   % any connection significant?
-%   th1(il,jj,:) = (th11 + th12) > 0; clear th11 th12
-%   th2(il,jj,:) = (th21 + th22) > 0; clear th21 th22
-%   th3(il,jj,:) = (th31 + th32) > 0; clear th31 th32
-%     
-% end
-% 
-% k(1,ifoi,icond) = sum(sum(th1))/8010
-% k(2,ifoi,icond) = sum(sum(th2))/8010
-% k(3,ifoi,icond) = sum(sum(th3))/8010
-% 
-% end
-% 
-% end
-
-% for ifoi = 1 : 13
-%   tmp = squeeze(s_fc(:,:,:,1,:,ifoi));
-%   
-%   [h,~,~,s] = ttest(tmp(:,:,:,2),tmp(:,:,:,1),'dim',3);
-%   
-%   n_p(ifoi) = sum(sum(triu((h.*sign(s.tstat)),1)>0))/4005;
-%   n_n(ifoi) = sum(sum(triu((h.*sign(s.tstat)),1)<0))/4005;
-%   
-% end
-
-
-
-% for iperm = 1 : nperm
-  
-  
-  
-  
-
-  
-  
 

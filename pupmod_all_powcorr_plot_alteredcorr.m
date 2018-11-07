@@ -6,6 +6,14 @@
 % pupmod_src_powcorr_permtest.m). The actual p-values are obtained calling
 % the function pupmod_all_powcorr_getstatistics.m)
 % --------------------------
+% CONTENTS
+% --------------
+% (1) PLOT: No stats
+% (2) PLOT: P-Values (corrected) 
+% (3) PLOT: Altered correlations
+% (4) Circular graphs
+% (5) Plot altered correlations (per voxel)
+% --------------
 
 clear
 
@@ -22,12 +30,12 @@ load(sprintf('~/pupmod/proc/conn/pupmod_src_powcorr_cleaned_v%d.mat',v));
 %%
 
 para = [];
-para.nfreq = 13;
+para.nfreq = 1:13;
 para.alpha = 0.05;
 
 emp = pupmod_compute_altered_correlations(cleandat,para);
 
-%% PLOT: No stats
+%% (1) PLOT: No stats
 % ------------------
 
 linewidth = 2;
@@ -97,15 +105,35 @@ if ~exist(sprintf('~/pupmod/proc/pupmod_src_powcorr_alteredcorr_v%d.mat',v))
   para.nsubs = 100;
   para.type = 'global';
   para.cond = 'atx';
+  para.allperms = para.nperm/para.nsubs;
+
   [outp_atx, emp_atx] = pupmod_src_powcorr_getstatistics(para);
   para.cond = 'dpz';
   [outp_dpz, emp_dpz] = pupmod_src_powcorr_getstatistics(para);
   
   save(sprintf('~/pupmod/proc/pupmod_src_powcorr_alteredcorr_v%d.mat',v),'outp_atx','outp_dpz','emp_atx','emp_dpz')
+
+  for iperm = 1 : para.allperms
+  
+    fprintf('Load permutation distributions: %d / %d ...\n',iperm,para.allperms)
+  
+    load(sprintf('~/pupmod/proc/pupmod_src_powcorr_permtest_iperm%d_nperm%d_v%d.mat',iperm,para.nperm,para.ver),'par')
+    
+    atx(:,(iperm-1)*para.nsubs+1:(iperm)*para.nsubs) = par.tperm_cnt1_pervoxel_p(:,:,6);
+    p_atx_vox = 1-sum(abs(emp.n_p_atx_pervoxel(:,6,2))>abs(atx),2)/para.nperm;
+    
+    w(:,(iperm-1)*para.nsubs+1:(iperm)*para.nsubs) = par.tperm_res2_pervoxel_p(:,:,7);
+    p_dpz_vox = 1-sum(abs(emp.n_n_dpz_pervoxel(:,7,1))>abs(dpz),2)/para.nperm;
+    
+  end
+  
+  
+
+
 else
   load(sprintf('~/pupmod/proc/pupmod_src_powcorr_alteredcorr_v%d.mat',v))
 end
-%% PLOT P-VALUES
+%% (2) PLOT: P-Values (corrected) 
 figure;  set(gcf,'color','white')
 
 subplot(3,2,1); hold on
@@ -167,7 +195,9 @@ xlabel('Carrier frequency [Hz]'); ylabel('P-Value (uncorrected)')
 % % tp_editplots
 print(gcf,'-dpdf',sprintf('~/pupmod/plots/pupmod_src_powcorr_taskrestcomp_pval.pdf'));
 
-%%
+%% (3a) PLOT: Altered correlations
+% Plot altered correlations and highlights significant differences
+% --------------
 
 alpha1 = 0.025;
 alpha2 = 0.01;
@@ -268,8 +298,10 @@ tp_editplots
 print(gcf,'-dpdf',sprintf('~/pupmod/plots/pupmod_all_src_powcorr_drugeffects_lineplots.pdf'));
 
 %% CREATE CIRCULAR PLOT
-load(sprintf('~/pupmod/proc/conn/pupmod_src_powcorr_cleaned_v%d.mat',1));
+% -------------------------------
+% In AAL space
 
+load(sprintf('~/pupmod/proc/conn/pupmod_src_powcorr_cleaned_v%d.mat',1));
 
 mask = logical(tril(ones(76,76),-1));
 k = 1 : 90;
@@ -308,7 +340,8 @@ for iperm = 1 : nperm
     maxt_dpz(iperm) = max(abs(s.tstat(mask)));
   
 end
-%%
+
+% STATS
 [h,p,~,s] = ttest(cleandat(include_bcn,include_bcn,:,2,2,6),cleandat(include_bcn,include_bcn,:,1,2,6),'dim',3);
 mean_change = nanmean(cleandat(include_bcn,include_bcn,:,2,2,6)-cleandat(include_bcn,include_bcn,:,1,2,6),3);
 conn = s.tstat>prctile(maxt_atx,95);
@@ -334,3 +367,13 @@ labels(sum(conn)==0) = {''}
 
 subplot(1,2,2);
 circularGraph(mean_change.*conn,'label',labels)
+
+%% (5) PLOT ALTERED CORRELATIONS (PER VOXEL)
+
+
+
+
+
+
+
+
