@@ -166,6 +166,8 @@ elseif strcmp(allpara.grid,'genemaps')
   v_grid = 13;
 elseif strcmp(allpara.grid,'genemaps_aal')
   v_grid = 14;
+elseif strcmp(allpara.grid,'cortex800')
+  v_grid = 16;
 end
 
 addpath /home/gnolte/meg_toolbox/toolbox/
@@ -176,9 +178,6 @@ addpath /home/tpfeffer/Documents/MATLAB/fieldtrip-20130925/
 
 outdir   = '/home/tpfeffer/pupmod/proc/conn/';
 addpath /home/tpfeffer/pconn/matlab/
-run ~/Documents/MATLAB/toolboxes/NBT-NBTv0.5.3-alpha/installNBT.m
-siginfo = nbt_Info;
-siginfo.converted_sample_frequency = 400;
 
 
 %% LOAD DATA COMPUTE SRC TIME COURSES

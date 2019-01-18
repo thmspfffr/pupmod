@@ -5,12 +5,32 @@ clear
 % --------------------------------------------------------
 % VERSION 1 - WEIGHTED AAL
 % --------------------------------------------------------
-v               = 1;
+% v               = 1;
+% v_postproc      = 6;
+% fsample         = 400;
+% SUBJLIST        = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
+% allpara.filt    = 'jh_lcmv';
+% allpara.grid    = 'aal_4mm';
+% foi_range       = unique(round(2.^[1:.5:7]));
+% para.segleng    = 9 ./ foi_range;
+% para.bpfreq     = [foi_range-(foi_range./2)/2; foi_range+(foi_range./2)/2]';
+% para.epleng     = 60;
+% lpc             = 0;
+% timevariant     = 0;
+% para.wavelet    = 'bp_filt';
+% para.scnd_filt  = 0;
+% allpara.reg     = 0.05;
+% allpara.weigh   = 1;
+% allpara.tau     = nan;
+% --------------------------------------------------------
+% VERSION 12 - VOXEL LEVEL, 400 samples cortex
+% --------------------------------------------------------
+v               = 12;
 v_postproc      = 6;
 fsample         = 400;
 SUBJLIST        = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
 allpara.filt    = 'jh_lcmv';
-allpara.grid    = 'aal_4mm';
+allpara.grid    = 'cortex_lowres';
 foi_range       = unique(round(2.^[1:.5:7]));
 para.segleng    = 9 ./ foi_range;
 para.bpfreq     = [foi_range-(foi_range./2)/2; foi_range+(foi_range./2)/2]';
@@ -20,10 +40,9 @@ timevariant     = 0;
 para.wavelet    = 'bp_filt';
 para.scnd_filt  = 0;
 allpara.reg     = 0.05;
-allpara.weigh   = 1;
+allpara.weigh   = 0;
 allpara.tau     = nan;
 % --------------------------------------------------------
-
 
 addpath /home/gnolte/meg_toolbox/toolbox/
 addpath /home/gnolte/meg_toolbox/fieldtrip_utilities/
@@ -37,12 +56,13 @@ run ~/Documents/MATLAB/toolboxes/NBT-NBTv0.5.3-alpha/installNBT.m
 siginfo = nbt_Info;
 siginfo.converted_sample_frequency = 400;
 
+
 if strcmp(allpara.grid,'xcoarse')
   v_grid = 2;
-elseif strcmp(allpara.grid,'aal')
-  v_grid = 4;
 elseif strcmp(allpara.grid,'cortex')
   v_grid = 3;
+elseif strcmp(allpara.grid,'aal')
+  v_grid = 4;
 elseif strcmp(allpara.grid,'medium')
   v_grid = 5;
 elseif strcmp(allpara.grid,'aal_6mm')
@@ -51,6 +71,14 @@ elseif strcmp(allpara.grid,'aal_4mm')
   v_grid = 7;
 elseif strcmp(allpara.grid,'m758_4mm')
   v_grid = 8;
+elseif strcmp(allpara.grid, 'cortex_lowres')
+  v_grid = 9;
+elseif strcmp(allpara.grid,'genemaps')
+  v_grid = 13;
+elseif strcmp(allpara.grid,'genemaps_aal')
+  v_grid = 14;
+elseif strcmp(allpara.grid,'cortex800')
+  v_grid = 16;
 end
 
 % t = license('test','signal_toolbox');
@@ -62,18 +90,18 @@ end
 %% LOAD DATA COMPUTE SRC TIME COURSES
 
 for isubj = 33
-  for m = 3 : 3
+  for m = 3
     for ifoi = 1 : length(foi_range)
 % %         
-%       if ~exist(sprintf([outdir 'pupmod_src_variance_task_s%d_m%d_f%d_v%d_processing.txt'],isubj,m,ifoi,v))
-%         system(['touch ' outdir sprintf('pupmod_src_variance_task_s%d_m%d_f%d_v%d_processing.txt',isubj,m,ifoi,v)]);
-%       else
-%         continue
-%       end
-%       
+      if ~exist(sprintf([outdir 'pupmod_src_variance_task_s%d_m%d_f%d_v%d_processing.txt'],isubj,m,ifoi,v))
+        system(['touch ' outdir sprintf('pupmod_src_variance_task_s%d_m%d_f%d_v%d_processing.txt',isubj,m,ifoi,v)]);
+      else
+        continue
+      end
+      
       fprintf('Processing s%d m%d f%d ...\n', isubj,m,ifoi)
       
-      for iblock = 1:1
+      for iblock = 1
         
         pars = [];
         pars.sa   = sprintf('~/pconn_cnt/proc/src/pconn_cnt_sa_s%d_m%d_b%d_v%d.mat',isubj,m,iblock,v_grid);
@@ -86,7 +114,7 @@ for isubj = 33
         catch me
           if ~exist(sprintf('/home/tpfeffer/pconn_cnt/proc/preproc/pconn_cnt_postpostproc_s%d_m%d_b%d_v%d.mat',isubj,m,iblock,1))
 %             powcorr = nan(size(sa.sa.L_xcoarse,2),size(sa.sa.L_xcoarse,2));
-            var = nan(90,90);
+            var = nan(1,400);
             save(sprintf([outdir 'pupmod_src_variance_task_s%d_m%d_b%d_f%d_v%d.mat'],isubj,m,iblock,ifoi,v),'var');
             continue
           else
@@ -127,7 +155,7 @@ for isubj = 33
         
         % COMPUTE POWER CORRELATIONS
 
-         [var] = tp_src_amp(dat,pars,sa);
+         [var] = tp_src_var(dat,pars,sa);
 
         if size(var,1) < 100 && size(var,1) > 80
           pars = [];
@@ -179,22 +207,24 @@ for m = 1 : 3
   end
 end
 cnt
-%%
+%% LOAD VARIANCE DATA
+
 ord   = pconn_randomization;
 for m = 1 : 3
   for isubj = SUBJLIST
+    isubj
     for ifoi = 1:13
       for iblock = 1 : 2
         
-        im = find(ord(isubj,:)==m); isubj
+        im = find(ord(isubj,:)==m); 
 
         load(sprintf([outdir 'pupmod_src_variance_s%d_m%d_b%d_f%d_v%d.mat'],isubj,m,iblock,ifoi,v));
         
-        var_all_rest(:,isubj,m,ifoi,iblock) = diag(var); clear var
+        var_all_rest(:,isubj,m,ifoi,iblock) = var; clear var
         
         load(sprintf([outdir 'pupmod_src_variance_task_s%d_m%d_b%d_f%d_v%d.mat'],isubj,m,iblock,ifoi,v));
         
-        var_all_task(:,isubj,m,ifoi,iblock) = diag(var); clear var
+        var_all_task(:,isubj,m,ifoi,iblock) = var; clear var
         
       end
     end
@@ -204,9 +234,7 @@ end
 var_all_rest = nanmean(var_all_rest(:,SUBJLIST,:,:,:),5);
 var_all_task = nanmean(var_all_task(:,SUBJLIST,:,:,:),5);
 
-%%
-
-% EMPIRICAL
+%% EMPIRICAL
 
 foi_range = [2 3 4 6 8 11 16 23 32 45 64 91 128];
 
@@ -230,7 +258,6 @@ end
 nperm = 10000;
 all_idx1 = randi(2,[size(SUBJLIST,2),nperm]);
 
-
 dat_cnt1 = var_all_task(:,:,[1 2],:);  
 dat_res1 = var_all_rest(:,:,[1 2],:);  
 dat_cnt2 = var_all_task(:,:,[1 3],:); 
@@ -239,8 +266,7 @@ dat_res2 = var_all_rest(:,:,[1 3],:);
 for iperm = 1 : nperm
         
   % within subjects permutation test
-  
-  disp(sprintf('Perm #%d',iperm));
+  fprintf('Perm #%d ...\n',iperm);
   
   idx1 = all_idx1(:,iperm);
   idx2 = 3-idx1;
@@ -255,16 +281,13 @@ for iperm = 1 : nperm
     
   end
   
-  
   for ifoi = 1 : 13
-    
     
     h=ttest(permdat_res1(:,:,2,ifoi),permdat_res1(:,:,1,ifoi),'dim',2);
     n_atx_rest_perm(iperm,ifoi) = sum(h)./ length(h);
     
     h=ttest(permdat_cnt1(:,:,2,ifoi),permdat_cnt1(:,:,1,ifoi),'dim',2);
     n_atx_task_perm(iperm,ifoi) = sum(h)./ length(h);
-    
     
   end
   
@@ -278,9 +301,7 @@ for iperm = 1 : nperm
     
   end
   
-  
-  for ifoi = 1 : 13
-    
+  for ifoi = 1 : 13   
     
     h=ttest(permdat_res1(:,:,2,ifoi),permdat_res1(:,:,1,ifoi),'dim',2);
     n_dpz_rest_perm(iperm,ifoi) = sum(h)./ length(h);
@@ -288,11 +309,7 @@ for iperm = 1 : nperm
     h=ttest(permdat_cnt1(:,:,2,ifoi),permdat_cnt1(:,:,1,ifoi),'dim',2);
     n_dpz_task_perm(iperm,ifoi) = sum(h)./ length(h);
     
-    
   end
-  
-  
-  
 end
   
 for ifoi = 1 : 13
@@ -303,39 +320,53 @@ for ifoi = 1 : 13
   p_dpz_rest(ifoi) = 1-(sum(n_dpz_rest(:,ifoi)>n_dpz_rest_perm(:,ifoi))./nperm);
   p_dpz_task(ifoi) = 1-(sum(n_dpz_task(:,ifoi)>n_dpz_task_perm(:,ifoi))./nperm);
 
-
 end
 
 %%
-figure; 
+figure; set(gcf,'color','w')
 
-subplot(1,2,1); hold on
+subplot(4,2,1); hold on
 plot(n_atx_rest,'linewidth',2,'color',[1 0.5 0.2])
-plot(n_atx_task,'linewidth',2,'color',[1 0.1 0.1])
-
 plot(prctile(n_atx_rest_perm,95),'linewidth',1,'color',[1 0.5 0.2],'linestyle',':')
+
+axis([0 14 -0.02 0.32]); 
+set(gca,'tickdir','out','xtick',[1 3 5 7 9 11 13],'xticklabel',num2cell([2 4 8 16 32 64 128]))
+% xlabel('Frequency [Hz]'); 
+ylabel(sprintf('Fraction of nodes \n with altered variance [%%]'))
+% title('Atomoxetine vs. placebo')
+tp_editplots
+
+subplot(4,2,3); hold on
+plot(n_atx_task,'linewidth',2,'color',[1 0.1 0.1])
 plot(prctile(n_atx_task_perm,95),'linewidth',1,'color',[1 0.1 0.1],'linestyle',':')
+axis([0 14 -0.02 0.32]); 
+set(gca,'tickdir','out','xtick',[1 3 5 7 9 11 13],'xticklabel',num2cell([2 4 8 16 32 64 128]))
+xlabel('Carrier frequency [Hz]'); ylabel(sprintf('Fraction of nodes \n with altered variance [%%]'))
+% title('Atomoxetine vs. placebo')
+tp_editplots
 
-
-axis([0 14 -0.02 0.3]); axis square
-set(gca,'xtick',[1 3 5 7 9 11 13],'xticklabel',[2 4 8 16 32 64 128])
-xlabel('Frequency [Hz]'); ylabel(sprintf('Fraction of nodes \n with altered variance [%%]'))
-title('Atomoxetine vs. placebo')
-
-subplot(1,2,2); hold on
+subplot(4,2,2); hold on
 plot(n_dpz_rest,'linewidth',2,'color',[0.2 0.5 1])
-plot(n_dpz_task,'linewidth',2,'color',[0.1 0.1 1],'linestyle','-')
 
 plot(prctile(n_dpz_rest_perm,95),'linewidth',1,'color',[0.2 0.5 1],'linestyle',':')
+
+axis([0 14 -0.02 0.32]); 
+set(gca,'tickdir','out','xtick',[1 3 5 7 9 11 13],'xticklabel',num2cell([2 4 8 16 32 64 128]))
+% xlabel('Frequency [Hz]'); %ylabel(sprintf('Fraction of nodes \n with altered variance [%%]'))
+% title('Donepezil vs. placebo')
+tp_editplots
+
+subplot(4,2,4); hold on
+plot(n_dpz_task,'linewidth',2,'color',[0.1 0.1 1],'linestyle','-')
 plot(prctile(n_dpz_task_perm,95),'linewidth',1,'color',[0.1 0.1 1],'linestyle',':')
+axis([0 14 -0.02 0.32]); 
+set(gca,'tickdir','out','xtick',[1 3 5 7 9 11 13],'xticklabel',num2cell([2 4 8 16 32 64 128]))
+set(gca,'tickdir','out','ytick',[0 0.1 0.2 0.3],'yticklabel',num2cell([0 0.1 0.2 0.3]))
+xlabel('Carrier frequency [Hz]'); %ylabel(sprintf('Fraction of nodes \n with altered variance [%%]'))
+% title('Atomoxetine vs. placebo')
+tp_editplots
 
-
-axis([0 14 -0.02 0.3]); axis square
-set(gca,'xtick',[1 3 5 7 9 11 13],'xticklabel',[2 4 8 16 32 64 128])
-xlabel('Frequency [Hz]'); ylabel(sprintf('Fraction of nodes \n with altered variance [%%]'))
-title('Donepezil vs. placebo')
-
-print(gcf,'-depsc2',sprintf('~/pupmod/plots/pupmod_src_variance.pdf'))
+print(gcf,'-depsc2',sprintf('~/pupmod/plots/pupmod_src_variance.eps'))
 
 
 

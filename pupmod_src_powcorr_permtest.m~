@@ -3,7 +3,10 @@
 % see hawellek et al. (2013) for details
 % cleaned data is generated in pupmod_all_powcorr_periphereal
 
-% last update: 28-05-2018
+% data is collected in: pupmod_all_powcorr_plot_alteredcorr
+% data is plotted in: pupmod_all_powcorr_plot_alteredcorr.m
+
+% last update: 26-10-2018
 
 clear 
 v = 12;
@@ -12,7 +15,7 @@ addpath /home/gnolte/meg_toolbox/toolbox/
 addpath /home/gnolte/meg_toolbox/fieldtrip_utilities/
 addpath /home/gnolte/meg_toolbox/toolbox_nightly/
 addpath /home/gnolte/meg_toolbox/meg/
-addpath /home/tpfeffer/Documents/MATLAB/fieldtrip-20130925/
+% addpath /home/tpfeffer/Documents/MATLAB/fieldtrip-20130925/
 
 outdir   = '/home/tpfeffer/pupmod/proc/conn/';
 addpath /home/tpfeffer/pconn/matlab/
@@ -37,9 +40,9 @@ seed = ((tmp(1)+tmp(2)*tmp(3))/tmp(4)+tmp(5))*tmp(6);
 rng(seed,'twister')
 
 % alp: standard for all 0.05!!! except verison 13
-nperm = 50000; alp = 0.05;
+nperm = 5000; alp = 0.05;
 
-par.subs = 100;
+par.subs = 200;
 par.allperms = nperm/par.subs;
 
 if ~exist(sprintf('~/pupmod/proc/pupmod_src_powcorr_permtest_perms_subs%d_nperm%d_v%d.mat',par.subs,nperm,v))
@@ -49,22 +52,26 @@ else
   load(sprintf('~/pupmod/proc/pupmod_src_powcorr_permtest_perms_subs%d_nperm%d_v%d.mat',par.subs,nperm,v));
 end
 
-if ~exist(sprintf('~/pupmod/proc/pupmod_src_powcorr_permtest_corrected_pvalues_subs%d_nperm%d_v%d.mat',par.subs,nperm,v))
+if exist(sprintf('~/pupmod/proc/pupmod_src_powcorr_permtest_corrected_pvalues_subs%d_nperm%d_v%d.mat',par.subs,nperm,v))
   load(sprintf('~/pupmod/proc/pupmod_src_powcorr_permtest_corrected_pvalues_subs%d_nperm%d_v%d.mat',par.subs,nperm,v))
   
+  % Atomoxetine
   idx.p_res1_p = find(bwlabel(outp.atx.p_res1_p<0.025));    
   idx.p_res1_n = find(bwlabel(outp.atx.p_res1_n<0.025));
   idx.p_cnt1_p = find(bwlabel(outp.atx.p_cnt1_p<0.025));
   idx.p_cnt1_n = find(bwlabel(outp.atx.p_cnt1_n<0.025));
+  % Donepezil
   idx.p_cnt2_p = find(bwlabel(outp.dpz.p_cnt2_p<0.025));
   idx.p_cnt2_n = find(bwlabel(outp.dpz.p_cnt2_n<0.025));
   idx.p_cnt2_p = find(bwlabel(outp.dpz.p_cnt2_p<0.025));
   idx.p_cnt2_n = find(bwlabel(outp.dpz.p_cnt2_n<0.025));
-  
-  idx.p_tvrbwlabel(outp.p_tvr_p<0.025)
-  bwlabel(outp.p_tvr_n<0.025)
-  
-
+  % Task vs Rest
+  idx.p_tvr_p = find(bwlabel(outp.p_tvr_p<0.025));
+  idx.p_tvr_n = find(bwlabel(outp.p_tvr_n<0.025));
+ 
+  pooled_permutation = 1;
+else
+  pooled_permutation = 0;
 end
 
 dat_cnt1 = s_cnt(:,:,:,[1 2],:);  

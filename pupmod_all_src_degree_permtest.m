@@ -10,20 +10,16 @@ clear
 % VERSION 12 - see pupmod_src_powcorr.m
 % -----------------
 v = 12;
-nperm = 50000; 
-par.subs = 100;
+nperm = 10000; 
+par.subs = 250;
 par.allperms = nperm/par.subs;
 % -----------------
 
 %%
-outdir = '~/pupmod/proc/conn/';
 
-load(sprintf('~/pupmod/proc/conn/pupmod_src_powcorr_cleaned_v%d.mat',v));
+cleandat = pupmod_loadpowcorr(v);
 
 SUBJLIST  = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
-
-s_res = squeeze(cleandat(:,:,:,:,1,:));
-s_cnt = squeeze(cleandat(:,:,:,:,2,:));
 
 tmp = clock;
 
@@ -123,15 +119,15 @@ error('!')
 
 %% CONCATENATE PERMUTATONS AND COMPUTE STATS
 
-for iperm = 1 : par.allperms
-  
-  load(sprintf('~/pupmod/proc/pupmod_src_degree_permtest_iperm%d_nperm%d_v%d.mat',iperm,nperm,v),'par')
-  
-  perm_k_atx((iperm-1)*par.subs+1:(iperm)*par.subs,:,:) = outp.perm_k_atx;
-  perm_k_dpz((iperm-1)*par.subs+1:(iperm)*par.subs,:,:) = outp.perm_k_dpz;
-  perm_k_atx_pervoxel((iperm-1)*par.subs+1:(iperm)*par.subs,:,:,:) = outp.perm_k_atx_pervoxel;
-  perm_k_dpz_pervoxel((iperm-1)*par.subs+1:(iperm)*par.subs,:,:,:) = outp.perm_k_dpz_pervoxel;
-  perm_k_tvr((iperm-1)*par.subs+1:(iperm)*par.subs,:,:) = outp.perm_k_tvr;
-  perm_k_tvr_pervoxel((iperm-1)*par.subs+1:(iperm)*par.subs,:,:,:) = outp.perm_k_tvr_pervoxel;
-  
-end
+% for iperm = 1 : par.allperms
+%   
+%   load(sprintf('~/pupmod/proc/pupmod_src_degree_permtest_iperm%d_nperm%d_v%d.mat',iperm,nperm,v),'par')
+%   
+%   perm_k_atx((iperm-1)*par.subs+1:(iperm)*par.subs,:,:) = outp.perm_k_atx;
+%   perm_k_dpz((iperm-1)*par.subs+1:(iperm)*par.subs,:,:) = outp.perm_k_dpz;
+%   perm_k_atx_pervoxel((iperm-1)*par.subs+1:(iperm)*par.subs,:,:,:) = outp.perm_k_atx_pervoxel;
+%   perm_k_dpz_pervoxel((iperm-1)*par.subs+1:(iperm)*par.subs,:,:,:) = outp.perm_k_dpz_pervoxel;
+%   perm_k_tvr((iperm-1)*par.subs+1:(iperm)*par.subs,:,:) = outp.perm_k_tvr;
+%   perm_k_tvr_pervoxel((iperm-1)*par.subs+1:(iperm)*par.subs,:,:,:) = outp.perm_k_tvr_pervoxel;
+%   
+% end

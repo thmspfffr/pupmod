@@ -1,0 +1,38 @@
+
+
+if ~exist('sa_meg_template','var')
+  load /home/gnolte/meth/templates/mri.mat;
+  load /home/gnolte/meth/templates/sa_template.mat;
+  load /home/tpfeffer/pconn/proc/src/pconn_sa_s4_m1_b1_v11.mat
+  grid = sa.grid_cortex_lowres;
+  addpath /home/gnolte/meg_toolbox/toolbox/
+  addpath /home/gnolte/meg_toolbox/fieldtrip_utilities/
+  addpath /home/gnolte/meg_toolbox/toolbox_nightly/
+  addpath /home/gnolte/meg_toolbox/meg/
+end
+
+
+
+% supramarginal
+r_lpc = [60 -31 34]./10;
+l_lpc = [-60 -35 30]./10;
+
+l_lpc = [-48 -54 46]./10;
+r_lpc = [33 -53 47]./10;
+
+
+grid(401,:) = l_lpc;
+grid(402,:) = r_lpc;
+
+par = zeros(400,1);
+par(401) = 1;
+par(402) = 1;
+
+para = [];
+para.clim = [0 1];
+para.cmap = jet;
+para.grid = grid;
+para.dd = 0.75;
+tp_plot_roi(par,sa_template,para)
+
+print(gcf,'-dpdf',sprintf('~/pupmod/plots/rois_supramarginalgyrus.pdf'))

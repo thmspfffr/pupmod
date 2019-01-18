@@ -1,7 +1,5 @@
-%% PERMUTATION TEST OF CONNECTIVITY DIFFERENCES WITH CLEANED SIGNAL
-% heart beats and blinks projected out of the FC matrices across subjects
-% pupmod_all_powcorr_periphereal
-
+%% OBTAIN ALL PERIPHERAL SIGNALS
+% Regress out in next script: pupmod_all_regressartifacts.m
 % See pupmod_src_powcorr_permtest.m for statistics
 
 clear
@@ -27,13 +25,17 @@ eventdir_res    = '/home/tpfeffer/pconn/proc/pup/';
 SUBJLIST    = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
 addpath ~/pconn/matlab
 %%
+% missing blinks are taken from pconn_find_blinks.m
+
 for icond = 1 : 2
   
   ord   = pconn_randomization;
-
+  
   for m = 1:3
     for isubj = SUBJLIST
       im = find(ord(isubj,:)==m);
+      
+      clear smpdir evtdir
       
       if icond == 1
         smpdir    = dir(sprintf([sampledir_res '*samples*_s%d_*_m%d_*v%d.mat'],isubj,im,v_pup));
@@ -43,36 +45,97 @@ for icond = 1 : 2
         evtdir    = dir(sprintf([eventdir_cnt '*events*_s%d_*_m%d_*v%d.mat'],isubj,im,v_pup));
       end
       
+      if length(evtdir) == 0
+        if icond == 1
+          load(['~/pconn/proc/preproc/' sprintf('pconn_find_blinks_s%d_m%d_b%d_v%d.mat',isubj,im,1,2)])
+          b(isubj,m,icond,1) = blinks;
+          allblinks(isubj,m,icond,1) =blinks; clear blinks
+          load(['~/pconn/proc/preproc/' sprintf('pconn_find_blinks_s%d_m%d_b%d_v%d.mat',isubj,im,2,2)])
+          b(isubj,m,icond,2) = blinks;
+          allblinks(isubj,m,icond,2) =blinks; clear blinks
+        else
+          load(['~/pconn/proc/preproc/' sprintf('pconn_cnt_find_blinks_s%d_m%d_b%d_v%d.mat',isubj,im,1,1)])
+          b(isubj,m,icond,1) = blinks;
+          allblinks(isubj,m,icond,1) =blinks; clear blinks
+          load(['~/pconn/proc/preproc/' sprintf('pconn_cnt_find_blinks_s%d_m%d_b%d_v%d.mat',isubj,im,2,1)])
+          b(isubj,m,icond,2) = blinks;
+          allblinks(isubj,m,icond,2) =blinks; clear blinks
+        end
+        warning(sprintf('No files: s%d m%d c%d', isubj,im,icond))
+        continue
+      end
+      
       for iblock = 1 : length(evtdir)
         
+        %         clear evtdir
         fprintf('Processing s%d b%d m%d ... \n',isubj,iblock,m)
         
+        load([smpdir(iblock).folder '/' smpdir(iblock).name])
+        load([evtdir(iblock).folder '/' evtdir(iblock).name])
+        blinks1 = blinks;
+        
         if icond == 1
-          load([sampledir_res smpdir(iblock).name])
-          load([eventdir_res evtdir(iblock).name])
-          
-        elseif icond == 2
-          load([sampledir_cnt smpdir(iblock).name])
-          load([eventdir_cnt evtdir(iblock).name])
+          if isubj < 10
+            block = str2num(evtdir(iblock).name(22));
+          else
+            block = str2num(evtdir(iblock).name(23));
+          end
+        else
+          if isubj < 7
+            block = str2num(evtdir(iblock).name(26));
+          else
+            block = str2num(evtdir(iblock).name(27));
+          end
         end
+        
+        if length(evtdir) == 1
+          
+          if block == 1
+            if icond == 1
+              load(['~/pconn/proc/preproc/' sprintf('pconn_find_blinks_s%d_m%d_b%d_v%d.mat',isubj,im,2,2)])
+            else
+              load(['~/pconn/proc/preproc/' sprintf('pconn_cnt_find_blinks_s%d_m%d_b%d_v%d.mat',isubj,im,2,1)])
+            end
+            
+            b(isubj,m,icond,2) = blinks;
+            allblinks(isubj,m,icond,2) = blinks; clear blinks
+            
+            warning(sprintf('Missing block: s%d m%d b%d c%d', isubj,im,2,icond))
+          else
+            if icond == 1
+              load(['~/pconn/proc/preproc/' sprintf('pconn_find_blinks_s%d_m%d_b%d_v%d.mat',isubj,im,1,2)])
+            else
+              load(['~/pconn/proc/preproc/' sprintf('pconn_cnt_find_blinks_s%d_m%d_b%d_v%d.mat',isubj,im,1,1)])
+            end
+            b(isubj,m,icond,1) = blinks;
+            allblinks(isubj,m,icond,1) = blinks; clear blinks
+            warning(sprintf('Missing block: s%d m%d b%d c%d', isubj,im,1,icond))
+          end
+        end
+        
         if isubj == 26 && im == 1
           samples(:,2:4) = dat(:,1:3);
         end
-
+        
         if size(samples,1) > 10000
+          samples = samples(10000:end,:);
+          x = highpass(samples(:,4),50,1000);
+          x(x<50) = 0;
+          %           x       = -(zscore(diff(samples(:,4))));
+          [~,idx] = findpeaks(double(x),'MinPeakDistance',500);
           
-          x       = abs(diff(zscore(samples(:,4))));
-          [~,idx] = findpeaks(double(x>0.20),'MinPeakDistance',200);
-          
-          allblinks(isubj,m,icond,iblock) = length(idx);
-          b(isubj,m,icond,iblock)         = length(blinks);
+          allblinks(isubj,m,icond,block) = length(idx);
           
         else
-          warning(sprintf('not sufficient data... s%dm%db%d',isubj,m,iblock))
           
-          allblinks(isubj,m,icond,iblock) = nan;
-          b(isubj,m,icond,iblock)         = nan;
+          allblinks(isubj,m,icond,block) = nan;
+        end
+        
+        try
+          b(isubj,m,icond,block)         = sum(blinks1(:,2)>samples(1,1)); clear blinks1
           
+        catch me
+          b(isubj,m,icond,block)         = nan;
         end
         
       end
@@ -80,31 +143,58 @@ for icond = 1 : 2
   end
 end
 
-allblinks = nanmean(allblinks(SUBJLIST,:,:,:),4);
-b         = nanmean(b(SUBJLIST,:,:,:),4);
+allblinks = allblinks(SUBJLIST,:,:,1:2);
+b         = b(SUBJLIST,:,:,1:2);
 
-%%
+%% MISSING HEART RATE INFO TAKEN FROM ICA COMPONENTS
+% see pconn_hrv_fromica.m for details (same adaptivethresholding procedure
+% is applied)
+
+clear hb_all hb_cnt
+
 for isubj = SUBJLIST
   
   for m = 1 : 3
     for ibl = 1 : 2
-
-    try
-      im = find(ord(isubj,:)==m);
-      load(['~/pconn/proc/dfa/' sprintf('pconn_hrv_dfa_s%d_m%d_b%d_v%d.mat',isubj,im,ibl,v_hrv)]);
       
-      hb_all(isubj,ibl,m) = par.hb;
+      try
+        im = find(ord(isubj,:)==m);
+        load(['~/pconn/proc/dfa/' sprintf('pconn_hrv_dfa_s%d_m%d_b%d_v%d.mat',isubj,im,ibl,v_hrv)]);
+        hb_all(isubj,m,ibl) = par.hb;
+        
+      catch me
+        try
+          load(sprintf('~/pconn/proc/pconn_hrv_fromica_s%d_m%d_b%d.mat',isubj,im,ibl),'par')
+          hb_all(isubj,m,ibl) = par;
+        catch me
+          hb_all(isubj,m,ibl) = nan;
+          warning(sprintf('Did not find REST data: s%d m%d ibl%d',isubj,im,ibl))
+          
+        end
+      end
       
-       load(['~/pconn/proc/dfa/' sprintf('pconn_cnt_hrv_dfa_s%d_m%d_b%d_v%d.mat',isubj,im,ibl,v_hrv)]);
-
-      hb_cnt(isubj,ibl,m) = par.hb;
+      try
+        
+        load(['~/pconn/proc/dfa/' sprintf('pconn_cnt_hrv_dfa_s%d_m%d_b%d_v%d.mat',isubj,im,ibl,v_hrv)]);
+        
+        hb_cnt(isubj,m,ibl) = par.hb;
+        
+      catch me
+        try
+          load(sprintf('~/pconn_cnt/proc/pconn_cnt_hrv_fromica_s%d_m%d_b%d.mat',isubj,im,ibl),'par')
+          hb_cnt(isubj,m,ibl) = par;
+        catch me
+          hb_cnt(isubj,m,ibl) = nan;
+          warning(sprintf('Did not find TASK data: s%d m%d ibl%d',isubj,im,ibl))
+        end
+      end
       
-    catch me
-    end
-    
+      
     end
   end
 end
+
+clear hb
 
 hb_all  = hb_all(SUBJLIST,:,:);
 hb_all_cnt  = hb_cnt(SUBJLIST,:,:);
@@ -112,83 +202,60 @@ hb_all_cnt  = hb_cnt(SUBJLIST,:,:);
 hb_all(hb_all==0) = NaN;
 hb_all_cnt(hb_all_cnt==0) = NaN;
 
-hb(:,:,1)  = squeeze(nanmean(hb_all,2));
-hb(:,:,2)  = squeeze(nanmean(hb_all_cnt,2));
-%%
-clear p1 p2
+hb(:,:,1,:)  = squeeze(hb_all);
+hb(:,:,2,:)  = squeeze(hb_all_cnt);
 
-outdir = '~/pupmod/proc/conn/';
-% s_fc = single(zeros(400,400,34,3,2,13));
-s_fc = single(zeros(91,91,34,3,2,13));
-% s_fc = single(zeros(  378 ,  378 ,34,3,2,13));
-
-for ifoi = 1:13
-  ifoi
-  
-  for isubj = SUBJLIST
-%     disp(isubj)
-    for m = 1 : 3
-      
-      im = find(ord(isubj,:)==m);
-      
-      for iblock = 1 : 2
-        clear tmp
-        load(sprintf([outdir 'pupmod_src_powcorr_s%d_m%d_b%d_f%d_v%d.mat'],isubj,im,iblock,ifoi,v));
-        
-        p1(:,:,iblock) = single(powcorr);
-        
-        load(sprintf([outdir 'pupmod_task_src_powcorr_s%d_m%d_b%d_f%d_v%d.mat'],isubj,im,iblock,ifoi,v));
-        p2(:,:,iblock) = single(powcorr);
-          
+%% OTHER ARTIFACTS
+for isubj = SUBJLIST
+  isubj
+  for m = 1 : 3
+    im = find(ord(isubj,:)==m);
+    for ibl = 1 : 2
+      try
+        load(['/home/tpfeffer/pconn/proc/preproc/' sprintf('pconn_preproc_artvec_s%d_m%d_b%d_v%d.mat',isubj,im,ibl,1)])
+        artcnt(isubj,m,1,ibl) = size(art,1);
+        artlen(isubj,m,1,ibl) = mean(art(:,2)-art(:,1));
+      catch me
+        try
+          load(['/home/tpfeffer/pconn/proc/preproc/' sprintf('pconn_preproc_artvec_s%d_m%d_b%d_v%d.mat',isubj,im,ibl,2)])
+          artcnt(isubj,m,1,ibl) = size(art,1);
+          artlen(isubj,m,1,ibl) = mean(art(:,2)-art(:,1));
+        catch
+          artcnt(isubj,m,1,ibl) = nan;
+          artlen(isubj,m,1,ibl) = nan;
+        end
       end
       
-      s_fc(:,:,isubj,m,1,ifoi) = tanh(nanmean(atanh(p1),3));
-      s_fc(:,:,isubj,m,2,ifoi) = tanh(nanmean(atanh(p2),3));
-      
-      clear p1 p2
-          
     end
   end
-end
-
-s_fc = s_fc(1:90,1:90,SUBJLIST,:,:,:);
-
-%%
-for icont = 1 : 2
-  for im = 1 : 3
-    for ifoi = 1:13
-      for i = 1 : size(s_fc,1)
-        fprintf('Cond %d Session %d freq %d node %d...\n',icont,im,ifoi,i)
-        for j = 1 : size(s_fc,1)
-      
-          dat = atanh(squeeze(s_fc(i,j,:,im,icont,ifoi)))-mean(atanh(squeeze(s_fc(i,j,:,im,icont,ifoi))));
-          x   = zscore(hb(:,im,icont));
-          ref = x./norm(x);
-         
-
-          cleandattmp = (dat - (dat'*ref)*ref)+mean(atanh(squeeze(s_fc(i,j,:,im,icont,ifoi))));
-          corr(cleandattmp,x);
-          clear dat x ref
-          
-          dat = cleandattmp-mean(cleandattmp);
-          x   = zscore(b(:,im,icont));
-          ref = x./norm(x);
-
-          cleandat(i,j,:,im,icont,ifoi) = tanh((dat - (dat'*ref)*ref)+mean(cleandattmp));
-
+  for m = 1 : 3
+    im = find(ord(isubj,:)==m);
+    for ibl = 1 : 2
+      try
+        load(['/home/tpfeffer/pconn_cnt/proc/preproc/' sprintf('pconn_cnt_preproc_artvec_s%d_m%d_b%d_v%d.mat',isubj,im,ibl,1)])
+        artcnt(isubj,m,2,ibl) = size(art,1);
+        artlen(isubj,m,2,ibl) = mean(art(:,2)-art(:,1));
+      catch me
+        try
+          load(['/home/tpfeffer/pconn_cnt/proc/preproc/' sprintf('pconn_cnt_preproc_artvec_s%d_m%d_b%d_v%d.mat',isubj,im,ibl,1)])
+          artcnt(isubj,m,2,ibl) = size(art,1);
+          artlen(isubj,m,2,ibl) = mean(art(:,2)-art(:,1));
+        catch
+          artcnt(isubj,m,2,ibl) = nan;
+          artlen(isubj,m,2,ibl) = nan;
         end
       end
     end
   end
 end
 
-if size(cleandat,1)==91
-  cleandat=cleandat(1:90,1:90,:,:,:,:);
-end
-save(sprintf('~/pupmod/proc/conn/pupmod_src_powcorr_cleaned_v%d.mat',v),'cleandat','-v7.3');
+artcnt= artcnt(SUBJLIST,:,:,:);
 
-clear s_fc;
+%%
+par = [];
+par.heartrate = hb;
+par.blinks = b;
+par.muscles = artcnt;
 
-%% CONTINUE WITH PUPMOD_SRC_POWCORR_PERMTEST.M FOR STATISTICS
-
+save([outdir sprintf('pupmod_all_powcorr_peripheral.mat')], 'par')
 

@@ -10,8 +10,8 @@ clear
 
 v = 12;
 outdir = '~/pupmod/proc/conn/';
-load(sprintf('~/pupmod/proc/conn/pupmod_src_powcorr_cleaned_v%d.mat',v));
 
+cleandat = pupmod_loadpowcorr(v);
 %% COMPUTE "RELATIVE" DEGREE
 % --------------------------------
 
@@ -85,8 +85,6 @@ xlabel('Carrier frequency [Hz]'); ylabel('Degree [%]')
 tp_editplots
 axis([1 13 0 0.5]);
 
-
-
 %% CONCATENATE PERMUTATONS AND COMPUTE STATS
 v = 12;
 nperm = 50000; 
@@ -156,89 +154,19 @@ interp_atx(:,2) = spatfiltergauss(var2plot_atx(:,2),g1,dd,g2);
 interp_dpz(:,1) = spatfiltergauss(var2plot_dpz(:,1),g1,dd,g2);
 interp_dpz(:,2) = spatfiltergauss(var2plot_dpz(:,2),g1,dd,g2);
 
-%% PLOT ATX DEGREE
+%% PLOT DEGREE, PLACEBO
+% --------------------------------
 
-% condition: 1 = rest, 2 = task
-cond = 2;
-% interp_atx(abs(interp_atx(:,cond)) < 0.2,cond) = 0;
+ifoi = 7; icond = 1;
 
-cmap = hot; cmap = cmap(end:-1:13,:);
-figure; set(gcf,'color','w');
+cmap = plasma;
 
-aa=subplot(2,2,1);
-trisurf(sa_template.cortex10K.tri,sa_template.cortex10K.vc(:,1),sa_template.cortex10K.vc(:,2),sa_template.cortex10K.vc(:,3),interp_atx(:,cond))
-shading interp; axis off; colormap(cmap);
-set(gca,'clim',[-0 0.45]);
-view(90,90); daspect([1 1 1])
-h=light; material dull; lighting GOURAUD
-set(h,'Position',[0 0 1]); 
+par = deg_atx_vox(:,ifoi,1);
 
-bb=subplot(2,2,2);
-trisurf(sa_template.cortex10K.tri,sa_template.cortex10K.vc(:,1),sa_template.cortex10K.vc(:,2),sa_template.cortex10K.vc(:,3),interp_atx(:,cond))
-shading interp; axis off; colormap(hot);
-set(gca,'clim',[-0 0.45]);
-view(0,0); daspect([1 1 1])
-h=light; material dull; lighting GOURAUD
-set(h,'Position',[0 -1 0]); 
-
-cc=subplot(2,2,3);
-trisurf(sa_template.cortex10K.tri,sa_template.cortex10K.vc(:,1),sa_template.cortex10K.vc(:,2),sa_template.cortex10K.vc(:,3),interp_atx(:,cond))
-shading interp; axis off; colormap(hot);
-set(gca,'clim',[0 0.45]);
-view(3); view(90,0); daspect([1 1 1])
-h=light; material dull; lighting GOURAUD
-set(h,'Position',[1 0 0]);
-
-subplot(2,2,4)
-trisurf(sa_template.cortex10K.tri,sa_template.cortex10K.vc(:,1),sa_template.cortex10K.vc(:,2),sa_template.cortex10K.vc(:,3),interp_atx(:,cond))
-shading interp; axis off; colormap(cmap);
-set(gca,'clim',[-0 0.45]);
-view(3); view(-90,0); daspect([1 1 1])
-h=light; material dull; lighting GOURAUD
-set(h,'Position',[-1 0 0]);
-
-%% PLOT DPZ DEGREE
-
-% condition: 1 = rest, 2 = task
-cond = 2;
-interp_dpz(abs(interp_dpz(:,cond)) < 0.45,cond) = 0;
-cmap = hot; cmap = cmap(end:-1:13,:);
-figure; set(gcf,'color','w');
-
-aa=subplot(2,2,1);
-trisurf(sa_template.cortex10K.tri,sa_template.cortex10K.vc(:,1),sa_template.cortex10K.vc(:,2),sa_template.cortex10K.vc(:,3),interp_dpz(:,cond))
-shading interp; axis off; colormap(cmap);
-set(gca,'clim',[ -0.4 0.4]);
-view(90,90); daspect([1 1 1])
-h=light; material dull; lighting GOURAUD
-set(h,'Position',[0 0 1]); 
-
-bb=subplot(2,2,2);
-trisurf(sa_template.cortex10K.tri,sa_template.cortex10K.vc(:,1),sa_template.cortex10K.vc(:,2),sa_template.cortex10K.vc(:,3),interp_dpz(:,cond))
-shading interp; axis off; colormap(cmap);
-set(gca,'clim',[ -0.4 0.4]);
-view(0,0); daspect([1 1 1])
-h=light; material dull; lighting GOURAUD
-set(h,'Position',[0 -1 0]); 
-
-cc=subplot(2,2,3);
-trisurf(sa_template.cortex10K.tri,sa_template.cortex10K.vc(:,1),sa_template.cortex10K.vc(:,2),sa_template.cortex10K.vc(:,3),interp_dpz(:,cond))
-shading interp; axis off; colormap(cmap);
-set(gca,'clim',[ -0.4 0.4]);
-view(3); view(90,0); daspect([1 1 1])
-h=light; material dull; lighting GOURAUD
-set(h,'Position',[1 0 0]);
-
-subplot(2,2,4)
-trisurf(sa_template.cortex10K.tri,sa_template.cortex10K.vc(:,1),sa_template.cortex10K.vc(:,2),sa_template.cortex10K.vc(:,3),interp_dpz(:,cond))
-shading interp; axis off; colormap(redblue);
-set(gca,'clim',[ -0.4 0.4]);
-view(3); view(-90,0); daspect([1 1 1])
-h=light; material dull; lighting GOURAUD
-set(h,'Position',[-1 0 0]);
-
- 
-
-%%
-
-
+cmap      = [cmap(50:end-15,:); 0.98*ones(1,3); cmap(50:end-15,:)];
+para      = [];
+para.clim = [-0.5 0.5];
+para.cmap = cmap;
+para.grid = grid;
+para.dd   = 0.75;
+tp_plot_surface(par,sa_template,para)
