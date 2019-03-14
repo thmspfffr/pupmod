@@ -85,7 +85,7 @@ else
       end
     end
   end
-  fc = fc(:,:,SUBJLIST,:,:,:);
+  fc = fc(:,:,SUBJLIST,:,:,:,:);
 
 end
 

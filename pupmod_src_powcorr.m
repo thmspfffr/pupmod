@@ -83,26 +83,6 @@ clear
 % allpara.weigh   = 0;
 % allpara.tau     = nan;
 % --------------------------------------------------------
-% VERSION 16 - VOXEL LEVEL, 800 samples cortex
-% --------------------------------------------------------
-v               = 16;
-v_postproc      = 6;
-fsample         = 400;
-SUBJLIST        = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
-allpara.filt    = 'jh_lcmv';
-allpara.grid    = 'cortex800';
-foi_range       = unique(round(2.^[1:.25:7].*10))/10;
-para.segleng    = 9 ./ foi_range;
-para.bpfreq     = [foi_range-(foi_range./2)/2; foi_range+(foi_range./2)/2]';
-para.epleng     = 60;
-lpc             = 0;
-timevariant     = 0;
-para.wavelet    = 'bp_filt';
-para.scnd_filt  = 1;
-allpara.reg     = 0.05;
-allpara.weigh   = 0;
-allpara.tau     = nan;
-% --------------------------------------------------------
 
 addpath /home/gnolte/meg_toolbox/toolbox/
 addpath /home/gnolte/meg_toolbox/fieldtrip_utilities/

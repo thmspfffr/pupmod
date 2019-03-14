@@ -22,9 +22,9 @@ cleandat = pupmod_loadpowcorr(v,1);
 
 %%
 
-  figure; set(gcf,'color','w')
+figure; set(gcf,'color','w')
 
-  load redblue.mat
+load redblue.mat
   
 cmap = cbrewer('div', 'RdBu', 256,'pchip');
 cmap = cmap(end:-1:1,:);  

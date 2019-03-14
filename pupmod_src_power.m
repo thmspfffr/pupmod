@@ -22,13 +22,14 @@ clear
 % --------------------------------------------------------
 % VERSION 2
 % --------------------------------------------------------
-% v               = 2;
-% v_postproc      = 6;
-% fsample         = 400;
-% SUBJLIST        = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
-% allpara.filt    = 'jh_lcmv';
-% allpara.grid    = 'aal_4mm';
-% f = [7 13; 14 22];
+v               = 2;
+v_postproc      = 6;
+fsample         = 400;
+SUBJLIST        = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
+allpara.filt    = 'jh_lcmv';
+allpara.grid    = 'aal_4mm';
+f = [8.2500 13.7500; 12.0000 20.0000];
+segleng         = 2000;
 % --------------------------------------------------------
 % VERSION 3
 % --------------------------------------------------------
@@ -97,7 +98,6 @@ elseif strcmp(allpara.grid,'vtpm_4mm')
 elseif strcmp(allpara.grid,'vtpm_6mm')
   v_grid = 11;
 end
-
 
 %% LOAD DATA COMPUTE SRC TIME COURSES
 
@@ -213,12 +213,12 @@ clear fc_all pow_all pow_all_res pow_all_tsk  fc_all_res fc_all_tsk
 SUBJLIST = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
 addpath ~/Documents/MATLAB/cbrewer/cbrewer/
 ord = pconn_randomization;
-peak_range = [7 13];
+peak_range = [7 14];
 cmap = cbrewer('qual', 'Paired', 12,'pchip');
 cmap = cmap([2 6 8 1 5 7],:);
 set(groot,'defaultaxescolororder',cmap);
 
-v = 3;
+v = 2;
 
 load(sprintf([outdir 'pupmod_src_power_s%d_m%d_b%d_v%d.mat'],5,1,1,v));
 
@@ -278,50 +278,24 @@ fc_all_tsk  = fc_all_tsk(SUBJLIST,:,:);
 mean_fc_tsk = nanmean(fc_all_tsk,3);
 pow_all_tsk = nanmean(pow_all_tsk(:,SUBJLIST,:,:),4);
 
-% fc_all(1) = f*mean(pow_all(:,:,1),2) / sum(mean(pow_all(:,:,1),2));
-% fc_all(2) = f*mean(pow_all(:,:,2),2) / sum(mean(pow_all(:,:,2),2));
-% fc_all(3) = f*mean(pow_all(:,:,3),2) / sum(mean(pow_all(:,:,3),2));
-
 figure; hold on
 subplot(3,2,[1 3]); hold on
 
 mp_res = squeeze(nanmean(pow_all_res,2));
 mp_tsk = squeeze(nanmean(pow_all_tsk,2));
 
-% mp_res = detrend(mp_res);
-% mp_tsk = detrend(mp_tsk);
 plot(all_freq(1:length(mp_res)),mp_res,'linewidth',2)
 plot(all_freq(1:length(mp_tsk)),mp_tsk,'linewidth',2)
 axis square
 
-% m_res = squeeze(nanmean(mean_fc_res));
-% m_tsk = squeeze(nanmean(mean_fc_tsk));
-      para.method  = 'peak';
+para.method  = 'peak';
 
-for i = 1 : 3
-  m_res(i) = tp_peakfreq(squeeze(nanmean(pow_all_res(:,:,i),2)),para);
-  m_tsk(i) = tp_peakfreq(squeeze(nanmean(pow_all_tsk(:,:,i),2)),para);
+for isubj = 1 : 28
+  m_res(isubj) = tp_peakfreq(squeeze(pow_all_res(:,isubj,1)),para);
+  m_tsk(isubj) = tp_peakfreq(squeeze(pow_all_tsk(:,isubj,1)),para);
 end
 
 save([outdir sprintf('pupmod_src_peakfreq_v%d.mat',v)],'m_res','m_tsk');
-
-% [~,i_res]=max(mean(mean(pow_all_res(f_select,:,:,:),4),2))
-% [~,i_tsk]=max(mean(mean(pow_all_tsk(f_select,:,:,:),4),2))
-
-% all_freq(f_select)*nanmean(pow(:,f_select,1),1)' / sum(nanmean(pow(:,f_select,1),1))
-
-% for ii = 1 : length(i)
-%   pp = mp_res(f_select(squeeze(i_res(ii)))-8:f_select(squeeze(i_res(ii)))+8,ii)
-%   ff = all_freq(f_select(squeeze(i_res(ii)))-8:f_select(squeeze(i_res(ii)))+8)
-%   m_res(ii) = ff*pp / sum(pp);
-%   
-%   pp = mp_tsk(f_select(squeeze(i_tsk(ii)))-8:f_select(squeeze(i_tsk(ii)))+8,ii)
-%   ff = all_freq(f_select(squeeze(i_tsk(ii)))-8:f_select(squeeze(i_tsk(ii)))+8)
-%   m_tsk(ii) = ff*pp / sum(pp);
-% end
-%   
-%   m_res = all_freq(f_select(squeeze(i)));
-% m_tsk = all_freq(f_select(squeeze(i)));
 
 line([m_res(1) m_res(1)],[min(mp_res(:)) max(mp_res(:))+0.2*max(mp_res(:))],'color',cmap(1,:),'linewidth',2)
 line([m_res(2) m_res(2)],[min(mp_res(:)) max(mp_res(:))+0.2*max(mp_res(:))],'color',cmap(2,:),'linewidth',2)
@@ -330,15 +304,15 @@ line([m_res(3) m_res(3)],[min(mp_res(:)) max(mp_res(:))+0.2*max(mp_res(:))],'col
 line([all_freq(f_select(1)) all_freq(f_select(1))],[min(mp_res(:)) max(mp_res(:))+0.2*max(mp_res(:))],'color','k','linestyle',':')
 line([all_freq(f_select(end)) all_freq(f_select(end))],[min(mp_res(:)) max(mp_res(:))+0.2*max(mp_res(:))],'color','k','linestyle',':')
 
-[~,idx]=min(abs(all_freq(1:4000)-m_tsk(1)));
-line([m_tsk(1) m_tsk(1)],[min(mp_tsk(:)) mp_tsk(idx,1)],'color',cmap(4,:),'linewidth',2)
-
-[~,idx]=min(abs(all_freq(1:4000)-m_tsk(2)));
-line([m_tsk(2) m_tsk(2)],[min(mp_tsk(:))  mp_tsk(idx,2)],'color',cmap(5,:),'linewidth',2)
-
-[~,idx]=min(abs(all_freq(1:4000)-m_tsk(3)));
-line([m_tsk(3) m_tsk(3)],[min(mp_tsk(:)) mp_tsk(idx,3)],'color',cmap(6,:),'linewidth',2)
-
+% [~,idx]=min(abs(all_freq(1:4000)-m_tsk(1)));
+% line([m_tsk(1) m_tsk(1)],[min(mp_tsk(:)) mp_tsk(idx,1)],'color',cmap(4,:),'linewidth',2)
+% 
+% [~,idx]=min(abs(all_freq(1:4000)-m_tsk(2)));
+% line([m_tsk(2) m_tsk(2)],[min(mp_tsk(:))  mp_tsk(idx,2)],'color',cmap(5,:),'linewidth',2)
+% 
+% [~,idx]=min(abs(all_freq(1:4000)-m_tsk(3)));
+% line([m_tsk(3) m_tsk(3)],[min(mp_tsk(:)) mp_tsk(idx,3)],'color',cmap(6,:),'linewidth',2)
+% 
 
 axis([7 13 min(mp_res(:)) max(mp_res(:))+0.2*max(mp_res(:)) ])
 
@@ -374,6 +348,37 @@ ylabel(h,'Correlation')
 % set(gca,'Visible','off')
 
 print(gcf,'-dpdf',sprintf('~/pupmod/plots/pupmod_src_power_v%d.pdf',v))
+%% BAR PLOT
+
+figure; set(gcf,'color','w'); hold on
+
+subplot(1,2,1); hold on
+m1 = mean(mean(fc_all_res(:,1,:),3));
+s1 = std(mean(fc_all_res(:,1,:),3))/size(fc_all_res,1);
+m2 = mean(mean(fc_all_tsk(:,1,:),3));
+s2 = std(mean(fc_all_tsk(:,1,:),3))/size(fc_all_res,1);
+
+bar([1.5 2],[m1 m2],0.4,'facecolor','b','edgecolor','w');
+line([1.5 1.5],[m1-s1 m1+s1],'color','k')
+line([2 2],[m2-s2 m2+s2],'color','k')
+axis([1 2.5 10.4 10.6]);
+tp_editplots; ylabel('Peak frequency [Hz]');
+
+subplot(1,2,2); hold on
+m1 = mean(squeeze(mean(pow_all_res(f_select,:,1))));
+s1 = std(mean(pow_all_res(f_select,:,1)))/sqrt(size(pow_all_res,2));
+m2 = mean(squeeze(mean(pow_all_tsk(f_select,:,1))));
+s2 = std(mean(pow_all_tsk(f_select,:,1)))/sqrt(size(pow_all_tsk,2));
+
+bar([1.5 2],[m1 m2],0.4,'facecolor','b','edgecolor','w');
+line([1.5 1.5],[m1-s1 m1+s1],'color','k')
+line([2 2],[m2-s2 m2+s2],'color','k')
+axis([1 2.5 6e-24 1.6e-23]);
+tp_editplots; ylabel('Power');
+
+print(gcf,'-depsc2',sprintf('~/pupmod/plots/pupmod_peakfreq_v%d.eps',v))
+
+
 
 %% PERMUTATION TEST
 

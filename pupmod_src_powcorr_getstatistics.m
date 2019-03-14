@@ -66,7 +66,7 @@ fprintf('Loading data...\n')
 if para.cleaned == 1
   load(sprintf('~/pupmod/proc/conn/pupmod_src_powcorr_cleaned_v%d.mat',para.ver));
 else
-  cleandat = pupmod_loadpowcorr(para.ver);
+  cleandat = pupmod_loadpowcorr(para.ver,1);
 end
 fprintf('Loading data... Done!\n')
 

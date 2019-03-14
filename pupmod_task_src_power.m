@@ -1,4 +1,4 @@
-%% pupmod_src_power
+%% pupmod_task_src_power
 
 % Script computes center frequency for alpha/beta band in order
 % to investigate a potential frequency shift due to neuromodulation
@@ -22,23 +22,24 @@ clear
 % --------------------------------------------------------
 % VERSION 2
 % --------------------------------------------------------
-% v               = 2;
-% v_postproc      = 6;
-% fsample         = 400;
-% SUBJLIST        = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
-% allpara.filt    = 'jh_lcmv';
-% allpara.grid    = 'aal_4mm';
-% f = [7 13];
-% --------------------------------------------------------
-% VERSION 3
-% --------------------------------------------------------
-v               = 3;
+v               = 2;
 v_postproc      = 6;
 fsample         = 400;
 SUBJLIST        = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
 allpara.filt    = 'jh_lcmv';
 allpara.grid    = 'aal_4mm';
-f = [14 22];
+f = [8.2500 13.7500; 12.0000 20.0000];
+segleng         = 2000;
+% --------------------------------------------------------
+% VERSION 3
+% --------------------------------------------------------
+% v               = 3;
+% v_postproc      = 6;
+% fsample         = 400;
+% SUBJLIST        = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
+% allpara.filt    = 'jh_lcmv';
+% allpara.grid    = 'aal_4mm';
+% f = [14 22];
 % --------------------------------------------------------
 
 
@@ -93,7 +94,7 @@ for isubj = SUBJLIST
       [dat] = megdata2mydata(data); clear data
       
       pars      = [];
-      pars.sa   = sprintf('~/pconn/proc/src/pconn_cnt_sa_s%d_m%d_b%d_v%d.mat',isubj,m,iblock,v_grid);
+      pars.sa   = sprintf('~/pconn_cnt/proc/src/pconn_cnt_sa_s%d_m%d_b%d_v%d.mat',isubj,m,iblock,v_grid);
       load(pars.sa);
       
       if strcmp(allpara.grid,'cortex_lowres')

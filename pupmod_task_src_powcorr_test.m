@@ -66,23 +66,23 @@ allpara.tau     = 0;
 % --------------------------------------------------------
 % VERSION 12 - VOXEL LEVEL, 400 samples cortex
 % --------------------------------------------------------
-% v               = 12;
-% v_postproc      = 6;
-% fsample         = 400;
-% SUBJLIST        = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
-% allpara.filt    = 'jh_lcmv';
-% allpara.grid    = 'cortex_lowres';
-% foi_range       = unique(round(2.^[1:.5:7]));
-% para.segleng    = 9 ./ foi_range;
-% para.bpfreq     = [foi_range-(foi_range./2)/2; foi_range+(foi_range./2)/2]';
-% para.epleng     = 60;
-% lpc             = 0;
-% timevariant     = 0;
-% para.wavelet    = 'bp_filt';
-% para.scnd_filt  = 0;
-% allpara.reg     = 0.05;
-% allpara.weigh   = 0;
-% allpara.tau     = nan;
+v               = 12;
+v_postproc      = 6;
+fsample         = 400;
+SUBJLIST        = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
+allpara.filt    = 'jh_lcmv';
+allpara.grid    = 'cortex_lowres';
+foi_range       = unique(round(2.^[1:.5:7]));
+para.segleng    = 9 ./ foi_range;
+para.bpfreq     = [foi_range-(foi_range./2)/2; foi_range+(foi_range./2)/2]';
+para.epleng     = 60;
+lpc             = 0;
+timevariant     = 0;
+para.wavelet    = 'bp_filt';
+para.scnd_filt  = 0;
+allpara.reg     = 0.05;
+allpara.weigh   = 0;
+allpara.tau     = nan;
 % --------------------------------------------------------
 % VERSION 13 - ELORETA
 % --------------------------------------------------------
@@ -186,8 +186,8 @@ for isubj = SUBJLIST
   for m = 1 : 3
     for ifoi = 6
       
-%       if ~exist(sprintf([outdir 'pupmod_task_src_powcorr_s%d_m%d_f%d_v%d_processing.txt'],isubj,m,ifoi,v))
-%         system(['touch ' outdir sprintf('pupmod_task_src_powcorr_s%d_m%d_f%d_v%d_processing.txt',isubj,m,ifoi,v)]);
+%       if ~exist(sprintf([outdir 'pupmod_task_src_powcorr_test_s%d_m%d_f%d_v%d_processing.txt'],isubj,m,ifoi,v))
+%         system(['touch ' outdir sprintf('pupmod_task_src_powcorr_test_s%d_m%d_f%d_v%d_processing.txt',isubj,m,ifoi,v)]);
 %       else
 %         continue
 %       end
@@ -208,16 +208,9 @@ for isubj = SUBJLIST
         catch me
           if ~exist(sprintf('/home/tpfeffer/pconn_cnt/proc/preproc/pconn_cnt_postpostproc_s%d_m%d_b%d_v%d.mat',isubj,m,iblock,1))
             if strcmp(allpara.grid,'cortex_lowres')
-              powcorr = nan(400,400);
-            elseif strcmp(allpara.grid,'aal_4mm')
-              powcorr = nan(91,91);
-            elseif strcmp(allpara.grid,'aal_6mm')
-              powcorr = nan(91,91);
-            elseif strcmp(allpara.grid,'genemaps_aal')
-              powcorr = nan(378,378);
+              powcorr(:,:,isubj,iblock,m) = nan(400,400);
             end
-            
-            save(sprintf([outdir 'pupmod_task_src_powcorr_s%d_m%d_b%d_f%d_v%d.mat'],isubj,m,iblock,ifoi,v),'powcorr');
+%             save(sprintf([outdir 'pupmod_task_src_powcorr_s%d_m%d_b%d_f%d_v%d.mat'],isubj,m,iblock,ifoi,v),'powcorr');
             continue
           else
             error('Data corrupt?')
@@ -226,64 +219,40 @@ for isubj = SUBJLIST
         
         dat = megdata2mydata(data); clear data
         
-        pars = [];
+
+        epleng = size(dat,1);
+        epshift = 1;
+        fsample = 400;
+        segleng = 200;
+        segshift = 200;
+        f =  foi_range(ifoi);
         
-        pars.fsample   = 400;
         
-        if strcmp(para.wavelet,'bp_filt')
-          pars.segleng   = round(para.segleng.*fsample);
-          pars.segshift  = round(fsample*para.segleng/2);
-        else
-          pars.segleng   = round(para.segleng(ifoi).*fsample);
-          pars.segshift  = round(fsample*para.segleng(ifoi)/2);
-        end
+        cs = data2cs_event(dat,segleng,segshift,epleng,50);
+        ff = 0:fsample/segleng:fsample/2;
+        idx = ff>=8 & ff<= 12;
         
-        if ~any(size(foi_range)==1)
-          pars.foi       = foi_range(ifoi,:);
-        else
-          pars.foi       = foi_range(ifoi);
-        end
+        cs = mean(real(cs(:,:,idx)),3);
+        clear cs_data3 cs_data2 cs_data1
         
-        pars.epleng    = size(dat,1);
-        pars.epshift   = pars.epleng;
-        pars.grid      = allpara.grid;
-        pars.wavelet   = para.wavelet;
-        pars.scnd_filt = para.scnd_filt;
-        pars.filt      = allpara.filt;
-        pars.tau       = allpara.tau;
-        pars.reg       = allpara.reg;
-        pars.bpfreq    = para.bpfreq(ifoi,:);
-        pars.weigh     = allpara.weigh;
+        para.iscs = 1;
+        para.reg = 0.05;
+        filt      = pconn_beamformer(cs,sa.sa.L_coarse,para);
+        pos       = sa.sa.grid_cortex3000_indi;
         
-        % COMPUTE POWER CORRELATIONS
-        % dat should be n x nchans
-        if ~timevariant
-          
-            if allpara.weigh == 0
-              [powcorr] = tp_powcorr_ortho(dat,pars,sa);
-            else
-              [powcorr] = tp_powcorr_ortho_weight(dat,pars,sa);
-            end
-      
-        else
-          
-          pars.epleng   = para.epleng*pars.fsample;
-          pars.epshift  = round(pars.epleng/16);
-          
-            if allpara.weigh == 0
-              [powcorr] = tp_powcorr_ortho(dat,pars,sa);
-            else
-              [powcorr] = tp_powcorr_ortho_weight(dat,pars,sa);
-            end
-        end
+        powcorr(:,:,isubj,iblock,m) = tp_data2orthopowcorr(dat,segleng,segshift,epleng,f,fsample,filt);
         
-        save(sprintf([outdir 'pupmod_task_src_powcorr_s%d_m%d_b%d_f%d_v%d.mat'],isubj,m,iblock,ifoi,v),'powcorr');
+%         powcorr(:,:,iblock,isubj) = tanh((atanh(tmp) + atanh(rot90(fliplr(tril(tmp,-1)),1)))./2);
+
+     
+        
         
       end
     end
   end
 end
 
+save(sprintf([outdir 'pupmod_task_src_powcorr_test_v%d.mat'],v),'powcorr');
 
 error('!')
 
