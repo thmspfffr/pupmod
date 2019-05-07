@@ -255,8 +255,6 @@ for isubj = SUBJLIST
         
         % COMPUTE POWER CORRELATIONS
         % dat should be n x nchans
-    
-          
         pars.epleng   = para.epleng*pars.fsample;
         pars.epshift  = round(pars.epleng/16);
         
@@ -318,8 +316,27 @@ cnt
 
 
 
+%% PLOT FILTERED TIME COURSE
 
+flp = 8;           % lowpass frequency of filter
+fhi = 12;
 
+para.ord = 4;
+delt = 1/400;            % sampling interval
+k=4;                  % 2nd order butterworth filter
+fnq=1/(2*delt);       % Nyquist frequency
+Wn=[flp/fnq fhi/fnq]; % butterworth bandpass non-dimensional frequency
+[bfilt,afilt]=butter(k,Wn);
 
+dat = data.trial{1}(1cl:20,:);
 
+dat1 = hilbert(filtfilt(bfilt,afilt,dat'))
 
+for i = 1 : 20
+  figure; set(gcf,'color','w'); hold on
+  plot(real(dat1(50000:50800,i)),'color',[0.7 0.7 0.7],'linewidth',2); 
+  plot(abs(dat1(50000:50800,i)),'r','linewidth',3); 
+  tp_editplots; 
+  set(gca,'xtick',[0 400 800],'xticklabels',[0 1 2]); xlabel('Time [s]')
+  print(gcf,'-dpdf',sprintf('~/pupmod/plots/pupmod_timeseries_i%d.pdf',i))
+end

@@ -66,8 +66,9 @@ addpath ~/pconn/matlab
 ft_defaults
 
 indir   = '/home/tpfeffer/pconn/proc/src/';
-outdir   = '/home/tpfeffer/pupmod/proc/';
-freq = 1;
+outdir  = '/home/tpfeffer/pupmod/proc/';
+freq    = 1;
+
 run ~/Documents/MATLAB/toolboxes/NBT-NBTv0.5.3-alpha/installNBT.m
 %%
 
@@ -349,14 +350,7 @@ for ifoi = 1 : 13
   
 end
    
-  %%
-  subplot(4,4,ifoi)
-  
-  imagesc(p(:,:,1)-p(:,:,2),[-0.02 0.02]); colormap(cmap)
-drawnow
-  
-  
-end
+
 
 
         

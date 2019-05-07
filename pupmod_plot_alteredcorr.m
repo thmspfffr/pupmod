@@ -26,9 +26,9 @@ v = 12;
 
 % load  data
 cd ~/pupmod/matlab/
-para.avg = 0;
-% load(sprintf('~/pupmod/proc/conn/pupmod_src_powcorr_cleaned_v%d.mat',v));
-cleandat = pupmod_loadpowcorr(v,para);
+% load(sprintf('~/pupmod/pset(gca,'Position',[0.5703 0.2 0.3347 0.3402])roc/conn/pupmod_src_powcorr_cleaned_v%d.mat',v));
+cleandat = pupmod_loadpowcorr(v,1);
+
 %%
 
 para = [];
@@ -162,10 +162,11 @@ if ~exist(sprintf('~/pupmod/proc/pupmod_src_powcorr_alteredcorr_v%d.mat',v))
   para.type = 'global';
   para.cond = 'atx';
   para.allperms = para.nperm/para.nsubs;
-
-  [outp_atx, emp_atx] = pupmod_src_powcorr_getstatistics(para);
+  para.empirical = emp;
+  
+  [outp_atx] = pupmod_src_powcorr_getstatistics(para);
   para.cond = 'dpz';
-  [outp_dpz, emp_dpz] = pupmod_src_powcorr_getstatistics(para);
+  [outp_dpz] = pupmod_src_powcorr_getstatistics(para);
   
   save(sprintf('~/pupmod/proc/pupmod_src_powcorr_alteredcorr_v%d.mat',v),'outp_atx','outp_dpz','emp_atx','emp_dpz')
 
@@ -272,98 +273,98 @@ alpha3 = 0.001;
 figure; set(gcf,'color','w')
 
 subplot(4,2,1); hold on
-plot(emp_atx.n_p_atx(:,1),'r-','linewidth',2)
-plot(emp_atx.n_n_atx(:,1),'b-','linewidth',2)
+plot(emp.n_p_atx(:,1),'r-','linewidth',2)
+plot(emp.n_n_atx(:,1),'b-','linewidth',2)
 set(gca,'tickdir','out','xtick',[1 3 5 7 9 11 13],'xticklabel',num2cell([2 4 8 16 32 64 128]))
 set(gca,'tickdir','out','ytick',lims,'yticklabel',lims_lab)
 ylabel('Altered corr. [%]')
 title('Rest')
 axis([0 14 lims(1)-0.05 lims(end)+0.175])
-plot(find(outp_atx.p_res1_p<alpha1),emp_atx.n_p_atx(find(outp_atx.p_res1_p<alpha1),1),'ko','markersize',7,'markerfacecolor','k')
-plot(find(outp_atx.p_res1_n<alpha1),emp_atx.n_n_atx(find(outp_atx.p_res1_n<alpha1),1),'ko','markersize',7,'markerfacecolor','k')
-plot(find(outp_atx.p_res1_p<alpha2),emp_atx.n_p_atx(find(outp_atx.p_res1_p<alpha2),1),'ko','markersize',7,'markerfacecolor','w')
-plot(find(outp_atx.p_res1_n<alpha2),emp_atx.n_n_atx(find(outp_atx.p_res1_n<alpha2),1),'ko','markersize',7,'markerfacecolor','w')
-plot(find(outp_atx.p_res1_p<alpha3),emp_atx.n_p_atx(find(outp_atx.p_res1_p<alpha3),1),'ro','markersize',7,'markerfacecolor','m')
-plot(find(outp_atx.p_res1_n<alpha3),emp_atx.n_n_atx(find(outp_atx.p_res1_n<alpha3),1),'ro','markersize',7,'markerfacecolor','m')
+plot(find(outp_atx.p_res1_p<alpha1),emp.n_p_atx(find(outp_atx.p_res1_p<alpha1),1),'ko','markersize',7,'markerfacecolor','k')
+plot(find(outp_atx.p_res1_n<alpha1),emp.n_n_atx(find(outp_atx.p_res1_n<alpha1),1),'ko','markersize',7,'markerfacecolor','k')
+plot(find(outp_atx.p_res1_p<alpha2),emp.n_p_atx(find(outp_atx.p_res1_p<alpha2),1),'ko','markersize',7,'markerfacecolor','w')
+plot(find(outp_atx.p_res1_n<alpha2),emp.n_n_atx(find(outp_atx.p_res1_n<alpha2),1),'ko','markersize',7,'markerfacecolor','w')
+plot(find(outp_atx.p_res1_p<alpha3),emp.n_p_atx(find(outp_atx.p_res1_p<alpha3),1),'ro','markersize',7,'markerfacecolor','m')
+plot(find(outp_atx.p_res1_n<alpha3),emp.n_n_atx(find(outp_atx.p_res1_n<alpha3),1),'ro','markersize',7,'markerfacecolor','m')
 tp_editplots
 pos(1,:)=get(gca,'Position')
 
 subplot(4,2,2); hold on
-plot(emp_atx.n_p_dpz(:,1),'r-','linewidth',2)
-plot(emp_atx.n_n_dpz(:,1),'b-','linewidth',2)
+plot(emp.n_p_dpz(:,1),'r-','linewidth',2)
+plot(emp.n_n_dpz(:,1),'b-','linewidth',2)
 set(gca,'tickdir','out','xtick',[1 3 5 7 9 11 13],'xticklabel',num2cell([2 4 8 16 32 64 128]))
 set(gca,'tickdir','out','ytick',lims,'yticklabel',lims_lab)
 axis([0 14 lims(1)-0.05 lims(end)+0.175])
-plot(find(outp_atx.p_res2_p<alpha1),emp_atx.n_p_dpz(find(outp_atx.p_res2_p<alpha1),1),'ko','markersize',7,'markerfacecolor','k')
-plot(find(outp_atx.p_res2_n<alpha1),emp_atx.n_n_dpz(find(outp_atx.p_res2_n<alpha1),1),'ko','markersize',7,'markerfacecolor','k')
-plot(find(outp_atx.p_res2_p<alpha2),emp_atx.n_p_dpz(find(outp_atx.p_res2_p<alpha2),1),'ko','markersize',7,'markerfacecolor','w')
-plot(find(outp_atx.p_res2_n<alpha2),emp_atx.n_n_dpz(find(outp_atx.p_res2_n<alpha2),1),'ko','markersize',7,'markerfacecolor','w')
-plot(find(outp_atx.p_res2_p<alpha3),emp_atx.n_p_dpz(find(outp_atx.p_res2_p<alpha3),1),'ko','markersize',7,'markerfacecolor','m')
-plot(find(outp_atx.p_res2_n<alpha3),emp_atx.n_n_dpz(find(outp_atx.p_res2_n<alpha3),1),'ko','markersize',7,'markerfacecolor','m')
+plot(find(outp_atx.p_res2_p<alpha1),emp.n_p_dpz(find(outp_atx.p_res2_p<alpha1),1),'ko','markersize',7,'markerfacecolor','k')
+plot(find(outp_atx.p_res2_n<alpha1),emp.n_n_dpz(find(outp_atx.p_res2_n<alpha1),1),'ko','markersize',7,'markerfacecolor','k')
+plot(find(outp_atx.p_res2_p<alpha2),emp.n_p_dpz(find(outp_atx.p_res2_p<alpha2),1),'ko','markersize',7,'markerfacecolor','w')
+plot(find(outp_atx.p_res2_n<alpha2),emp.n_n_dpz(find(outp_atx.p_res2_n<alpha2),1),'ko','markersize',7,'markerfacecolor','w')
+plot(find(outp_atx.p_res2_p<alpha3),emp.n_p_dpz(find(outp_atx.p_res2_p<alpha3),1),'ko','markersize',7,'markerfacecolor','m')
+plot(find(outp_atx.p_res2_n<alpha3),emp.n_n_dpz(find(outp_atx.p_res2_n<alpha3),1),'ko','markersize',7,'markerfacecolor','m')
 tp_editplots
 pos(2,:)=get(gca,'Position')
 
 subplot(4,2,3); hold on
-plot(emp_atx.n_p_atx(:,2),'r-','linewidth',2)
-plot(emp_atx.n_n_atx(:,2),'b-','linewidth',2)
+plot(emp.n_p_atx(:,2),'r-','linewidth',2)
+plot(emp.n_n_atx(:,2),'b-','linewidth',2)
 set(gca,'tickdir','out','xtick',[1 3 5 7 9 11 13],'xticklabel',num2cell([2 4 8 16 32 64 128]))
 set(gca,'tickdir','out','ytick',lims,'yticklabel',lims_lab)
 ylabel('Altered corr. [%]')
 title('Task')
 axis([0 14 lims(1)-0.05 lims(end)+0.175])
-plot(find(outp_atx.p_cnt1_p<alpha1),emp_atx.n_p_atx(find(outp_atx.p_cnt1_p<alpha1),2),'ko','markersize',7,'markerfacecolor','k')
-plot(find(outp_atx.p_cnt1_n<alpha1),emp_atx.n_n_atx(find(outp_atx.p_cnt1_n<alpha1),2),'ko','markersize',7,'markerfacecolor','k')
-plot(find(outp_atx.p_cnt1_p<alpha2),emp_atx.n_p_atx(find(outp_atx.p_cnt1_p<alpha2),2),'ko','markersize',7,'markerfacecolor','w')
-plot(find(outp_atx.p_cnt1_n<alpha2),emp_atx.n_n_atx(find(outp_atx.p_cnt1_n<alpha2),2),'ko','markersize',7,'markerfacecolor','w')
-plot(find(outp_atx.p_cnt1_p<alpha3),emp_atx.n_p_atx(find(outp_atx.p_cnt1_p<alpha3),2),'ko','markersize',7,'markerfacecolor','m')
-plot(find(outp_atx.p_cnt1_n<alpha3),emp_atx.n_n_atx(find(outp_atx.p_cnt1_n<alpha3),2),'ko','markersize',7,'markerfacecolor','m')
+plot(find(outp_atx.p_cnt1_p<alpha1),emp.n_p_atx(find(outp_atx.p_cnt1_p<alpha1),2),'ko','markersize',7,'markerfacecolor','k')
+plot(find(outp_atx.p_cnt1_n<alpha1),emp.n_n_atx(find(outp_atx.p_cnt1_n<alpha1),2),'ko','markersize',7,'markerfacecolor','k')
+plot(find(outp_atx.p_cnt1_p<alpha2),emp.n_p_atx(find(outp_atx.p_cnt1_p<alpha2),2),'ko','markersize',7,'markerfacecolor','w')
+plot(find(outp_atx.p_cnt1_n<alpha2),emp.n_n_atx(find(outp_atx.p_cnt1_n<alpha2),2),'ko','markersize',7,'markerfacecolor','w')
+plot(find(outp_atx.p_cnt1_p<alpha3),emp.n_p_atx(find(outp_atx.p_cnt1_p<alpha3),2),'ko','markersize',7,'markerfacecolor','m')
+plot(find(outp_atx.p_cnt1_n<alpha3),emp.n_n_atx(find(outp_atx.p_cnt1_n<alpha3),2),'ko','markersize',7,'markerfacecolor','m')
 tp_editplots
 pos(3,:)=get(gca,'Position')
 
 subplot(4,2,4); hold on
-plot(emp_atx.n_p_dpz(:,2),'r-','linewidth',2)
-plot(emp_atx.n_n_dpz(:,2),'b-','linewidth',2)
+plot(emp.n_p_dpz(:,2),'r-','linewidth',2)
+plot(emp.n_n_dpz(:,2),'b-','linewidth',2)
 set(gca,'tickdir','out','xtick',[1 3 5 7 9 11 13],'xticklabel',num2cell([2 4 8 16 32 64 128]))
 set(gca,'tickdir','out','ytick',lims,'yticklabel',lims_lab)
 axis([0 14 lims(1)-0.05 lims(end)+0.175])
-plot(find(outp_atx.p_cnt2_p<alpha1),emp_atx.n_p_dpz(find(outp_dpz.p_cnt2_p<alpha1),2),'ko','markersize',7,'markerfacecolor','k')
-plot(find(outp_atx.p_cnt2_n<alpha1),emp_atx.n_n_dpz(find(outp_dpz.p_cnt2_n<alpha1),2),'ko','markersize',7,'markerfacecolor','k')
-plot(find(outp_atx.p_cnt2_p<alpha2),emp_atx.n_p_dpz(find(outp_dpz.p_cnt2_p<alpha2),2),'ko','markersize',7,'markerfacecolor','w')
-plot(find(outp_atx.p_cnt2_n<alpha2),emp_atx.n_n_dpz(find(outp_dpz.p_cnt2_n<alpha2),2),'ko','markersize',7,'markerfacecolor','w')
-plot(find(outp_atx.p_cnt2_p<alpha3),emp_atx.n_p_dpz(find(outp_dpz.p_cnt2_p<alpha3),2),'ko','markersize',7,'markerfacecolor','m')
-plot(find(outp_atx.p_cnt2_n<alpha3),emp_atx.n_n_dpz(find(outp_dpz.p_cnt2_n<alpha3),2),'ko','markersize',7,'markerfacecolor','m')
+plot(find(outp_atx.p_cnt2_p<alpha1),emp.n_p_dpz(find(outp_dpz.p_cnt2_p<alpha1),2),'ko','markersize',7,'markerfacecolor','k')
+plot(find(outp_atx.p_cnt2_n<alpha1),emp.n_n_dpz(find(outp_dpz.p_cnt2_n<alpha1),2),'ko','markersize',7,'markerfacecolor','k')
+plot(find(outp_atx.p_cnt2_p<alpha2),emp.n_p_dpz(find(outp_dpz.p_cnt2_p<alpha2),2),'ko','markersize',7,'markerfacecolor','w')
+plot(find(outp_atx.p_cnt2_n<alpha2),emp.n_n_dpz(find(outp_dpz.p_cnt2_n<alpha2),2),'ko','markersize',7,'markerfacecolor','w')
+plot(find(outp_atx.p_cnt2_p<alpha3),emp.n_p_dpz(find(outp_dpz.p_cnt2_p<alpha3),2),'ko','markersize',7,'markerfacecolor','m')
+plot(find(outp_atx.p_cnt2_n<alpha3),emp.n_n_dpz(find(outp_dpz.p_cnt2_n<alpha3),2),'ko','markersize',7,'markerfacecolor','m')
 tp_editplots
 pos(4,:)=get(gca,'Position')
 
 subplot(4,2,5); hold on
-plot(emp_atx.n_n_context_atx,'b-','linewidth',2)
-plot(emp_atx.n_p_context_atx,'r-','linewidth',2)
+plot(emp.n_n_context_atx,'b-','linewidth',2)
+plot(emp.n_p_context_atx,'r-','linewidth',2)
 axis([0 14 lims_ctx(1,1)-0.1 lims_ctx(1,end)+0.1])
 set(gca,'tickdir','out','ytick',[-0.5 0 0.5],'yticklabel',num2cell([-50 0 50]))
 set(gca,'tickdir','out','xtick',[1 3 5 7 9 11 13],'xticklabel',num2cell([2 4 8 16 32 64 128]))
 xlabel('Carrier frequency [Hz]'); ylabel('Difference')
-plot(find(outp_atx.p_context1_p<alpha1),emp_atx.n_p_context_atx(find(outp_atx.p_context1_p<alpha1)),'ko','markersize',7,'markerfacecolor','k')
-plot(find(outp_atx.p_context1_n<alpha1),emp_atx.n_n_context_atx(find(outp_atx.p_context1_n<alpha1)),'ko','markersize',7,'markerfacecolor','k')
-plot(find(outp_atx.p_context1_p<alpha2),emp_atx.n_p_context_atx(find(outp_atx.p_context1_p<alpha2)),'ko','markersize',7,'markerfacecolor','w')
-plot(find(outp_atx.p_context1_n<alpha2),emp_atx.n_n_context_atx(find(outp_atx.p_context1_n<alpha2)),'ko','markersize',7,'markerfacecolor','w')
-plot(find(outp_atx.p_context1_p<alpha3),emp_atx.n_p_context_atx(find(outp_atx.p_context1_p<alpha3)),'ko','markersize',7,'markerfacecolor','m')
-plot(find(outp_atx.p_context1_n<alpha3),emp_atx.n_n_context_atx(find(outp_atx.p_context1_n<alpha3)),'ko','markersize',7,'markerfacecolor','m')
+plot(find(outp_atx.p_context1_p<alpha1),emp.n_p_context_atx(find(outp_atx.p_context1_p<alpha1)),'ko','markersize',7,'markerfacecolor','k')
+plot(find(outp_atx.p_context1_n<alpha1),emp.n_n_context_atx(find(outp_atx.p_context1_n<alpha1)),'ko','markersize',7,'markerfacecolor','k')
+plot(find(outp_atx.p_context1_p<alpha2),emp.n_p_context_atx(find(outp_atx.p_context1_p<alpha2)),'ko','markersize',7,'markerfacecolor','w')
+plot(find(outp_atx.p_context1_n<alpha2),emp.n_n_context_atx(find(outp_atx.p_context1_n<alpha2)),'ko','markersize',7,'markerfacecolor','w')
+plot(find(outp_atx.p_context1_p<alpha3),emp.n_p_context_atx(find(outp_atx.p_context1_p<alpha3)),'ko','markersize',7,'markerfacecolor','m')
+plot(find(outp_atx.p_context1_n<alpha3),emp.n_n_context_atx(find(outp_atx.p_context1_n<alpha3)),'ko','markersize',7,'markerfacecolor','m')
 tp_editplots
 pos(5,:)=get(gca,'Position')
 
 subplot(4,2,6); hold on
-plot(emp_atx.n_n_context_dpz,'b-','linewidth',2)
-plot(emp_atx.n_p_context_dpz,'r-','linewidth',2)
+plot(emp.n_n_context_dpz,'b-','linewidth',2)
+plot(emp.n_p_context_dpz,'r-','linewidth',2)
 axis([0 14 lims_ctx(2,1)-0.1 lims_ctx(2,end)+0.1])
 set(gca,'tickdir','out','ytick',[-0.5 0 0.5],'yticklabel',num2cell([-50 0 50]))
 set(gca,'tickdir','out','xtick',[1 3 5 7 9 11 13],'xticklabel',num2cell([2 4 8 16 32 64 128]))
 xlabel('Carrier frequency [Hz]'); 
-plot(find(outp_atx.p_context2_p<alpha1),emp_atx.n_p_context_dpz(find(outp_dpz.p_context2_p<alpha1)),'ko','markersize',7,'markerfacecolor','k')
-plot(find(outp_atx.p_context2_n<alpha1),emp_atx.n_n_context_dpz(find(outp_dpz.p_context2_n<alpha1)),'ko','markersize',7,'markerfacecolor','k')
-plot(find(outp_atx.p_context2_p<alpha2),emp_atx.n_p_context_dpz(find(outp_dpz.p_context2_p<alpha2)),'ko','markersize',7,'markerfacecolor','w')
-plot(find(outp_atx.p_context2_n<alpha2),emp_atx.n_n_context_dpz(find(outp_dpz.p_context2_n<alpha2)),'ko','markersize',7,'markerfacecolor','w')
-plot(find(outp_atx.p_context2_p<alpha3),emp_atx.n_p_context_dpz(find(outp_dpz.p_context2_p<alpha3)),'ko','markersize',7,'markerfacecolor','m')
-plot(find(outp_atx.p_context2_n<alpha3),emp_atx.n_n_context_dpz(find(outp_dpz.p_context2_n<alpha3)),'ko','markersize',7,'markerfacecolor','m')
+plot(find(outp_atx.p_context2_p<alpha1),emp.n_p_context_dpz(find(outp_dpz.p_context2_p<alpha1)),'ko','markersize',7,'markerfacecolor','k')
+plot(find(outp_atx.p_context2_n<alpha1),emp.n_n_context_dpz(find(outp_dpz.p_context2_n<alpha1)),'ko','markersize',7,'markerfacecolor','k')
+plot(find(outp_atx.p_context2_p<alpha2),emp.n_p_context_dpz(find(outp_dpz.p_context2_p<alpha2)),'ko','markersize',7,'markerfacecolor','w')
+plot(find(outp_atx.p_context2_n<alpha2),emp.n_n_context_dpz(find(outp_dpz.p_context2_n<alpha2)),'ko','markersize',7,'markerfacecolor','w')
+plot(find(outp_atx.p_context2_p<alpha3),emp.n_p_context_dpz(find(outp_dpz.p_context2_p<alpha3)),'ko','markersize',7,'markerfacecolor','m')
+plot(find(outp_atx.p_context2_n<alpha3),emp.n_n_context_dpz(find(outp_dpz.p_context2_n<alpha3)),'ko','markersize',7,'markerfacecolor','m')
 tp_editplots
 pos(6,:)=get(gca,'Position')
 

@@ -17,6 +17,7 @@ function [outp] = pupmod_src_powcorr_getstatistics(para)
 % para.alp   = alpha level to get number of altered corr. (default =  0.05)
 % para.correction_method = 'ranks' or 'single_threshold'
 % para.cleaned = 0/1: "raw" data (0) vs. regressed (1)
+% para.empirical = empirical data (altered corr)
 % ------------------
 % GLOBAL STATISTICS - across all voxels (para.type = 'global')
 % ------------------
@@ -62,20 +63,21 @@ if strcmp(para.type,'local') && strcmp(para.correction_method,'single_threshold'
   error('Correction method based on single thresholds is not implemented on a voxel-level! Use ''ranks'' instead.')
 end
 
-fprintf('Loading data...\n')
-if para.cleaned == 1
-  load(sprintf('~/pupmod/proc/conn/pupmod_src_powcorr_cleaned_v%d.mat',para.ver));
-else
+if ~isfield(para,'empirical')
+  fprintf('Loading data...\n')
   cleandat = pupmod_loadpowcorr(para.ver,1);
+  emp = pupmod_compute_altered_correlations(cleandat,para);
+  para.fcsize = size(cleandat,1);
+else
+  emp = para.empirical;
+  para.fcsize = size(emp.n_p_atx_pervoxel,1);
 end
-fprintf('Loading data... Done!\n')
 
-para.fcsize = size(cleandat,1);
 
 % -------------------------------
 % Compute number of altered correlations (empirical)
 % --------------------------------
-% emp = pupmod_compute_altered_correlations(cleandat,para);
+
 % --------------------------------
 
 if isfield(para,'stats')
