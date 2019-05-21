@@ -303,7 +303,7 @@ end
 if ~exist('sa_meg_template','var')
   load /home/gnolte/meth/templates/mri.mat;
   load /home/gnolte/meth/templates/sa_template.mat;
-  load /home/tpfeffer/pconn/proc/src/pconn_sa_s4_m1_b1_v11.mat
+  load /home/tpfeffer/pconn/proc/src/pconn_sa_s4_m1_b1_v9.mat
   grid = sa.grid_cortex_lowres;
   addpath /home/gnolte/meg_toolbox/toolbox/
   addpath /home/gnolte/meg_toolbox/fieldtrip_utilities/

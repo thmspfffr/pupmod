@@ -452,10 +452,10 @@ print(gcf,'-dpdf',sprintf('~/pupmod/plots/pupmod_behav_vtpm_coarse_blocks_v%d.pd
 %% CORRELATE PLACEBO BEHAVIOR WITH PLACEBO POWCORR
 % START WITH FULL VTPM ATLAS
 % ------------------------
-
+cmap = cbrewer('div', 'RdBu', 256,'pchip'); cmap = cmap(end:-1:1,:);
 SUBJ = 1:28; %SUBJ(13)=[];
 
-for ifoi = 6
+for ifoi = 1:13
 
 clear r_cnt p_cnt r_cnt1 p_cnt1 r_cnt2 p_cnt2
 
@@ -527,6 +527,99 @@ colormap(cmap); tp_editplots; set(gca,'FontSize',5); tp_colorbar('Correlation');
 print(gcf,'-dpdf',sprintf('~/pupmod/plots/pupmod_behav_placebo_vtpm_blocks_f%d_v%d.pdf',ifoi,v))
 end
 
-%% 
+%% WHOLE CORTEX FOR PLACEBO
 
+clear cleandat
+
+v = 12;
+
+SUBJLIST  = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
+outdir = '~/pupmod/proc/conn/';
+addpath /home/gnolte/meg_toolbox/toolbox_nightly/
+
+cleandat = pupmod_loadpowcorr(v,0);
+load sa_meg_template;
+
+fprintf('Loading grid...\n')
+grid  = select_chans(sa_meg_template.grid_cortex3000,400); 
+fprintf('Loading grid... Done\n')
+
+[~,front_to_back] = sort(grid(:,2),'descend');
+left  = find(grid(:,1)<0);
+right = find(grid(:,1)>0);
+
+%% PLOT FC MATRIX FOR DIFFERENT CONDITIONS
+cmap = cbrewer('div', 'RdBu', 256,'pchip'); cmap = cmap(end:-1:1,:);
+SUBJ = 1:28; %SUBJ(13)=[];
+
+for ifoi = 1:13
+
+clear r_cnt p_cnt r_cnt1 p_cnt1 r_cnt2 p_cnt2
+
+pc_mean1   = squeeze(cleandat(:,:,SUBJ,:,2,ifoi,1));
+pc_mean2   = squeeze(cleandat(:,:,SUBJ,:,2,ifoi,2));
+% pc_mean1   = squeeze(fc(:,:,SUBJ,2,2,ifoi,1))-squeeze(fc(:,:,SUBJ,1,2,ifoi,1));
+% pc_mean2   = squeeze(fc(:,:,SUBJ,2,2,ifoi,2))-squeeze(fc(:,:,SUBJ,1,1,ifoi,2));
+
+d_behav    = nanmean(behav_cnt(1,SUBJ,:),3);
+d_behav1   = behav_cnt(1,SUBJ,1);%behav_cnt(2,SUBJ,1)-behav_cnt(1,SUBJ,1);
+d_behav2   = behav_cnt(2,SUBJ,2);%behav_cnt(2,SUBJ,2)-behav_cnt(1,SUBJ,2);
+
+d_fc       = squeeze(nanmean(cleandat(:,:,SUBJ,1,2,ifoi,:),7));
+
+d_fc1      = pc_mean1(:,:,:,1);
+d_fc2      = pc_mean2(:,:,:,1);
+
+% identify and ignore nans
+nan_idx_cnt1   = ~isnan(d_behav1); 
+nan_idx_cnt2   = ~isnan(d_behav2);
+nan_idx_meg1   = ~any(isnan(squeeze(pc_mean1(1,2,:,:))),2);
+nan_idx_meg2   = ~any(isnan(squeeze(pc_mean2(1,2,:,:))),2);
+nan_idx1       = nan_idx_cnt1(:)&nan_idx_meg1(:);
+nan_idx2       = nan_idx_cnt2(:)&nan_idx_meg2(:);
+
+d_behav1    = permute(repmat(d_behav1(:),[1 400 400]),[2 3 1]);
+d_behav2    = permute(repmat(d_behav2(:),[1 400 400]),[2 3 1]);
+d_behav    = permute(repmat(d_behav(:),[1 400 400]),[2 3 1]);
+
+
+[r_cnt,p_cnt] = tp_corr(d_fc(:,:,nan_idx1),d_behav(:,:,nan_idx1),3);
+[r_cnt1,p_cnt1] = tp_corr(d_fc1(:,:,nan_idx1),d_behav1(:,:,nan_idx1),3);
+[r_cnt2,p_cnt2] = tp_corr(d_fc2(:,:,nan_idx1),d_behav2(:,:,nan_idx2),3);
+
+
+mask      = logical(tril(ones(size(d_fc1,1),size(d_fc1,1)),-1));
+% r12(ifoi) = corr(r_cnt1(mask),r_cnt2(mask))
+
+figure; set(gcf,'color','w');
+
+subplot(3,2,1); imagesc(r_cnt,[-0.3 0.3]); axis square; title('Counting: Average')
+% set(gca,'xTick',1:2:40,'xTickLabels',reg(1:2:40),'ticklabelinterpreter','none');xtickangle(90)
+% set(gca,'yTick',1:2:40,'yTickLabels',reg(1:2:40),'ticklabelinterpreter','none')
+tp_editplots; set(gca,'FontSize',5)
+subplot(3,2,2); imagesc(r_cnt.*(p_cnt<0.05),[-0.3 0.3]); axis square;
+% set(gca,'xTick',1:2:40,'xTickLabels',reg(1:2:40),'ticklabelinterpreter','none');xtickangle(90)
+% set(gca,'yTick',1:2:40,'yTickLabels',reg(1:2:40),'ticklabelinterpreter','none')
+colormap(cmap); tp_editplots; set(gca,'FontSize',5); tp_colorbar('Correlation');
+
+subplot(3,2,3); imagesc(r_cnt1,[-0.3 0.3]); axis square; title(sprintf('Counting: Block #1 (f = %d',ifoi))
+% set(gca,'xTick',1:2:40,'xTickLabels',reg(1:2:40),'ticklabelinterpreter','none');xtickangle(90)
+% set(gca,'yTick',1:2:40,'yTickLabels',reg(1:2:40),'ticklabelinterpreter','none')
+tp_editplots; set(gca,'FontSize',5)
+subplot(3,2,4); imagesc(r_cnt1.*(p_cnt1<0.05),[-0.3 0.3]); axis square;
+% set(gca,'xTick',1:2:40,'xTickLabels',reg(1:2:40),'ticklabelinterpreter','none');xtickangle(90)
+% set(gca,'yTick',1:2:40,'yTickLabels',reg(1:2:40),'ticklabelinterpreter','none')
+colormap(cmap); tp_editplots; set(gca,'FontSize',5); tp_colorbar('Correlation');
+
+subplot(3,2,5); imagesc(r_cnt2,[-0.3 0.3]); axis square;  title(sprintf('Counting: Block #2 (f = %d)',ifoi))
+% set(gca,'xTick',1:2:40,'xTickLabels',reg(1:2:40),'ticklabelinterpreter','none');xtickangle(90)
+% set(gca,'yTick',1:2:40,'yTickLabels',reg(1:2:40),'ticklabelinterpreter','none')
+tp_editplots; set(gca,'FontSize',5);
+subplot(3,2,6); imagesc(r_cnt2.*(p_cnt2<0.05),[-0.3 0.3]); axis square;
+% set(gca,'xTick',1:2:40,'xTickLabels',reg(1:2:40),'ticklabelinterpreter','none');xtickangle(90)
+% set(gca,'yTick',1:2:40,'yTickLabels',reg(1:2:40),'ticklabelinterpreter','none')
+colormap(cmap); tp_editplots; set(gca,'FontSize',5); tp_colorbar('Correlation');
+
+print(gcf,'-dpdf',sprintf('~/pupmod/plots/pupmod_behav_placebo_cortex_blocks_f%d_v%d.pdf',ifoi,v))
+end
 

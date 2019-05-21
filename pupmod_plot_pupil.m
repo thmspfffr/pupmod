@@ -688,63 +688,7 @@ tp_editplots; ylabel('Pupil diameter'); axis([0 3 6000 9000])
 print(gcf,'-dpdf',sprintf('~/pupmod/plots/pupmod_pupil_bar_v%d.pdf',v))
 
 
-%% WHOLE CORTEX FOR PLACEBO
-
-clear cleandat
-
-v = 12;
-
-SUBJLIST  = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
-outdir = '~/pupmod/proc/conn/';
-addpath /home/gnolte/meg_toolbox/toolbox_nightly/
-
-cleandat = pupmod_loadpowcorr(v,0);
-load sa_meg_template;
-
-fprintf('Loading grid...\n')
-grid  = select_chans(sa_meg_template.grid_cortex3000,400); 
-fprintf('Loading grid... Done\n')
-
-%% PLOT FC MATRIX FOR DIFFERENT CONDITIONS
-
-clear r_cnt p_cnt
-
-ifoi = 6; cmap = cbrewer('div', 'RdBu', 256,'pchip'); cmap = cmap(end:-1:1,:);
-mask      = logical(tril(ones(400,400),-1));
-
-% START WITH FULL VTPM ATLAS
-% ------------------------
-pc_mean   = squeeze(nanmean(cleandat(:,:,:,:,2,ifoi,:),7));
-d_pup     = nanmean(pup(:,1,:,2),3);
-d_fc      = pc_mean(:,:,:,1);
-
-% identify and ignore nans
-nan_idx_cnt   = ~isnan(d_pup);
-
-% compute correlation
-for i = 1 :400
-  i
-  for j = 1 : 400
-    if i == j; r_cnt(i,j)=nan; continue; end
-    [r_cnt(i,j), p_cnt(i,j)] = corr(squeeze(d_fc(i,j,nan_idx_cnt)),reshape(d_pup(nan_idx_cnt),[],1));
-  end
-end
-
-figure; set(gcf,'color','w');
-
-subplot(2,2,1); imagesc(r_cnt,[-0.3 0.3]); axis square; title('Correlation w pupil')
-set(gca,'xTick',1:2:40,'xTickLabels',reg(1:2:40),'ticklabelinterpreter','none');xtickangle(90)
-set(gca,'yTick',1:2:40,'yTickLabels',reg(1:2:40),'ticklabelinterpreter','none')
-tp_editplots; set(gca,'FontSize',5)
-subplot(2,2,2); imagesc(r_cnt.*(p_cnt<0.05),[-0.3 0.3]); axis square;
-set(gca,'xTick',1:2:40,'xTickLabels',reg(1:2:40),'ticklabelinterpreter','none');xtickangle(90)
-set(gca,'yTick',1:2:40,'yTickLabels',reg(1:2:40),'ticklabelinterpreter','none')
-colormap(cmap); tp_editplots; set(gca,'FontSize',5); tp_colorbar('Correlation')
-
-print(gcf,'-dpdf',sprintf('~/pupmod/plots/pupmod_pupil_baseline_vtpm_full_v%d.pdf',v))
-
-clear r_cnt p_cnt r_bttn p_bttn
-
+%%
 
 
 
