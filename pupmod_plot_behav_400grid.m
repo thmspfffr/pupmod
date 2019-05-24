@@ -37,7 +37,7 @@ behav = pconn_read_behavioral_data(SUBJLIST,para);
 behav_bttn = behav;
 behav_bttn = permute(behav_bttn,[2 1 3]);
 
-addpath /home/gnolte/meg_toolbox/toolbox_nightly/
+addpath /home/gnolte/meg_toolbox/fieldtrip_utilities/
 load sa_meg_template;
 grid  = select_chans(sa_meg_template.grid_cortex3000,400); 
 
@@ -54,7 +54,8 @@ grid  = select_chans(sa_meg_template.grid_cortex3000,400);
 % ------------------------------------------
 % (1) Correlation of FC with Behavior (during placebo)
 % (2) Correlation of FC with Behavior (Drug effect)
-% (3) Scatter plot: change in FC, change in behav
+% (3) Scatter plot: Mean FC with behavior (significant drug FC only)
+% (4) SCATTER PLOT: MEAN FC with behavior (only where behavior correlates with FC)
 % (3) Correlations of behavior with FC (per connection)
 % (4) Task vs Rest effects (VTPM)
 % -----------------------------------------
@@ -66,18 +67,19 @@ mask = logical(tril(ones(400,400),-1));
 
 cmap = cbrewer('div', 'RdBu', 256,'pchip'); cmap = cmap(end:-1:1,:);
 SUBJ = 1:28; 
+icond = 1;
 
 for ipharm = 1 : 3
 for ifoi = 1:13
   
   clear r_cnt p_cnt r_cnt1 p_cnt1 r_cnt2 p_cnt2
   
-  d_fc1      = squeeze(fc(:,:,SUBJ,ipharm,2,ifoi,1));
-  d_fc2      = squeeze(fc(:,:,SUBJ,ipharm,2,ifoi,2));
+  d_fc1      = squeeze(fc(:,:,SUBJ,ipharm,icond,ifoi,1));
+  d_fc2      = squeeze(fc(:,:,SUBJ,ipharm,icond,ifoi,2));
   d_behav    = nanmean(behav_cnt(ipharm,SUBJ,:),3);
   d_behav1   = behav_cnt(ipharm,SUBJ,1);
   d_behav2   = behav_cnt(ipharm,SUBJ,2);
-  d_fc       = squeeze(nanmean(fc(:,:,SUBJ,ipharm,2,ifoi,:),7));
+  d_fc       = squeeze(nanmean(fc(:,:,SUBJ,ipharm,icond,ifoi,:),7));
   
   % identify and ignore nans
   nan_idx_cnt1   = ~isnan(d_behav1);
@@ -113,7 +115,7 @@ for ifoi = 1:13
   subplot(3,2,6); imagesc(r_cnt2.*(p_cnt2<0.05),[-0.3 0.3]); axis square;
   colormap(cmap); tp_editplots; set(gca,'FontSize',5); tp_colorbar('Correlation');
   
-  print(gcf,'-dpdf',sprintf('~/pupmod/plots/pupmod_fc_corrwithbehav_cortex_ipharm%d_f%d_v%d.pdf',ipharm,ifoi,v))
+  print(gcf,'-dpdf',sprintf('~/pupmod/plots/pupmod_fc_corrwithbehav_cortex_cond%d_ipharm%d_f%d_v%d.pdf',icond,ipharm,ifoi,v))
 end
 end
 %% (2) CORRELATION FC WITH BEHAVIOR (DRUG EFFECT): Cortex grid
@@ -124,7 +126,7 @@ SUBJ    = 1:28;
 
 for ipharm = 2:3
 for ifoi = 1:13
-  
+  ifoi
   clear r_cnt p_cnt r_cnt1 p_cnt1 r_cnt2 p_cnt2
   
   d_fc1      = squeeze(fc(:,:,SUBJ,ipharm,2,ifoi,1))-squeeze(fc(:,:,SUBJ,1,2,ifoi,1));
@@ -151,7 +153,7 @@ for ifoi = 1:13
   [r_cnt1,p_cnt1] = tp_corr(d_fc1(:,:,nan_idx1),d_behav1(:,:,nan_idx1),3);
   [r_cnt2,p_cnt2] = tp_corr(d_fc2(:,:,nan_idx2),d_behav2(:,:,nan_idx2),3);
   
-  figure; set(gcf,'color','w');
+  figure; set(gcf,'color','w')
   
   subplot(3,2,1); imagesc(r_cnt,[-0.3 0.3]); axis square; title('Counting: Average')
   tp_editplots; set(gca,'FontSize',5)
@@ -168,47 +170,124 @@ for ifoi = 1:13
   subplot(3,2,6); imagesc(r_cnt2.*(p_cnt2<0.05),[-0.3 0.3]); axis square;
   colormap(cmap); tp_editplots; set(gca,'FontSize',5); tp_colorbar('Correlation');
   
-  print(gcf,'-dpdf',sprintf('~/pupmod/plots/pupmod_drugeffectonfc_corrwithbehav_cortex_ipharm%d_f%d_v%d.pdf',ipharm,ifoi,v))
+  print(gcf,'-dpdf',sprintf('~/pupmod/plots/pupmod_drugeffectonfc_corrwithbehav_cortex_ipharm%d_f%d_v%d.pdf',ipharm,ifoi,v),'-fillpage')
 end
 end
 
-%% (3) SCATTER PLOT
+%% (3) SCATTER PLOT: MEAN FC (only significant connections) with behavior 
+foi_range       = unique(round(2.^[1:.5:7]));
+
 close
-ifoi = 5
 mask = logical(tril(ones(400,400),-1));
 iblock = 1:2;
 
-ipharm = 2;
-alpha = 0.01;
+ipharm = 3;
+alpha = 0.05;
 
-[h,~,~,s]=ttest(nanmean(fc(:,:,:,ipharm,2,ifoi,iblock),7),nanmean(fc(:,:,:,1,2,ifoi,iblock),7),'dim',3,'alpha',alpha);
+figure; set(gcf,'color','w','Position',[100 100 700 800]); 
 
-idx = h(mask)>0 & s.tstat(mask)>0;
+for ifoi = 1:13
 
-d = squeeze(nanmean(fc(:,:,:,ipharm,2,ifoi,iblock),7)-nanmean(fc(:,:,:,1,2,ifoi,iblock),7));
-for isubj = 1 : 28
-  tmp = d(:,:,isubj);
-  dd(:,isubj) = tmp(mask);
+  [h,~,~,s]=ttest(nanmean(fc(:,:,:,ipharm,2,ifoi,iblock),7),nanmean(fc(:,:,:,1,2,ifoi,iblock),7),'dim',3,'alpha',alpha);
+
+  idx = h(mask)>0 & s.tstat(mask)>0;
+
+  d = squeeze(nanmean(fc(:,:,:,ipharm,2,ifoi,iblock),7)-nanmean(fc(:,:,:,1,2,ifoi,iblock),7));
+  for isubj = 1 : 28
+    tmp = d(:,:,isubj);
+    dd(:,isubj) = tmp(mask);
+  end
+
+  m = mean(dd(idx,:));
+
+  d_behav = nanmean(behav_cnt(ipharm,:,iblock),3)-nanmean(behav_cnt(1,:,iblock),3);
+
+  
+  subplot(4,4,ifoi);
+  scatter(m,d_behav,50,'markerfacecolor','k','markeredgecolor','w');
+  tp_editplots; axis square
+  lsline; [r,p]=corr(m(:),d_behav(:))
+  xlabel('\DeltaFC'); ylabel('\DeltaSwitches');
+  title(sprintf('f = %d Hz',foi_range(ifoi)))
+  text(double(min(m)),40,sprintf('r=%.3f, p=%.3f',r,p),'fontsize',6)
 end
 
-m = mean(dd(idx,:));
+print(gcf,'-depsc2',sprintf('~/pupmod/plots/pupmod_drugeffectonfc_corrwithbehav_scatter_pharm%d_v%d.eps',ipharm,v))
 
-d_behav = nanmean(behav_cnt(ipharm,:,iblock),3)-nanmean(behav_cnt(1,:,iblock),3);
+%% (4) SCATTER PLOT: MEAN FC with behavior (only where behavior correlates with FC)
 
-figure; set(gcf,'color','w'); 
+ipharm = 1:3;
+SUBJ= 1 :28;
+icond = 1;
+figure; set(gcf,'color','w','Position',[100 100 700 800]); 
 
-subplot(2,2,1);
-scatter(m,d_behav,50,'markerfacecolor','k','markeredgecolor','w');
-tp_editplots; axis square
-lsline; [r,p]=corr(m(:),d_behav(:))
+for ifoi = 1:13
+  
+  clear r_cnt p_cnt r_cnt1 p_cnt1 r_cnt2 p_cnt2
+  
+  d_fc1      = squeeze(nanmean(fc(:,:,SUBJ,ipharm,icond,ifoi,1),4));
+  d_fc2      = squeeze(nanmean(fc(:,:,SUBJ,ipharm,icond,ifoi,2),4));
+  d_fc       = squeeze(nanmean(nanmean(fc(:,:,SUBJ,ipharm,icond,ifoi,:),7),4));
+  
+  d_behav    = nanmean(nanmean(behav_cnt(ipharm,SUBJ,:),1),3);
+  d_behav1   = nanmean(behav_cnt(ipharm,SUBJ,1),1);
+  d_behav2   = nanmean(behav_cnt(ipharm,SUBJ,2),1);
+  
+  % identify and ignore nans
+  nan_idx_cnt1   = ~isnan(d_behav1);
+  nan_idx_cnt2   = ~isnan(d_behav2);
+  nan_idx_meg1   = ~any(isnan(squeeze(d_fc1(1,2,:))),2);
+  nan_idx_meg2   = ~any(isnan(squeeze(d_fc2(1,2,:))),2);
+  nan_idx1       = nan_idx_cnt1(:)&nan_idx_meg1(:);
+  nan_idx2       = nan_idx_cnt2(:)&nan_idx_meg2(:);
+  
+  d_behav1    = permute(repmat(d_behav1(:),[1 400 400]),[2 3 1]);
+  d_behav2    = permute(repmat(d_behav2(:),[1 400 400]),[2 3 1]);
+  d_behav     = permute(repmat(d_behav(:),[1 400 400]),[2 3 1]);
+  
+  [r_cnt,p_cnt]   = tp_corr(d_fc(:,:,nan_idx1),d_behav(:,:,nan_idx1),3);
+  [r_cnt1,p_cnt1] = tp_corr(d_fc1(:,:,nan_idx1),d_behav1(:,:,nan_idx1),3);
+  [r_cnt2,p_cnt2] = tp_corr(d_fc2(:,:,nan_idx2),d_behav2(:,:,nan_idx2),3);
+  
+  d_fc       = squeeze(nanmean(nanmean(fc(:,:,SUBJ,ipharm,2,ifoi,:),7),4))-squeeze(nanmean(nanmean(fc(:,:,SUBJ,1,2,ifoi,:),7),4));
+  d_fc1       = squeeze(nanmean(nanmean(fc(:,:,SUBJ,ipharm,2,ifoi,1),7),4))-squeeze(nanmean(nanmean(fc(:,:,SUBJ,1,2,ifoi,1),7),4));
+  d_fc2       = squeeze(nanmean(nanmean(fc(:,:,SUBJ,ipharm,2,ifoi,2),7),4))-squeeze(nanmean(nanmean(fc(:,:,SUBJ,1,2,ifoi,2),7),4));
+  
+  for isubj = 1 : 28
+   tmp = d_fc(:,:,isubj);
+   tmp1 = d_fc1(:,:,isubj);
+   tmp2 = d_fc2(:,:,isubj);
+   dd(isubj) = mean(tmp((p_cnt<0.05&r_cnt>0)));
+   dd1(isubj) = mean(tmp1((p_cnt1<0.05&r_cnt>0)));
+   dd2(isubj) = mean(tmp2((p_cnt2<0.05&r_cnt>0)));
+  end
+  
+  dd_b = nanmean(nanmean(behav_cnt(2,SUBJ,:),1),3)-nanmean(nanmean(behav_cnt(1,SUBJ,:),1),3);
+  [r,p]=corr(dd(:),dd_b(:));
+  
+  subplot(4,4,ifoi);
+  scatter(dd,dd_b,50,'markerfacecolor','k','markeredgecolor','w');
+  tp_editplots; axis square
+  lsline;
+  xlabel('\DeltaFC'); ylabel('\DeltaSwitches');
+  title(sprintf('f = %d Hz',foi_range(ifoi)))
+  if ~isnan(r)
+    text(double(min(dd)),40,sprintf('r=%.3f, p=%.3f',r,p),'fontsize',6)
+  end
+end
+
+print(gcf,'-depsc2',sprintf('~/pupmod/plots/pupmod_drugeffectonfc_corrwithbehav_scatter_cond%d_pharm%s_v%d.eps',icond,regexprep(num2str(ipharm),' ',''),v))
+
+
 %% STATISTICS: PLOT SPECTRUM OF CORRELATIONS WITH BEHAVIOR
 mask      = logical(tril(ones(400,400),-1));
 
 SUBJ    = 1:28; %SUBJ(13)=[];
 iblock  = 1:2;
-ipharm  = 1;
+ipharm  = 3;
 cond    = 2;
 NPERM   = 10000;
+FOI = 6;
 
 % EMPIRICAL
 d_behav    = nanmean(nanmean(behav_cnt(ipharm,SUBJ,iblock),3),1);%-nanmean(nanmean(behav_cnt(1,SUBJ,iblock),3),1);
@@ -222,7 +301,7 @@ nan_idx     = nan_idx_meg&nan_idx_beh;
 % compute correlation
 [r,p] = tp_corr(d_fc(:,:,nan_idx,:),d_behav(:,:,nan_idx,:),3);
 
-for ifoi = 1 : 13
+for ifoi = FOI
   p_tmp = p(:,:,ifoi); r_tmp = r(:,:,ifoi);
   pos_corr(ifoi) = 100 * (sum(p_tmp(mask)<0.05 & r_tmp(mask)>0) / sum(mask(:)));
   neg_corr(ifoi) = 100 * (sum(p_tmp(mask)<0.05 & r_tmp(mask)<0) / sum(mask(:)));
@@ -233,9 +312,10 @@ end
 pp_emp = squeeze(p);
 rr_emp = squeeze(r);
 
-%% PLOT ON CORTICAL SURFACE
+% PLOT CORRELATION ON CORTICAL SURFACE
+cmap = cbrewer('div', 'RdBu', 256,'pchip'); cmap = cmap(end:-1:1,:);
 
-for ifoi = 6
+for ifoi = FOI
   
   para =[];
   para.cmap = cmap;
@@ -243,47 +323,37 @@ for ifoi = 6
   para.grid = grid;
   para.dd = 0.75;
   para.clim = [-0.2 0.2];
-  para.fn = sprintf('~/pupmod/plots/pupmod_behav_fc_corr_with_behav_placebo_surf_f%d.png',ifoi);
+  para.fn = sprintf('~/pupmod/plots/pupmod_behav_fc_corr_with_behav_surf_f%d_b%s_pharm%s_v%d.png',ifoi,regexprep(num2str(iblock),' ',''),regexprep(num2str(ipharm),' ',''),v);
   tp_plot_surface(nanmean(rr_emp(:,:,ifoi)),para)
   
+% PLOT FRACTION OF SIGNIFICANT CORRELATIONS ON CORTICAL SURFACE
+  
+%   para =[];
+%   para.cmap = plasma;
+%   % para.cmap = para.cmap(end:-1:1,:);
+%   para.grid = grid;
+%   para.dd = 0.75;
+%   para.clim = [0 3];
+%   para.fn = sprintf('~/pupmod/plots/pupmod_behav_fc_corr_with_behav_masked_f%d_b%s_pharm%s_v%d.png',ifoi,regexprep(num2str(iblock),' ',''),regexprep(num2str(ipharm),' ',''),v);
+%   tp_plot_surface(pos_corr_vox(:,ifoi),para)
+  
 end
+%%
 
-%% SCATTER PLOTS: Behavior vs. korrelation
-% clear r p
-% iblock = 2
-% figure; set(gcf,'color','w');
-% 
-% ipharm = 2;
-% 
-% d_behav =  nanmean(nanmean(behav_cnt(ipharm,SUBJ,iblock),3),1)- nanmean(nanmean(behav_cnt(1,SUBJ,iblock),3),1);
-% for ifoi = 1 : 12
-%   mask = pp_emp(:,:,ifoi)<0.05;
-%   for isubj = 1 : 28
-%     
-%     tmp1 = fc(:,:,isubj,ipharm,2,ifoi,iblock)-fc(:,:,isubj,1,2,ifoi,iblock);
-%     tmp(isubj) = mean(tmp1(mask));
-%     
-%   end
-%   
-%   nanidx = ~(isnan(tmp(:)) | isnan(d_behav(:))); %nanidx = nanidx(:);
-%   
-%   subplot(4,3,ifoi);
-%   scatter(tmp,d_behav,'o','markerfacecolor','k','markeredgecolor','w'); axis square
-%   lsline; tp_editplots
-%   [r(ifoi) p(ifoi)] = corr(tmp(nanidx)',d_behav(nanidx)');
-%   
-% end
+
 
 %%
-% order1 = randperm(28,[]);
-% order2 = randperm(28);
+mask = logical(tril(ones(400,400),-1));
 NPERM = 1000;
 clear pp_perm rr_perm r p pos_c*
+ipharm = 1:3;
+iblock = 1 :2;
+cond = 2;
 
-if ~exist('~/pupmod/proc/conn/pupmod_plots_behav_400grid_permstat.mat')
+if ~exist(sprintf('~/pupmod/proc/conn/pupmod_plots_behav_400grid_permstat_pharm%s.mat',regexprep(num2str(ipharm),' ','')))
   for iperm = 1 : NPERM
     
-    fn = sprintf('pupmod_plots_behav_400grid_permstat_iperm%d',iperm);
+    fn = sprintf('pupmod_plots_behav_400grid_permstat_ipharm%s_iperm%d',regexprep(num2str(ipharm),' ',''),iperm);
     if tp_parallel(fn,'~/pupmod/proc/conn/',1,0)
       continue
     end
@@ -316,11 +386,11 @@ if ~exist('~/pupmod/proc/conn/pupmod_plots_behav_400grid_permstat.mat')
   end
 end
 cnt = 0;
-if ~exist('~/pupmod/proc/conn/pupmod_plots_behav_400grid_permstat.mat')
+if ~exist(sprintf('~/pupmod/proc/conn/pupmod_plots_behav_400grid_permstat_pharm%s.mat',regexprep(num2str(ipharm),' ','')))
   for iperm = 1 : NPERM
     %     iperm
     try
-      load(sprintf('~/pupmod/proc/conn/pupmod_plots_behav_400grid_permstat_iperm%d.mat',iperm))
+      load(sprintf('~/pupmod/proc/conn/pupmod_plots_behav_400grid_permstat_pharm%s_iperm%d.mat',regexprep(num2str(ipharm),' ',''),iperm))
       cnt = cnt + 1
       all_pos_corr_perm(cnt,:)=out.pos_corr_perm;
       all_neg_corr_perm(cnt,:)=out.neg_corr_perm;
@@ -334,6 +404,8 @@ if ~exist('~/pupmod/proc/conn/pupmod_plots_behav_400grid_permstat.mat')
 else
   load('~/pupmod/proc/conn/pupmod_plots_behav_400grid_permstat.mat');
 end
+
+error('!')
 %%
 
 figure; set(gcf,'color','w');
@@ -352,33 +424,104 @@ xlabel('Carrier frequency [Hz]'); ylabel('Fraction of sign. correlations [%]')
 % diff_rest = nanmean(fc(:,:,:,2,1,ifoi,:),7)-nanmean(fc(:,:,:,1,1,ifoi,:),7);
 % diff_task = nanmean(fc(:,:,:,2,2,ifoi,:),7)-nanmean(fc(:,:,:,1,2,ifoi,:),7);
 iblock = 1 : 2;
-cond = 2;
+for cond = 2
+  for ipharm = 1 : 3
+  % ipharm = 3;
+  % diff_rest = nanmean(fc(:,:,:,2,1,ifoi,:),7)-nanmean(fc(:,:,:,1,1,ifoi,:),7);
+  % diff_task = nanmean(fc(:,:,:,2,2,ifoi,:),7)-nanmean(fc(:,:,:,1,2,ifoi,:),7);
+  d_behav    = nanmean(nanmean(behav_cnt(ipharm,SUBJ,iblock),3),1);%-nanmean(nanmean(behav_cnt(1,SUBJ,iblock),3),1);
+  d_behav    = permute(repmat(d_behav(:),[1 400 13]),[2 1 3]);
+  d_fc       = squeeze(nanmean(nanmean(nanmean(nanmean(fc(:,:,SUBJ,ipharm,cond,:,iblock),2),7),5),4));%-squeeze(nanmean(nanmean(nanmean(fc(:,:,SUBJ,1,cond,:,iblock),7),5),4));
 
-ipharm = 2;
-% diff_rest = nanmean(fc(:,:,:,2,1,ifoi,:),7)-nanmean(fc(:,:,:,1,1,ifoi,:),7);
-% diff_task = nanmean(fc(:,:,:,2,2,ifoi,:),7)-nanmean(fc(:,:,:,1,2,ifoi,:),7);
-d_behav    = nanmean(nanmean(behav_cnt(ipharm,SUBJ,iblock),3),1)-nanmean(nanmean(behav_cnt(1,SUBJ,iblock),3),1);
-d_behav    = permute(repmat(d_behav(:),[1 400 400 13]),[2 3 1 4]);
-d_fc       = squeeze(nanmean(nanmean(nanmean(fc(:,:,SUBJ,ipharm,cond,:,iblock),7),5),4))-squeeze(nanmean(nanmean(nanmean(fc(:,:,SUBJ,1,cond,:,iblock),7),5),4));
+  d_fc = permute(d_fc,[1 3 2]); d_behav = permute(d_behav,[1 3 2]);
+  nan_idx_meg = ~isnan(squeeze(d_fc(1,2,:,1)));
+  nan_idx_beh = ~isnan(squeeze(d_behav(1,2,:,1)));
+  nan_idx     = nan_idx_meg&nan_idx_beh;
 
+  % compute correlation
+  [r,p] = tp_corr(d_fc(:,:,nan_idx),d_behav(:,:,nan_idx),3);
+
+    for ifoi = 6
+
+      para =[];
+      para.cmap = cmap;
+      para.grid = grid;
+      para.dd = 0.75;
+      para.clim = [-0.2 0.2];
+      para.fn = sprintf('~/pupmod/plots/pupmod_behav_fc_corr_with_behav_surf_cond%d_b%s_pharm%d_f%d.png',cond,regexprep(num2str(iblock),' ',''),ipharm,ifoi);
+      tp_plot_surface(r(:,ifoi),para)
+
+    end
+  end
+end
+
+
+%%
+
+for iperm = 1 : 1000
+  iperm
+  idx = randperm(28);
+  
+  d_behav    = nanmean(nanmean(behav_cnt(2,idx,iblock),3),1);%-nanmean(nanmean(behav_cnt(1,SUBJ,iblock),3),1);
+  d_behav    = permute(repmat(d_behav(:),[1 400 13]),[2 1 3]);
+  d_fc       = squeeze(nanmean(nanmean(nanmean(nanmean(fc(:,:,idx,2,cond,:,iblock),2),7),5),4));%-squeeze(nanmean(nanmean(nanmean(fc(:,:,SUBJ,1,cond,:,iblock),7),5),4));
+
+  d_fc = permute(d_fc,[1 3 2]); d_behav = permute(d_behav,[1 3 2]);
+  nan_idx_meg = ~isnan(squeeze(d_fc(1,2,:,1)));
+  nan_idx_beh = ~isnan(squeeze(d_behav(1,2,:,1)));
+  nan_idx     = nan_idx_meg&nan_idx_beh;
+
+  [r2,p] = tp_corr(d_fc(:,:,nan_idx),d_behav(:,:,nan_idx),3);
+
+  d_behav    = nanmean(nanmean(behav_cnt(1,idx,iblock),3),1);%-nanmean(nanmean(behav_cnt(1,SUBJ,iblock),3),1);
+  d_behav    = permute(repmat(d_behav(:),[1 400 13]),[2 1 3]);
+  d_fc       = squeeze(nanmean(nanmean(nanmean(nanmean(fc(:,:,idx,1,cond,:,iblock),2),7),5),4));%-squeeze(nanmean(nanmean(nanmean(fc(:,:,SUBJ,1,cond,:,iblock),7),5),4));
+
+  d_fc = permute(d_fc,[1 3 2]); d_behav = permute(d_behav,[1 3 2]);
+  nan_idx_meg = ~isnan(squeeze(d_fc(1,2,:,1)));
+  nan_idx_beh = ~isnan(squeeze(d_behav(1,2,:,1)));
+  nan_idx     = nan_idx_meg&nan_idx_beh;
+
+  [r1,p] = tp_corr(d_fc(:,:,nan_idx),d_behav(:,:,nan_idx),3);
+
+  d(:,:,iperm) = r2-r1;
+end
+
+
+% EMPRICIAL RESULT
+d_behav    = nanmean(nanmean(behav_cnt(2,SUBJ,iblock),3),1);%-nanmean(nanmean(behav_cnt(1,SUBJ,iblock),3),1);
+d_behav    = permute(repmat(d_behav(:),[1 400 13]),[2 1 3]);
+d_fc       = squeeze(nanmean(nanmean(nanmean(nanmean(fc(:,:,SUBJ,2,cond,:,iblock),2),7),5),4));%-squeeze(nanmean(nanmean(nanmean(fc(:,:,SUBJ,1,cond,:,iblock),7),5),4));
+
+d_fc = permute(d_fc,[1 3 2]); d_behav = permute(d_behav,[1 3 2]);
 nan_idx_meg = ~isnan(squeeze(d_fc(1,2,:,1)));
 nan_idx_beh = ~isnan(squeeze(d_behav(1,2,:,1)));
 nan_idx     = nan_idx_meg&nan_idx_beh;
 
-% compute correlation
-[r,p] = tp_corr(d_fc(:,:,nan_idx,:),d_behav(:,:,nan_idx,:),3);
+[r2,p] = tp_corr(d_fc(:,:,nan_idx),d_behav(:,:,nan_idx),3);
 
-for ifoi = 13
-  
-  para =[];
-  para.cmap = plasma;
-  para.grid = grid;
-  para.dd = 0.75;
-  para.clim = [0 7];
-  para.fn = sprintf('~/pupmod/plots/pupmod_behav_fc_corr_with_behav_surf_f%d.png',ifoi);
-  tp_plot_surface(sum(p(:,:,:,13)<0.05),para)
-  
-end
+d_behav    = nanmean(nanmean(behav_cnt(1,SUBJ,iblock),3),1);%-nanmean(nanmean(behav_cnt(1,SUBJ,iblock),3),1);
+d_behav    = permute(repmat(d_behav(:),[1 400 13]),[2 1 3]);
+d_fc       = squeeze(nanmean(nanmean(nanmean(nanmean(fc(:,:,SUBJ,1,cond,:,iblock),2),7),5),4));%-squeeze(nanmean(nanmean(nanmean(fc(:,:,SUBJ,1,cond,:,iblock),7),5),4));
+
+d_fc = permute(d_fc,[1 3 2]); d_behav = permute(d_behav,[1 3 2]);
+nan_idx_meg = ~isnan(squeeze(d_fc(1,2,:,1)));
+nan_idx_beh = ~isnan(squeeze(d_behav(1,2,:,1)));
+nan_idx     = nan_idx_meg&nan_idx_beh;
+
+[r1,p] = tp_corr(d_fc(:,:,nan_idx),d_behav(:,:,nan_idx),3);
+
+
+% PLOT
+p =1-(sum((r2(:,6)-r1(:,6))>squeeze(d(:,6,:)),2)/size(d,3));
+
+para =[];
+para.cmap = cmap;
+para.grid = grid;
+para.dd = 0.75;
+para.clim = [-0.35 0.35];
+para.fn = sprintf('~/pupmod/plots/pupmod_behav_fc_corr_with_behav_surf_cond%d_b%s_pharm%d_f%d.png',cond,regexprep(num2str(iblock),' ',''),ipharm,ifoi);
+tp_plot_surface((r2(:,6)-r1(:,6)).*(p<0.1),para)
 
 %%
 % ------------------------------------------

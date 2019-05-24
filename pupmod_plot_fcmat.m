@@ -362,45 +362,6 @@ for isubj = SUBJLIST
   end
 end
 
-%% CORRELATIONS FC WITH BEHAVIOR
-% clear nan_idx
-%
-% SUBJLIST1  = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
-% para.str_behav = 'count';
-% behav = pconn_read_behavioral_data(SUBJLIST1,para);
-% behav_cnt = behav;
-%
-% para.str_behav = 'numb_switches';
-% behav = pconn_read_behavioral_data(SUBJLIST1,para);
-% behav_bttn = behav;
-% behav_bttn = permute(behav_bttn,[2 1 3]);
-%
-% ifoi = 6; ipharm = 2; icont = 2; iblock = 1:2;
-% cmap = cbrewer('div','RdBu',128); cmap = cmap(end:-1:1,:);
-%
-% par_drug = squeeze(nanmean(nanmean(cleandat(:,:,:,ipharm,icont,ifoi,iblock),7)));
-% par_plac = squeeze(nanmean(nanmean(cleandat(:,:,:,1,icont,ifoi,iblock),7)));
-% par_diff = par_drug - par_plac;
-% nan_idx1 = isnan(par_diff(1,:));
-%
-% par_behav = nanmean(behav_cnt(:,:,iblock),3)';
-% par_behav = par_behav(:,ipharm)-par_behav(:,1);
-% nan_idx2   = isnan(par_behav);
-%
-% nan_idx = ~(nan_idx1(:) |nan_idx2(:));
-%
-% par_behav = repmat(par_behav,[1 400])';
-%
-% [r,p] = corr(par_behav(:,nan_idx)',par_diff(:,nan_idx)'); r = r(1,:); p = p(1,:);
-%
-% para.cmap = cmap;
-% para.grid = grid;
-% para.dd = 0.75;
-% para.clim = [-0.3 0.3];
-% para.fn = sprintf('~/pupmod/plots/test.png');
-% tp_plot_surface(r,para)
-%
-
 
 %% A FEW VERY BASIC ANALYSES
 clear r
@@ -473,4 +434,213 @@ fc_mean   = nanmean(fc_mean,5);
     
     
   
+%% TASK VS REST
+cmap = cbrewer('div', 'RdBu', 256,'pchip'); cmap = cmap(end:-1:1,:);
 
+ipharm = 3;
+SUBJ = 1:28;
+
+% for ipharm = 1 : 3
+% 
+%   for ifoi = 1 : 13
+% ifoi
+% d_fc1       = (squeeze(nanmean(fc(:,:,SUBJ,1,2,ifoi,:),7))-squeeze(nanmean(fc(:,:,SUBJ,1,1,ifoi,:),7)))./squeeze(nanmean(fc(:,:,SUBJ,1,1,ifoi,:),7));%./squeeze(nanmean(fc(:,:,SUBJ,1,1,ifoi,:),7));
+% d_fc2       = (squeeze(nanmean(fc(:,:,SUBJ,2,2,ifoi,:),7))-squeeze(nanmean(fc(:,:,SUBJ,2,1,ifoi,:),7)));%./squeeze(nanmean(fc(:,:,SUBJ,2,1,ifoi,:),7));
+% d_fc3       = (squeeze(nanmean(fc(:,:,SUBJ,3,2,ifoi,:),7))-squeeze(nanmean(fc(:,:,SUBJ,3,1,ifoi,:),7)));%./squeeze(nanmean(fc(:,:,SUBJ,3,1,ifoi,:),7));
+
+d_fc1=(nanmean(fc(:,:,SUBJ,1,2,ifoi,:),7)-nanmean(fc(:,:,SUBJ,1,1,ifoi,:),7));
+
+% [h,~,~,s]=ttest(squeeze(d_fc2),squeeze(d_fc1),'dim',3,'alpha',0.01)
+
+%   imagesc(nanmean(d_fc1,3),[-3 3])
+%   colormap(cmap)
+% 
+%   [h,~,~,s]=ttest(d_fc,zeros(400,400,28),'dim',3);
+% 
+%   pos(ifoi,ipharm) = sum(h(mask)>0 & s.tstat(mask)>0)/sum(mask(:));
+%   neg(ifoi,ipharm) = sum(h(mask)>0 & s.tstat(mask)<0)/sum(mask(:));
+% 
+% 
+%   end
+% end
+
+%%
+% isubj = 6; m = 3; 
+SUBJLIST  = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
+for isubj = SUBJLIST
+  isubj
+  for m = 1 : 3
+    im = find(ord(isubj,:)==m);
+    load(sprintf('/home/tpfeffer/pp/proc/conn/pp_task_src_powcorr_test_s%d_m%d_v16.mat',isubj,im))
+    pow2(:,:,:,isubj,m,:) = powcorr; clear powcorr
+    load(sprintf('/home/tpfeffer/pp/proc/conn/pp_src_powcorr_test_s%d_m%d_v16.mat',isubj,im))
+    powres(:,:,:,isubj,m,:) = powcorr; clear powcorr
+%     load(sprintf('/home/tpfeffer/pupmod/proc/conn/pupmod_task_src_powcorr_s%d_m%d_b1_f6_v12.mat',isubj,im))
+%     p1(:,:,1) = powcorr; clear powcorr
+%     load(sprintf('/home/tpfeffer/pupmod/proc/conn/pupmod_task_src_powcorr_s%d_m%d_b2_f6_v12.mat',isubj,im))
+%     p1(:,:,2) = powcorr; clear powcorr
+%     pow1(:,:,isubj,m,:) = p1;
+  end
+end
+
+% pow1 = pow1(:,:,SUBJLIST,:,:);
+pow2 = pow2(:,:,:,SUBJLIST,:,:);
+powres = powres(:,:,:,SUBJLIST,:,:);
+%%
+isubj = 1; iblock = 1:2; m = 3; foi = 1:9
+% d1 = nanmean(nanmean(pow1(:,:,isubj,m,iblock),5),3);
+d2 = nanmean(nanmean(pow2(:,:,iblock,isubj,m,foi),3),6);
+
+% d1 = nanmean(nanmean(pow1(:,:,isubj,1,:),5),3);
+% d2 = nanmean(nanmean(pow2(:,:,isubj,1,:),5),3);
+% d3 = nanmean(nanmean(nanmean(fc(:,:,isubj,1,2,5,:),5),3),7);
+% [r,p]=corr(d1(mask),d2(mask))
+
+d3 = nanmean(nanmean(nanmean(fc(:,:,isubj,m,2,6,:),5),3),7);
+
+corr(d2(mask),d3(mask))
+% 
+para =[];
+para.cmap = plasma;
+% para.cmap = cmap;
+para.grid = grid;
+para.dd = 0.75;
+% para.clim = [-0.01 0.01]
+para.clim = [min(nanmean(d2,2)) max(nanmean(d2,2))]
+para.fn = '~/test.png';
+% para.fn = sprintf('~/pupmod/plots/pupmod_behav_fc_corr_with_behav_surf_f%d_b%s_pharm%s_v%d.png',ifoi,regexprep(num2str(iblock),' ',''),regexprep(num2str(ipharm),' ',''),v);
+tp_plot_surface(nanmean(d2,2),para);
+
+% para.clim = [min(nanmean(d2,2)) max(nanmean(d2,2))]
+% para.fn = '~/test.png';
+% % para.fn = sprintf('~/pupmod/plots/pupmod_behav_fc_corr_with_behav_surf_f%d_b%s_pharm%s_v%d.png',ifoi,regexprep(num2str(iblock),' ',''),regexprep(num2str(ipharm),' ',''),v);
+% tp_plot_surface(nanmean(d2,2),para);
+
+para.clim = [min(nanmean(d3,2)) max(nanmean(d3,2))]
+para.fn = '~/test.png';
+% para.fn = sprintf('~/pupmod/plots/pupmod_behav_fc_corr_with_behav_surf_f%d_b%s_pharm%s_v%d.png',ifoi,regexprep(num2str(iblock),' ',''),regexprep(num2str(ipharm),' ',''),v);
+tp_plot_surface(nanmean(d3,2),para);
+%%
+% m = 3; foi = ;
+% fc = 
+foi =1
+for isubj = 1:28
+  isubj
+%   for m = 1:3
+%     for foi = 1 : 9
+  
+
+%   t1 = fc(:,:,find(ismember(SUBJLIST1,SUBJLIST(isubj))),2,2,6,1)-fc(:,:,find(ismember(SUBJLIST1,SUBJLIST(isubj))),1,2,6,1);t1 = t1(mask);
+%   t2 = fc(:,:,find(ismember(SUBJLIST1,SUBJLIST(isubj))),2,2,6,2)-fc(:,:,find(ismember(SUBJLIST1,SUBJLIST(isubj))),1,2,6,2); t2 = t2(mask);
+% % t1 = t1(mask);
+% t2 = t2(mask);
+  %   m1(isubj) = squeeze(nanmean(nanmean(pow1(:,:,isubj,m,1),2),1));
+%   m2(isubj) = squeeze(nanmean(nanmean(pow1(:,:,isubj,m,2),2),1));
+  
+%   r1(isubj) = corr(t1,t2);
+  
+  t1 = nanmean(pow2(:,:,1,isubj,2,foi),6);%-nanmean(pow2(:,:,1,isubj,1,foi),6); t1 = t1(mask);
+  t2 = nanmean(pow2(:,:,2,isubj,2,foi),6);%-nanmean(pow2(:,:,2,isubj,1,foi),6); t2 = t2(mask);
+  t1 = t1(mask);
+t2 = t2(mask);
+  r2(isubj) = corr(t1,t2);
+  
+  t1 = nanmean(pow13(:,:,1,isubj,2,1:9),6);%-nanmean(pow13(:,:,1,isubj,1,foi),6); t1 = t1(mask);
+  t2 = nanmean(pow13(:,:,2,isubj,2,1:9),6);%-nanmean(pow13(:,:,2,isubj,1,foi),6); t2 = t2(mask);
+  t1 = t1(mask);
+t2 = t2(mask);
+  r3(isubj) = corr(t1,t2);
+%   end
+% end
+end
+  
+  
+
+%%
+ isubj = 1:28;
+ foi = 1;
+ iblock = 1:2;
+d1 = nanmean(nanmean(fc(:,:,find(ismember(SUBJLIST1,SUBJLIST)),2,2,6,iblock),7)-nanmean(fc(:,:,find(ismember(SUBJLIST1,SUBJLIST)),1,2,6,iblock),7),3);
+d2 = nanmean(nanmean(nanmean(nanmean(pow2(:,:,iblock,isubj,2,foi),3),4),6)-nanmean(nanmean(nanmean(pow2(:,:,iblock,isubj,1,foi),3),4),6),3);
+d3 = nanmean(nanmean(nanmean(nanmean(powres(:,:,iblock,isubj,2,foi),3),4),6)-nanmean(nanmean(nanmean(powres(:,:,iblock,isubj,1,foi),3),4),6),3);
+
+% 
+% [h1,p1] = ttest(nanmean(nanmean(pow1(:,:,isubj,2,:),1),5),nanmean(nanmean(pow1(:,:,isubj,1,:),1),5),'dim',3);
+[h2,p2] = ttest(nanmean(nanmean(pow2(:,:,:,isubj,2,foi),3),6),nanmean(nanmean(pow2(:,:,:,isubj,1,foi),3),6),'dim',4);
+% [h2,p2] = ttest(nanmean(nanmean(nanmean(pow2(:,:,:,isubj,2,foi),1),3),6),nanmean(nanmean(nanmean(pow2(:,:,:,isubj,1,foi),1),3),6),'dim',4);
+[hres,pres] = ttest(nanmean(nanmean(powres(:,:,:,isubj,2,foi),3),6),nanmean(nanmean(powres(:,:,:,isubj,1,foi),3),6),'dim',4);
+
+% figure;
+% subplot(1,2,1)
+% imagesc(d1,[-0.02 0.02]);
+% subplot(1,2,2)
+% imagesc(d2,[-0.02 0.02]); colormap(cmap)
+%
+% corr(nanmean(d1,2),nanmean(d2,2))
+para =[];
+% para.cmap = plasma;
+para.cmap = cmap;
+para.grid = grid;
+para.dd = 0.75;
+para.clim = [-0.025 0.025]
+% para.clim = [min(nanmean(d1,2)) max(nanmean(d1,2))]
+para.fn = '~/test.png';
+% para.fn = sprintf('~/pupmod/plots/pupmod_behav_fc_corr_with_behav_surf_f%d_b%s_pharm%s_v%d.png',ifoi,regexprep(num2str(iblock),' ',''),regexprep(num2str(ipharm),' ',''),v);
+tp_plot_surface(nanmean(d2,2),para);
+% 
+% 
+% para.clim = [min(nanmean(d2,2)) max(nanmean(d2,2))]
+para.fn = '~/test.png';
+% para.fn = sprintf('~/pupmod/plots/pupmod_behav_fc_corr_with_behav_surf_f%d_b%s_pharm%s_v%d.png',ifoi,regexprep(num2str(iblock),' ',''),regexprep(num2str(ipharm),' ',''),v);
+tp_plot_surface(nanmean(d3,2),para);
+% 
+%%
+
+para.str_behav = 'count';
+behav = pconn_read_behavioral_data(SUBJLIST,para);
+behav_cnt = behav;
+
+para.str_behav = 'numb_switches';
+behav = pconn_read_behavioral_data(SUBJLIST,para);
+behav_bttn = behav;
+behav_bttn = permute(behav_bttn,[2 1 3]);
+%%
+foi = 1;
+m = 3;
+
+d_meg = squeeze(nanmean(nanmean(powres(:,:,:,:,m,foi),6),3));%-squeeze(nanmean(nanmean(pow2(:,:,:,:,1,foi),6),3));
+d_behav = nanmean(behav_cnt(m,find(ismember(SUBJLIST1,SUBJLIST)),:),3);%- nanmean(behav_cnt(1,find(ismember(SUBJLIST1,SUBJLIST)),:),3);
+d_behav = permute(repmat(d_behav(:),[1 400 400]),[2 3 1]);
+
+[r,p]=tp_corr(d_meg,d_behav,3);
+
+para =[];
+% para.cmap = plasma;
+para.cmap = cmap;
+para.grid = grid;
+para.dd = 0.75;
+para.clim = [-0.2 0.2]
+% para.clim = [min(nanmean(d1,2)) max(nanmean(d1,2))]
+para.fn = '~/test.png';
+% para.fn = sprintf('~/pupmod/plots/pupmod_behav_fc_corr_with_behav_surf_f%d_b%s_pharm%s_v%d.png',ifoi,regexprep(num2str(iblock),' ',''),regexprep(num2str(ipharm),' ',''),v);
+tp_plot_surface(nanmean(r),para);
+
+%%
+for isubj = 1:28
+d_meg = squeeze(nanmean(nanmean(pow2(:,:,:,isubj,2,foi),6),3))-squeeze(nanmean(nanmean(pow2(:,:,:,isubj,1,foi),6),3));
+d_meg = d_meg(mask);
+d(isubj) = mean(d_meg(p2(mask)<1));
+
+end
+
+
+%% MIN MAX
+
+% d1 = min(reshape(nanmean(pow1(:,:,:,2,1),5),[400 * 400 28]))-min(reshape(nanmean(pow1(:,:,:,2,2),5),[400 * 400 28])); 
+% d2 = min(reshape(nanmean(pow2(:,:,:,2,1),5),[400 * 400 28]))-min(reshape(nanmean(pow2(:,:,:,2,2),5),[400 * 400 28])); 
+
+d1 = max(reshape(nanmean(pow1(:,:,:,2,1),5),[400 * 400 28]))-max(reshape(nanmean(pow1(:,:,:,2,2),5),[400 * 400 28])); 
+d2 = max(reshape(nanmean(pow2(:,:,:,2,1),5),[400 * 400 28]))-max(reshape(nanmean(pow2(:,:,:,2,2),5),[400 * 400 28])); 
+
+range1 = squeeze(max(reshape(pow1(:,:,:,2,:),[400 * 400 28 2]))-min(reshape(pow1(:,:,:,2,:),[400 * 400 28 2])));
+range2 = squeeze(max(reshape(pow2(:,:,:,2,:),[400 * 400 28 2]))-min(reshape(pow1(:,:,:,2,:),[400 * 400 28 2])));
