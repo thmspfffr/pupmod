@@ -67,7 +67,7 @@ mask = logical(tril(ones(400,400),-1));
 
 cmap = cbrewer('div', 'RdBu', 256,'pchip'); cmap = cmap(end:-1:1,:);
 SUBJ = 1:28; 
-icond = 1;
+icond = 2;
 
 for ipharm = 1 : 3
 for ifoi = 1:13
@@ -105,7 +105,7 @@ for ifoi = 1:13
   subplot(3,2,2); imagesc(r_cnt.*(p_cnt<0.05),[-0.3 0.3]); axis square;
   colormap(cmap); tp_editplots; set(gca,'FontSize',5); tp_colorbar('Correlation');
   
-  subplot(3,2,3); imagesc(r_cnt1,[-0.3 0.3]); axis square; title(sprintf('Counting: Block #1 (f = %d',ifoi))
+  subplot(3,2,3); imagesc(r_cnt1,[-0.3 0.3]); axis square; title(sprintf('Counting: Block #1 (f = %d)',ifoi))
   tp_editplots; set(gca,'FontSize',5)
   subplot(3,2,4); imagesc(r_cnt1.*(p_cnt1<0.05),[-0.3 0.3]); axis square;
   colormap(cmap); tp_editplots; set(gca,'FontSize',5); tp_colorbar('Correlation');
@@ -278,13 +278,66 @@ end
 
 print(gcf,'-depsc2',sprintf('~/pupmod/plots/pupmod_drugeffectonfc_corrwithbehav_scatter_cond%d_pharm%s_v%d.eps',icond,regexprep(num2str(ipharm),' ',''),v))
 
+%% SURFACE PLOTS: Correlations with behavior (baseline)
+% -----------------------------------------
+% Correlate behavior within one condition with FC within one condition
+% e.g., during Placebo, during Atx or pooled across all conditions
+
+
+mask      = logical(tril(ones(400,400),-1));
+
+SUBJ    = 1:28; %SUBJ(13)=[];
+iblock  = 1:2;
+ipharm  = 1:3;
+cond    = 2;
+NPERM   = 10000;
+FOI = 1:13;
+
+% EMPIRICAL
+d_behav    = nanmean(nanmean(behav_cnt(ipharm,SUBJ,iblock),3),1);%-nanmean(nanmean(behav_cnt(1,SUBJ,iblock),3),1);
+d_behav    = permute(repmat(d_behav(:),[1 1 400 13]),[2 3 1 4]);
+d_fc       = nanmean(squeeze(nanmean(nanmean(fc(:,:,SUBJ,ipharm,cond,:,iblock),7),4)));%-squeeze(nanmean(nanmean(fc(:,:,SUBJ,1,cond,:,iblock),7),4));
+
+nan_idx_meg = ~isnan(squeeze(d_fc(1,2,:,1)));
+nan_idx_beh = ~isnan(squeeze(d_behav(1,2,:,1)));
+nan_idx     = nan_idx_meg&nan_idx_beh;
+
+% compute correlation
+[r,p] = tp_corr(d_fc(:,:,nan_idx,:),d_behav(:,:,nan_idx,:),3);
+r = squeeze(r); p = squeeze(p);
+
+% PLOT CORRELATION ON CORTICAL SURFACE
+cmap = cbrewer('div', 'RdBu', 256,'pchip'); cmap = cmap(end:-1:1,:);
+
+for ifoi = FOI
+  
+  para =[];
+  para.cmap = cmap;
+  % para.cmap = para.cmap(end:-1:1,:);
+  para.grid = grid;
+  para.dd = 0.75;
+  para.clim = [-0.2 0.2];
+  para.fn = sprintf('~/pupmod/plots/pupmod_behav_fc_corr_with_behav_surf_cond%d_b%s_pharm%s_f%d_v%d.png',cond,regexprep(num2str(iblock),' ',''),regexprep(num2str(ipharm),' ',''),ifoi,v);
+  tp_plot_surface(r(:,ifoi),para)
+  
+   para =[];
+  para.cmap = cmap;
+  % para.cmap = para.cmap(end:-1:1,:);
+  para.grid = grid;
+  para.dd = 0.75;
+  para.clim = [-0.2 0.2];
+  para.fn = sprintf('~/pupmod/plots/pupmod_behav_fc_corr_with_behav_surf_masked_cond%d_b%s_pharm%s_f%d_v%d.png',cond,regexprep(num2str(iblock),' ',''),regexprep(num2str(ipharm),' ',''),ifoi,v);
+  tp_plot_surface(r(:,ifoi).*(p(:,ifoi)<0.05),para)
+ 
+end
+
 
 %% STATISTICS: PLOT SPECTRUM OF CORRELATIONS WITH BEHAVIOR
 mask      = logical(tril(ones(400,400),-1));
 
 SUBJ    = 1:28; %SUBJ(13)=[];
 iblock  = 1:2;
-ipharm  = 3;
+ipharm  = 1:3;
 cond    = 2;
 NPERM   = 10000;
 FOI = 6;
@@ -485,6 +538,7 @@ for iperm = 1 : 1000
   [r1,p] = tp_corr(d_fc(:,:,nan_idx),d_behav(:,:,nan_idx),3);
 
   d(:,:,iperm) = r2-r1;
+  
 end
 
 
@@ -830,8 +884,6 @@ for ipharm = 2 : 3
     
   end
 end
-
-
 
 %% COARSER REGIONS
 % labels = {'V1';'V2-4';'V3ab';'IPS01';'IPS23';'LO';'VO';'PHC';'MT'};
