@@ -469,9 +469,9 @@ for isubj = SUBJLIST
   isubj
   for m = 1 : 3
     im = find(ord(isubj,:)==m);
-    load(sprintf('/home/tpfeffer/pp/proc/conn/pp_task_src_powcorr_test_s%d_m%d_v20.mat',isubj,im))
+    load(sprintf('/home/tpfeffer/pp/proc/conn/pp_task_src_powcorr_test_s%d_m%d_v21.mat',isubj,im))
     pow18(:,:,:,isubj,m,:) = single(powcorr); clear powcorr
-    load(sprintf('/home/tpfeffer/pp/proc/conn/pp_src_powcorr_test_s%d_m%d_v20.mat',isubj,im))
+    load(sprintf('/home/tpfeffer/pp/proc/conn/pp_src_powcorr_test_s%d_m%d_v21.mat',isubj,im))
     pow18_res(:,:,:,isubj,m,:) = single(powcorr); clear powcorr
 %     load(sprintf('/home/tpfeffer/pupmod/proc/conn/pupmod_task_src_powcorr_s%d_m%d_b1_f6_v12.mat',isubj,im))
 %     pow1(:,:,1) = powcorr; clear powcorr
