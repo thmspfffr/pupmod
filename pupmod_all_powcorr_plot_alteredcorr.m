@@ -21,7 +21,7 @@ clear
 % version of cleaned data: 
 % v1: AAL, v2: 400 vertices (cortex)
 % -------------
-v = 12;
+v = 19;
 % -------------
 
 % load  data

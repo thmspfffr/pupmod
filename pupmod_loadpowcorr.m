@@ -1,8 +1,8 @@
-function fc = pupmod_loadpowcorr(v,varargin)
+function fc = pupmod_loadpowcorr(v,SUBJLIST,varargin)
 
 if v == 1
   siz = 91;
-elseif v == 12
+elseif v == 12 || v == 19 || v ==23
   siz = 400;
 elseif v == 20
   siz = 46;
@@ -18,15 +18,14 @@ end
 
 outdir = '/home/tpfeffer/pupmod/proc/conn/';
 
-SUBJLIST        = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
-
 addpath ~/pconn/matlab/
 ord   = pconn_randomization;
 %% LOADING NEW DATA (where on/offset triggers were used)
 % -------------------------------------------------------------
 
 ord = pconn_randomization;
-fc = zeros(siz,siz,34,3,2,13,2,'single');
+% fc = zeros(siz,siz,34,3,2,13,2,'single');
+fc = zeros(siz,siz,34,3,2,25,2,'single');
 
 clear r_fc
 for isubj = SUBJLIST
@@ -35,15 +34,20 @@ for isubj = SUBJLIST
   for iblock = 1 : 2
     for m =  1 : 3
       im = find(ord(isubj,:)==m);
-      for ifoi = 1 : 13
+%       for ifoi = 1 : 13
         
-          load(sprintf('~/pp/proc/conn/pp_src_powcorr_s%d_m%d_b%d_f%d_v%d.mat',isubj,im,iblock,ifoi,v))
-          fc(:,:,isubj,m,1,ifoi,iblock) = powcorr; clear powcorr
+%           load(sprintf('~/pp/proc/conn/pp_src_powcorr_s%d_m%d_b%d_f%d_v%d.mat',isubj,im,iblock,ifoi,v))
+%           fc(:,:,isubj,m,1,ifoi,iblock) = powcorr; clear powcorr
+% 
+%           load(sprintf('~/pp/proc/conn/pp_task_src_powcorr_s%d_m%d_b%d_f%d_v%d.mat',isubj,im,iblock,ifoi,v))
+%           fc(:,:,isubj,m,2,ifoi,iblock) = powcorr; clear powcorr
+          
+          load(sprintf('~/pp/proc/conn/pp_src_powcorr_test_s%d_m%d_v%d.mat',isubj,im,v))
+          fc(:,:,isubj,m,1,:,:) = single(permute(powcorr,[1 2 4 3])); clear powcorr
 
-          load(sprintf('~/pp/proc/conn/pp_task_src_powcorr_s%d_m%d_b%d_f%d_v%d.mat',isubj,im,iblock,ifoi,v))
-          fc(:,:,isubj,m,2,ifoi,iblock) = powcorr; clear powcorr
-        
-      end
+          load(sprintf('~/pp/proc/conn/pp_task_src_powcorr_test_s%d_m%d_v%d.mat',isubj,im,v))
+          fc(:,:,isubj,m,2,:,:) = single(permute(powcorr,[1 2 4 3])); clear powcorr
+        %       end
     end
   end
 end

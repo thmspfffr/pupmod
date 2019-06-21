@@ -19,7 +19,7 @@ load sa_meg_template;
 fprintf('Loading grid...\n')
 grid  = select_chans(sa_meg_template.grid_cortex3000,400); fprintf('Loading grid... Done\n')
 
-fc = pupmod_loadpowcorr(v,0);
+cleandat = pupmod_loadpowcorr(v,0);
 
 if v == 20
   tmp = tp_create_grid('vtpm');
@@ -32,7 +32,7 @@ end
 %% PLOT FC MATRIX FOR DIFFERENT CONDITIONS
 FOI = 6:7
 
-if v == 12 | v == 19
+if v == 12
   for ifoi = FOI
 
     figure; set(gcf,'color','w')
@@ -41,7 +41,7 @@ if v == 12 | v == 19
     left  = find(grid(:,1)<0);
     right = find(grid(:,1)>0);
     for i = 1 : 3
-      fc = nanmean(nanmean(fc(:,:,:,cond(i),1,ifoi,:),7),3);
+      fc = nanmean(nanmean(cleandat(:,:,:,cond(i),1,ifoi,:),7),3);
 
       fc1 = fc(front_to_back(left),front_to_back(left));
       fc2 = fc(front_to_back(left),front_to_back(right));
@@ -50,7 +50,7 @@ if v == 12 | v == 19
 
       fc_rest = [fc1 fc2; fc3 fc4];
 
-      fc = nanmean(nanmean(fc(:,:,:,cond(i),2,ifoi,:),7),3);
+      fc = nanmean(nanmean(cleandat(:,:,:,cond(i),2,ifoi,:),7),3);
 
       fc1 = fc(front_to_back(left),front_to_back(left));
       fc2 = fc(front_to_back(left),front_to_back(right));
@@ -74,8 +74,8 @@ elseif v== 20
     
     for i = 1 : 3
       
-      fc_rest = nanmean(nanmean(fc(idx,idx,:,cond(i),1,ifoi,:),7),3);
-      fc_task = nanmean(nanmean(fc(idx,idx,:,cond(i),2,ifoi,:),7),3);
+      fc_rest = nanmean(nanmean(cleandat(idx,idx,:,cond(i),1,ifoi,:),7),3);
+      fc_task = nanmean(nanmean(cleandat(idx,idx,:,cond(i),2,ifoi,:),7),3);
       
       fc = tril(fc_rest,-1)+triu(fc_task,1);
 %       if ifoi ~= 7
@@ -111,7 +111,7 @@ if v == 12
     
     for i = 1 : 2
       
-      fc = nanmean(nanmean(fc(:,:,SUBJ,cond(i),1,ifoi,:),7),3)-nanmean(nanmean(fc(:,:,SUBJ,1,1,ifoi,:),7),3);
+      fc = nanmean(nanmean(cleandat(:,:,SUBJ,cond(i),1,ifoi,:),7),3)-nanmean(nanmean(cleandat(:,:,SUBJ,1,1,ifoi,:),7),3);
       
       fc1 = fc(front_to_back(left),front_to_back(left));
       fc2 = fc(front_to_back(left),front_to_back(right));
@@ -120,7 +120,7 @@ if v == 12
       
       fc_rest = [fc1 fc2; fc3 fc4];
       
-      fc = nanmean(nanmean(fc(:,:,SUBJ,cond(i),2,ifoi,:),7),3)-nanmean(nanmean(fc(:,:,SUBJ,1,2,ifoi,:),7),3);
+      fc = nanmean(nanmean(cleandat(:,:,SUBJ,cond(i),2,ifoi,:),7),3)-nanmean(nanmean(cleandat(:,:,SUBJ,1,2,ifoi,:),7),3);
       
       fc1 = fc(front_to_back(left),front_to_back(left));
       fc2 = fc(front_to_back(left),front_to_back(right));
@@ -145,8 +145,8 @@ else
     
     for i = 1 : 2
 
-      fc_rest = nanmean(nanmean(fc(idx,idx,SUBJ,cond(i),1,ifoi,:),7),3)-nanmean(nanmean(fc(idx,idx,SUBJ,1,1,ifoi,:),7),3);
-      fc_task = nanmean(nanmean(fc(idx,idx,SUBJ,cond(i),2,ifoi,:),7),3)-nanmean(nanmean(fc(idx,idx,SUBJ,1,2,ifoi,:),7),3);
+      fc_rest = nanmean(nanmean(cleandat(idx,idx,SUBJ,cond(i),1,ifoi,:),7),3)-nanmean(nanmean(cleandat(idx,idx,SUBJ,1,1,ifoi,:),7),3);
+      fc_task = nanmean(nanmean(cleandat(idx,idx,SUBJ,cond(i),2,ifoi,:),7),3)-nanmean(nanmean(cleandat(idx,idx,SUBJ,1,2,ifoi,:),7),3);
       
       fc = tril(fc_rest,-1)+triu(fc_task,1);
       subplot(2,2,i); imagesc(fc,CLIM); axis square off;
@@ -181,7 +181,7 @@ if v == 12
     
     for i = 1 : 2
       
-      fc = nanmean(nanmean(fc(:,:,SUBJ,cond(i),1,ifoi,1),7),3)-nanmean(nanmean(fc(:,:,SUBJ,1,1,ifoi,1),7),3);
+      fc = nanmean(nanmean(cleandat(:,:,SUBJ,cond(i),1,ifoi,1),7),3)-nanmean(nanmean(cleandat(:,:,SUBJ,1,1,ifoi,1),7),3);
       
       fc1 = fc(front_to_back(left),front_to_back(left));
       fc2 = fc(front_to_back(left),front_to_back(right));
@@ -190,7 +190,7 @@ if v == 12
       
       fc_rest = [fc1 fc2; fc3 fc4];
       
-      fc = nanmean(nanmean(fc(:,:,SUBJ,cond(i),2,ifoi,1),7),3)-nanmean(nanmean(fc(:,:,SUBJ,1,2,ifoi,1),7),3);
+      fc = nanmean(nanmean(cleandat(:,:,SUBJ,cond(i),2,ifoi,1),7),3)-nanmean(nanmean(cleandat(:,:,SUBJ,1,2,ifoi,1),7),3);
       
       fc1 = fc(front_to_back(left),front_to_back(left));
       fc2 = fc(front_to_back(left),front_to_back(right));
@@ -206,7 +206,7 @@ if v == 12
       colormap(cmap)
       tp_colorbar('Correlation');
       
-      fc = nanmean(nanmean(fc(:,:,SUBJ,cond(i),1,ifoi,2),7),3)-nanmean(nanmean(fc(:,:,SUBJ,1,1,ifoi,2),7),3);
+      fc = nanmean(nanmean(cleandat(:,:,SUBJ,cond(i),1,ifoi,2),7),3)-nanmean(nanmean(cleandat(:,:,SUBJ,1,1,ifoi,2),7),3);
       
       fc1 = fc(front_to_back(left),front_to_back(left));
       fc2 = fc(front_to_back(left),front_to_back(right));
@@ -215,7 +215,7 @@ if v == 12
       
       fc_rest = [fc1 fc2; fc3 fc4];
       
-      fc = nanmean(nanmean(fc(:,:,SUBJ,cond(i),2,ifoi,2),7),3)-nanmean(nanmean(fc(:,:,SUBJ,1,2,ifoi,2),7),3);
+      fc = nanmean(nanmean(cleandat(:,:,SUBJ,cond(i),2,ifoi,2),7),3)-nanmean(nanmean(cleandat(:,:,SUBJ,1,2,ifoi,2),7),3);
       
       fc1 = fc(front_to_back(left),front_to_back(left));
       fc2 = fc(front_to_back(left),front_to_back(right));
@@ -241,8 +241,8 @@ else
     
     for i = 1 : 2
       
-      fc_rest = nanmean(nanmean(fc(idx,idx,SUBJ,cond(i),1,ifoi,1),7),3)-nanmean(nanmean(fc(idx,idx,SUBJ,1,1,ifoi,1),7),3);
-      fc_task = nanmean(nanmean(fc(idx,idx,SUBJ,cond(i),2,ifoi,1),7),3)-nanmean(nanmean(fc(idx,idx,SUBJ,1,2,ifoi,1),7),3);
+      fc_rest = nanmean(nanmean(cleandat(idx,idx,SUBJ,cond(i),1,ifoi,1),7),3)-nanmean(nanmean(cleandat(idx,idx,SUBJ,1,1,ifoi,1),7),3);
+      fc_task = nanmean(nanmean(cleandat(idx,idx,SUBJ,cond(i),2,ifoi,1),7),3)-nanmean(nanmean(cleandat(idx,idx,SUBJ,1,2,ifoi,1),7),3);
       
       fc = tril(fc_rest,-1)+triu(fc_task,1);
       
@@ -251,8 +251,8 @@ else
       colormap(cmap)
       tp_colorbar('Correlation');
       
-      fc_rest = nanmean(nanmean(fc(idx,idx,SUBJ,cond(i),1,ifoi,2),7),3)-nanmean(nanmean(fc(idx,idx,SUBJ,1,1,ifoi,2),7),3);
-      fc_task = nanmean(nanmean(fc(idx,idx,SUBJ,cond(i),2,ifoi,2),7),3)-nanmean(nanmean(fc(idx,idx,SUBJ,1,2,ifoi,2),7),3);
+      fc_rest = nanmean(nanmean(cleandat(idx,idx,SUBJ,cond(i),1,ifoi,2),7),3)-nanmean(nanmean(cleandat(idx,idx,SUBJ,1,1,ifoi,2),7),3);
+      fc_task = nanmean(nanmean(cleandat(idx,idx,SUBJ,cond(i),2,ifoi,2),7),3)-nanmean(nanmean(cleandat(idx,idx,SUBJ,1,2,ifoi,2),7),3);
       
       fc = tril(fc_rest,-1)+triu(fc_task,1);
       subplot(2,2,i+2); imagesc(fc,CLIM); axis square off;
@@ -276,8 +276,8 @@ ipharm = 3; icont = 1; clear r; clc
 for ifoi = 1 : 13
   for isubj = 1:28
     
-    fc1 = fc(:,:,isubj,ipharm,icont,ifoi,1)-fc(:,:,isubj,1,icont,ifoi,1);
-    fc2 = fc(:,:,isubj,ipharm,icont,ifoi,2)-fc(:,:,isubj,1,icont,ifoi,2);
+    fc1 = cleandat(:,:,isubj,ipharm,icont,ifoi,1)-cleandat(:,:,isubj,1,icont,ifoi,1);
+    fc2 = cleandat(:,:,isubj,ipharm,icont,ifoi,2)-cleandat(:,:,isubj,1,icont,ifoi,2);
     
     r(isubj,ifoi) = corr(fc1(mask),fc2(mask));
     
@@ -290,8 +290,8 @@ fprintf('Mean correlation at 11 Hz: r = %.3f | p = %.3f\n',nanmean(r(:,6)))
 for ifoi = 1 : 13
   for isubj = 1:28
     
-    fc1 = nanmean(fc(:,:,isubj,ipharm,1,ifoi,:),7)-nanmean(fc(:,:,isubj,1,1,ifoi,1),7);
-    fc2 = nanmean(fc(:,:,isubj,ipharm,2,ifoi,:),7)-nanmean(fc(:,:,isubj,1,2,ifoi,1),7);
+    fc1 = nanmean(cleandat(:,:,isubj,ipharm,1,ifoi,:),7)-nanmean(cleandat(:,:,isubj,1,1,ifoi,1),7);
+    fc2 = nanmean(cleandat(:,:,isubj,ipharm,2,ifoi,:),7)-nanmean(cleandat(:,:,isubj,1,2,ifoi,1),7);
     
     r(isubj,ifoi) = corr(fc1(mask),fc2(mask));
     
@@ -319,10 +319,10 @@ ifoi = 6; ipharm = 2; icont = 1; iblock = 1;
 cmap = cbrewer('div','RdBu',128); cmap = cmap(end:-1:1,:);
 % cmap = cmap;
 
-par_drug = nanmean(nanmean(nanmean(fc(:,:,:,ipharm,icont,ifoi,iblock),7),3));
-par_plac = nanmean(nanmean(nanmean(fc(:,:,:,1,icont,ifoi,iblock),7),3));
+par_drug = nanmean(nanmean(nanmean(cleandat(:,:,:,ipharm,icont,ifoi,iblock),7),3));
+par_plac = nanmean(nanmean(nanmean(cleandat(:,:,:,1,icont,ifoi,iblock),7),3));
 
-[h,p]=ttest(nanmean(nanmean(fc(:,:,:,ipharm,icont,ifoi,iblock),7)),nanmean(nanmean(fc(:,:,:,1,icont,ifoi,iblock),7)),'dim',3);
+[h,p]=ttest(nanmean(nanmean(cleandat(:,:,:,ipharm,icont,ifoi,iblock),7)),nanmean(nanmean(cleandat(:,:,:,1,icont,ifoi,iblock),7)),'dim',3);
 par = 100*(par_drug-par_plac)./par_plac;
 % par = par.*(p<0.4);
 
@@ -345,14 +345,14 @@ for isubj = SUBJLIST
   for m = 1 : 3
     for iblock = 1 : 2
       try
-        load(sprintf('~/pp/proc/pp_sens_fc_s%d_m%d_b%d_v%d.mat',isubj,m,iblock,1))
+        load(sprintf('~/pp/proc/pp_sens_cleandat_s%d_m%d_b%d_v%d.mat',isubj,m,iblock,1))
         dat_res(isubj,m,iblock) = 1;
       catch me
         %           warning(fprintf('S%d,M%d,B%d',isubj,m,iblock))
         dat_res(isubj,m,iblock) = 0;
       end
       try
-        load(sprintf('~/pp/proc/pp_cnt_sens_fc_s%d_m%d_b%d_v%d.mat',isubj,m,iblock,1))
+        load(sprintf('~/pp/proc/pp_cnt_sens_cleandat_s%d_m%d_b%d_v%d.mat',isubj,m,iblock,1))
         dat_cnt(isubj,m,iblock) = 1;
       catch me
         %           warning(fprintf('S%d,M%d,B%d',isubj,m,iblock))
@@ -494,21 +494,19 @@ pow18_res = pow18_res(:,:,:,SUBJLIST,:,:);
 % powres = powres(:,:,:,SUBJLIST,:,:);
 %% ALTERED CORR
 
-iblock = 2;
-
 for ifoi = 1 :25
   ifoi
-  [h,~,~,s]=ttest(squeeze(fc(:,:,:,2,2,ifoi,iblock)),squeeze(fc(:,:,:,1,2,ifoi,iblock)),'dim',3);
+  [h,~,~,s]=ttest(squeeze(nanmean(pow18(:,:,:,:,2,ifoi),3)),squeeze(nanmean(pow18(:,:,:,:,1,ifoi),3)),'dim',3);
   pos_atx(ifoi,2) = 100*sum((h(mask)>0)&(s.tstat(mask)>0))/sum(mask(:));
   neg_atx(ifoi,2) = 100*sum((h(mask)>0)&(s.tstat(mask)<0))/sum(mask(:));
-  [h,~,~,s]=ttest(squeeze(fc(:,:,:,3,2,ifoi,iblock)),squeeze(fc(:,:,:,1,2,ifoi,iblock)),'dim',3);
+  [h,~,~,s]=ttest(squeeze(nanmean(pow18(:,:,:,:,3,ifoi),3)),squeeze(nanmean(pow18(:,:,:,:,1,ifoi),3)),'dim',3);
   pos_dpz(ifoi,2) = 100*sum((h(mask)>0)&(s.tstat(mask)>0))/sum(mask(:));
   neg_dpz(ifoi,2) = 100*sum((h(mask)>0)&(s.tstat(mask)<0))/sum(mask(:));
 %   
-  [h,~,~,s]=ttest(squeeze(fc(:,:,:,2,1,ifoi,iblock)),squeeze(fc(:,:,:,1,1,ifoi,iblock)),'dim',3);
+  [h,~,~,s]=ttest(squeeze(nanmean(pow18_res(:,:,:,:,2,ifoi),3)),squeeze(nanmean(pow18_res(:,:,:,:,1,ifoi),3)),'dim',3);
   pos_atx(ifoi,1) = 100*sum((h(mask)>0)&(s.tstat(mask)>0))/sum(mask(:));
   neg_atx(ifoi,1) = 100*sum((h(mask)>0)&(s.tstat(mask)<0))/sum(mask(:));
-  [h,~,~,s]=ttest(squeeze(fc(:,:,:,3,1,ifoi,iblock)),squeeze(fc(:,:,:,1,1,ifoi,iblock)),'dim',3);
+  [h,~,~,s]=ttest(squeeze(nanmean(pow18_res(:,:,:,:,3,ifoi),3)),squeeze(nanmean(pow18_res(:,:,:,:,1,ifoi),3)),'dim',3);
   pos_dpz(ifoi,1) = 100*sum((h(mask)>0)&(s.tstat(mask)>0))/sum(mask(:));
   neg_dpz(ifoi,1) = 100*sum((h(mask)>0)&(s.tstat(mask)<0))/sum(mask(:));
   
@@ -522,9 +520,9 @@ end
 
 
 %%
-isubj = 1:28; iblock = 1:2; m = 2; foi =16;
+isubj = 1:28; iblock = 1:2; m = 2; foi =13:14;
 
-cond = 2;
+cond = 1;
 
 tmp_fc(:,:,:,:,1) = squeeze(nanmean(nanmean(pow18_res(:,:,iblock,isubj,:,foi),3),6));
 tmp_fc(:,:,:,:,2) = squeeze(nanmean(nanmean(pow18(:,:,iblock,isubj,:,foi),3),6));
@@ -542,7 +540,7 @@ para.clim = [-0.01 0.01]
 % para.clim = [min(nanmean(d18,2)) max(nanmean(d18,2))]
 para.fn = '~/test.png';
 % para.fn = sprintf('~/pupmod/plots/pupmod_behav_fc_corr_with_behav_surf_f%d_b%s_pharm%s_v%d.png',ifoi,regexprep(num2str(iblock),' ',''),regexprep(num2str(ipharm),' ',''),v);
-% tp_plot_surface(nanmean(d_dpz(:,:,cond),2),para);
+tp_plot_surface(nanmean(d_dpz(:,:,cond),2),para);
 
 % para.clim = [min(nanmean(d17,2)) max(nanmean(d17,2))]
 % para.fn = '~/test.png';
@@ -554,21 +552,9 @@ para.fn = '~/test.png';
 % para.fn = sprintf('~/pupmod/plots/pupmod_behav_fc_corr_with_behav_surf_f%d_b%s_pharm%s_v%d.png',ifoi,regexprep(num2str(iblock),' ',''),regexprep(num2str(ipharm),' ',''),v);
 % tp_plot_surface(nanmean(d3,2),para);
 
-cond = 2; ipharm = 1;
-d_fc = squeeze(nanmean(tmp_fc(:,:,:,ipharm,cond),2));
-d_behav = repmat(nanmean(behav_cnt(ipharm,:,:),3),[400 1]);
-
-[r,p]=corr(d_behav',d_fc'); r=r(1,:);p=p(1,:);
-
-para =[];
-% para.cmap = plasma;
-para.cmap = cmap;
-para.grid = grid;
-para.dd = 0.75;
-para.clim = [-0.2 0.2]
-% para.clim = [min(nanmean(d18,2)) max(nanmean(d18,2))]
-para.fn = '~/test.png';
-tp_plot_surface(r,para);
+cond = 2;
+d_fc = squeeze(nanmean(tmp_fc(:,:,:,2,cond)-nanmean(tmp_fc(:,:,:,1,cond),3),2));
+d_behav = nanmean(behav_cnt(2,:,:),3)-;
 
 
 %%

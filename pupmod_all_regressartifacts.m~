@@ -152,7 +152,7 @@ else
     art2 = (art2-nanmean(art2))/nanstd(art2);
     art3 = (art3-nanmean(art3))/nanstd(art3);
     
-    nuisance_var = [art1 art2];
+    nuisance_var = [art1 art2 art3];
     
     for i = 1 : size(s_fc,1)
       for j = 1 : size(s_fc,1)
@@ -203,17 +203,17 @@ fc = res_dat; clear res_dat; fc = permute(fc,[1 2 3 4 6 5]);
 %%
 for ifoi = 1 :25
   ifoi
-  [h,~,~,s]=ttest(squeeze(fc(:,:,:,2,2,ifoi)),squeeze(fc(:,:,:,1,2,ifoi)),'dim',3);
+  [h,~,~,s]=ttest(squeeze(nanmean(fc(:,:,:,2,2,ifoi),3)),squeeze(nanmean(fc(:,:,:,1,2,ifoi),3)),'dim',3);
   pos_atx(ifoi,2) = 100*sum((h(mask)>0)&(s.tstat(mask)>0))/sum(mask(:));
   neg_atx(ifoi,2) = 100*sum((h(mask)>0)&(s.tstat(mask)<0))/sum(mask(:));
-  [h,~,~,s]=ttest(squeeze(fc(:,:,:,3,2,ifoi)),squeeze(fc(:,:,:,1,2,ifoi)),'dim',3);
+  [h,~,~,s]=ttest(squeeze(nanmean(pow18(:,:,:,:,3,ifoi),3)),squeeze(nanmean(pow18(:,:,:,:,1,ifoi),3)),'dim',3);
   pos_dpz(ifoi,2) = 100*sum((h(mask)>0)&(s.tstat(mask)>0))/sum(mask(:));
   neg_dpz(ifoi,2) = 100*sum((h(mask)>0)&(s.tstat(mask)<0))/sum(mask(:));
 %   
-  [h,~,~,s]=ttest(squeeze(fc(:,:,:,2,1,ifoi)),squeeze(fc(:,:,:,1,1,ifoi)),'dim',3);
+  [h,~,~,s]=ttest(squeeze(nanmean(pow18_res(:,:,:,:,2,ifoi),3)),squeeze(nanmean(pow18_res(:,:,:,:,1,ifoi),3)),'dim',3);
   pos_atx(ifoi,1) = 100*sum((h(mask)>0)&(s.tstat(mask)>0))/sum(mask(:));
   neg_atx(ifoi,1) = 100*sum((h(mask)>0)&(s.tstat(mask)<0))/sum(mask(:));
-  [h,~,~,s]=ttest(squeeze(fc(:,:,:,3,1,ifoi)),squeeze(fc(:,:,:,1,1,ifoi)),'dim',3);
+  [h,~,~,s]=ttest(squeeze(nanmean(pow18_res(:,:,:,:,3,ifoi),3)),squeeze(nanmean(pow18_res(:,:,:,:,1,ifoi),3)),'dim',3);
   pos_dpz(ifoi,1) = 100*sum((h(mask)>0)&(s.tstat(mask)>0))/sum(mask(:));
   neg_dpz(ifoi,1) = 100*sum((h(mask)>0)&(s.tstat(mask)<0))/sum(mask(:));
   

@@ -27,8 +27,10 @@ addpath ~/pupmod/matlab
 
 v  = 23;
 fc = pupmod_loadpowcorr(v,SUBJLIST,0);
-fc= cat(4,fc(:,:,:,:,:,:,1),fc(:,:,:,:,:,:,2));
-fc = (fc-nanmean(fc,4))./nanstd(fc,[],4);
+
+fc = reshape(fc,[400 400 28,3*2,2,25]); 
+fc = (fc-nanmean(fc,4))./nanstd(fc,4);
+fc = reshape(fc,[]);
 
 para.str_behav  = 'count';
 behav           = pconn_read_behavioral_data(SUBJLIST,para);
