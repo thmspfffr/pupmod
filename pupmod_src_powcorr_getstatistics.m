@@ -62,10 +62,10 @@ if ~isfield(para,'type'); para.type = 'global'; fprintf('Type: global (default)\
 if strcmp(para.type,'local') && strcmp(para.correction_method,'single_threshold')
   error('Correction method based on single thresholds is not implemented on a voxel-level! Use ''ranks'' instead.')
 end
-
+SUBJLIST  = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
 if ~isfield(para,'empirical')
   fprintf('Loading data...\n')
-  cleandat = pupmod_loadpowcorr(para.ver,1);
+  cleandat = pupmod_loadpowcorr(para.ver,SUBJLIST,1);
   emp = pupmod_compute_altered_correlations(cleandat,para);
   para.fcsize = size(cleandat,1);
 else

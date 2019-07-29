@@ -131,7 +131,7 @@ for isubj = SUBJLIST
         system(['touch ' outdir sprintf('pupmod_src_powcorr_s%d_m%d_f%d_v%d_processing.txt',isubj,m,ifoi,v)]);
       else
         continue
-      end
+ed      end
        
       fprintf('Processing s%d m%d f%d ...\n', isubj,m,ifoi)
       

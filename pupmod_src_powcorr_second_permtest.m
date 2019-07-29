@@ -1,4 +1,4 @@
-%% pupmod_src_powcorr_permtest
+%% pupmod_src_powcorr_second_permtest
 % counts number of altered correlations and computes permututation test
 % see hawellek et al. (2013) for details
 % cleaned data is generated in pupmod_all_powcorr_periphereal
@@ -29,11 +29,21 @@ SUBJLIST  = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 3
 
 addpath ~/pconn/matlab/
 
-cleandat = pupmod_loadpowcorr(v,SUBJLIST,1);
+fc = pupmod_loadpowcorr(v,SUBJLIST,1);
 
-nvox = size(cleandat,1)*size(cleandat,1)-size(cleandat,1);
+nvox = size(fc,1)*size(fc,1)-size(fc,1);
 
 %%
+
+% atx effect
+data1(:,:,:,:,:,1) = nanmean(fc(:,:,:,:,:,10:11:12),6);
+data1(:,:,:,:,:,2) = nanmean(fc(:,:,:,:,:,18),6);
+% dpz effect
+data1(:,:,:,:,:,3) =  nanmean(fc(:,:,:,:,:,13:14),6);
+
+clear fc
+
+clear fc
 
 tmp = clock;
 
@@ -41,25 +51,25 @@ seed = ((tmp(1)+tmp(2)*tmp(3))/tmp(4)+tmp(5))*tmp(6);
 
 rng(seed,'twister')
 
-if ~exist(sprintf([outdir 'pupmod_src_powcorr_permtest_perms_subs%d_nperm%d_v%d.mat'],par.subs,nperm,v))
+if ~exist(sprintf([outdir 'pupmod_src_powcorr_second_permtest_perms_subs%d_nperm%d_v%d.mat'],par.subs,nperm,v))
   all_idx1 = randi(2,[size(SUBJLIST,2),nperm]);
-  save(sprintf([outdir 'pupmod_src_powcorr_permtest_perms_subs%d_nperm%d_v%d.mat'],par.subs,nperm,v),'all_idx1');
+  save(sprintf([outdir 'pupmod_src_powcorr_second_permtest_perms_subs%d_nperm%d_v%d.mat'],par.subs,nperm,v),'all_idx1');
 else
-  load(sprintf([outdir 'pupmod_src_powcorr_permtest_perms_subs%d_nperm%d_v%d.mat'],par.subs,nperm,v));
+  load(sprintf([outdir 'pupmod_src_powcorr_second_permtest_perms_subs%d_nperm%d_v%d.mat'],par.subs,nperm,v));
 end
 
-dat_res1 = single(squeeze(cleandat(:,:,:,[1 2],1,:))); 
-dat_cnt1 = single(squeeze(cleandat(:,:,:,[1 2],2,:)));  
-dat_cnt2 = single(squeeze(cleandat(:,:,:,[1 3],2,:))); 
-dat_res2 = single(squeeze(cleandat(:,:,:,[1 3],1,:))); 
+dat_res1 = single(squeeze(data1(:,:,:,[1 2],1,:))); 
+dat_cnt1 = single(squeeze(data1(:,:,:,[1 2],2,:)));  
+dat_cnt2 = single(squeeze(data1(:,:,:,[1 3],2,:))); 
+dat_res2 = single(squeeze(data1(:,:,:,[1 3],1,:))); 
 
 taskvsrest(:,:,:,1,:) = dat_res1(:,:,:,1,:);
 taskvsrest(:,:,:,2,:) = dat_cnt1(:,:,:,1,:);
 
 for iperm = 1 : par.allperms
   
-  if ~exist(sprintf([outdir 'pupmod_src_powcorr_permtest_iperm%d_nperm%d_v%d_processing.txt'],iperm,nperm,v))
-    system(['touch ' outdir sprintf('pupmod_src_powcorr_permtest_iperm%d_nperm%d_v%d_processing.txt',iperm,nperm,v)]);
+  if ~exist(sprintf([outdir 'pupmod_src_powcorr_second_permtest_iperm%d_nperm%d_v%d_processing.txt'],iperm,nperm,v))
+    system(['touch ' outdir sprintf('pupmod_src_powcorr_second_permtest_iperm%d_nperm%d_v%d_processing.txt',iperm,nperm,v)]);
   else
     continue
   end
@@ -149,23 +159,23 @@ for iperm = 1 : par.allperms
       % NUMBER OF ALTERED CORRELATONS - per voxel
       % -----------------------
       % count number of altered connections (atx, task)
-      par.tperm_cnt1_pervoxel_n(:,kperm,:)=nansum(t_cnt1<0)./size(cleandat,1);
-      par.tperm_cnt1_pervoxel_p(:,kperm,:)=nansum(t_cnt1>0)./size(cleandat,1);
+      par.tperm_cnt1_pervoxel_n(:,kperm,:)=nansum(t_cnt1<0)./nvox;
+      par.tperm_cnt1_pervoxel_p(:,kperm,:)=nansum(t_cnt1>0)./nvox;
       % count number of altered connections (atx, rest)
-      par.tperm_res1_pervoxel_n(:,kperm,:)=nansum(t_res1<0)./size(cleandat,1);
-      par.tperm_res1_pervoxel_p(:,kperm,:)=nansum(t_res1>0)./size(cleandat,1);
+      par.tperm_res1_pervoxel_n(:,kperm,:)=nansum(t_res1<0)./nvox;
+      par.tperm_res1_pervoxel_p(:,kperm,:)=nansum(t_res1>0)./nvox;
       % count number of altered connections (dpz, task)
-      par.tperm_cnt2_pervoxel_n(:,kperm,:)=nansum(t_cnt2<0)./size(cleandat,1);
-      par.tperm_cnt2_pervoxel_p(:,kperm,:)=nansum(t_cnt2>0)./size(cleandat,1);
+      par.tperm_cnt2_pervoxel_n(:,kperm,:)=nansum(t_cnt2<0)./nvox;
+      par.tperm_cnt2_pervoxel_p(:,kperm,:)=nansum(t_cnt2>0)./nvox;
       % count number of altered connections (dpz, rest)
-      par.tperm_res2_pervoxel_n(:,kperm,:)=nansum(t_res2<0)./size(cleandat,1);
-      par.tperm_res2_pervoxel_p(:,kperm,:)=nansum(t_res2>0)./size(cleandat,1);
+      par.tperm_res2_pervoxel_n(:,kperm,:)=nansum(t_res2<0)./nvox;
+      par.tperm_res2_pervoxel_p(:,kperm,:)=nansum(t_res2>0)./nvox;
      	% number of altered connections, irrespective of direction (atx)
-      par.tperm_atx_during_task_pervoxel(:,kperm,:)=nansum(abs(t_cnt1))./size(cleandat,1);
-      par.tperm_atx_during_rest_pervoxel(:,kperm,:)=nansum(abs(t_res1))./size(cleandat,1);
+      par.tperm_atx_during_task_pervoxel(:,kperm,:)=nansum(abs(t_cnt1))./nvox;
+      par.tperm_atx_during_rest_pervoxel(:,kperm,:)=nansum(abs(t_res1))./nvox;
       % number of altered connections, irrespective of direction (dpz)
-      par.tperm_dpz_during_task_pervoxel(:,kperm,:)=nansum(abs(t_cnt2))./size(cleandat,1);
-      par.tperm_dpz_during_rest_pervoxel(:,kperm,:)=nansum(abs(t_res2))./size(cleandat,1);
+      par.tperm_dpz_during_task_pervoxel(:,kperm,:)=nansum(abs(t_cnt2))./nvox;
+      par.tperm_dpz_during_rest_pervoxel(:,kperm,:)=nansum(abs(t_res2))./nvox;
       
       % -----------------------
       % CONTEXT DEPENDENCE - across space
@@ -206,19 +216,19 @@ for iperm = 1 : par.allperms
       par.tperm_taskvsrest_p(kperm,:) = nansum(nansum(t_tvsr>0))./nvox;
       par.tperm_taskvsrest_n(kperm,:) = nansum(nansum(t_tvsr<0))./nvox;
       
-      par.tperm_taskvsrest_pervox_p(:,kperm,:) = nansum(t_tvsr>0)./size(cleandat,1);
-      par.tperm_taskvsrest_pervox_n(:,kperm,:) = nansum(t_tvsr<0)./size(cleandat,1);
+      par.tperm_taskvsrest_pervox_p(:,kperm,:) = nansum(t_tvsr>0)./nvox;
+      par.tperm_taskvsrest_pervox_n(:,kperm,:) = nansum(t_tvsr<0)./nvox;
       
 %     end
   end
   
-   save(sprintf([outdir 'pupmod_src_powcorr_permtest_iperm%d_nperm%d_v%d.mat'],iperm,nperm,v),'par')
+   save(sprintf([outdir 'pupmod_src_powcorr_second_permtest_iperm%d_nperm%d_v%d.mat'],iperm,nperm,v),'par')
   
   try
     pause(randi(3))
-    load(sprintf([outdir 'pupmod_src_powcorr_permtest_iperm%d_nperm%d_v%d.mat'],iperm,nperm,v))
+    load(sprintf([outdir 'pupmod_src_powcorr_second_permtest_iperm%d_nperm%d_v%d.mat'],iperm,nperm,v))
   catch me
-    save(sprintf([outdir 'pupmod_src_powcorr_permtest_iperm%d_nperm%d_v%d.mat'],iperm,nperm,v),'par')
+    save(sprintf([outdir 'pupmod_src_powcorr_second_permtest_iperm%d_nperm%d_v%d.mat'],iperm,nperm,v),'par')
   end
   
 end
