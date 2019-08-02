@@ -4,8 +4,10 @@ if v == 1
   siz = 91;
 elseif v == 12 || v == 19 || v ==23
   siz = 400;
-elseif v == 20
+elseif v == 20  
   siz = 46;
+elseif v == 25
+  siz = 90;
 else
   error('Invalid version')
 end

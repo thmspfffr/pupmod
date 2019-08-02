@@ -6,7 +6,7 @@
 
 clear
 
-v = 23;
+v = 25;
 
 addpath /home/gnolte/meg_toolbox/toolbox/
 addpath /home/gnolte/meg_toolbox/fieldtrip_utilities/
