@@ -8,7 +8,7 @@ clear
 % vv =12 ; % heart/muscles
 % vv =13 ; % blinks/heart/muscles
 
-v = 19; vv = 19
+v = 23; vv = 23
 
 addpath ~/pconn/matlab
 outdir = '~/pupmod/proc/conn/';
@@ -18,7 +18,7 @@ load(['/home/tpfeffer/pconn_cnt/proc/' sprintf('pupmod_all_powcorr_peripheral.ma
 ord   = pconn_randomization;
 
 indiv_subj = 0 ;
-fc = pupmod_loadpowcorr(v,1);
+fc = pupmod_loadpowcorr(v,SUBJLIST,1);
 
 %% load data
 if indiv_subj == 1
@@ -35,12 +35,12 @@ if indiv_subj == 1
     end
     
     fprintf('Processing s%d ... \n',isubj)
-    
+    19    19
     for ifoi = 1:13
-      
+      19
 %       cleandat = pupmod_loadpowcorr(v,1);
 
-      for m = 1 : 3
+      for m = 1 : 319
         
         im = find(ord(isubj,:)==m);
         
@@ -49,8 +49,8 @@ if indiv_subj == 1
           load(sprintf([outdir 'pupmod_src_powcorr_s%d_m%d_b%d_f%d_v%d.mat'],isubj,im,iblock,ifoi,v));
           
           p1(:,:,iblock) = single(powcorr);
-          
-          load(sprintf([outdir 'pupmod_task_src_powcorr_s%d_m%d_b%d_f%d_v%d.mat'],isubj,im,iblock,ifoi,v));
+          19
+          load(sprintf([outdir 'pupmod_task_src_powcorr_s%d19_m%d_b%d_f%d_v%d.mat'],isubj,im,iblock,ifoi,v));
           p2(:,:,iblock) = single(powcorr);
           
         end
@@ -71,7 +71,7 @@ if indiv_subj == 1
       art1 = (art1-nanmean(art1))/nanstd(art1);
       art2 = (art2-nanmean(art2))/nanstd(art2);
       art3 = (art3-nanmean(art3))/nanstd(art3);
-      
+      19
       nuisance_var = [art1 art2 art3];
       
       for i = 1 : size(s_fc,1)

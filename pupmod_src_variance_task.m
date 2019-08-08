@@ -22,14 +22,12 @@ addpath /home/gnolte/meg_toolbox/toolbox/
 addpath /home/gnolte/meg_toolbox/fieldtrip_utilities/
 addpath /home/gnolte/meg_toolbox/toolbox_nightly/
 addpath /home/gnolte/meg_toolbox/meg/
-% addpath /home/tpfeffer/Documents/MATLAB/fieldtrip-20130925/
 
 outdir   = '/home/tpfeffer/pupmod/proc/conn/';
 addpath /home/tpfeffer/pconn/matlab/
 run ~/Documents/MATLAB/toolboxes/NBT-NBTv0.5.3-alpha/installNBT.m
 siginfo = nbt_Info;
 siginfo.converted_sample_frequency = 400;
-
 
 if strcmp(allpara.grid,'xcoarse')
   v_grid = 2;
@@ -55,12 +53,9 @@ elseif strcmp(allpara.grid,'cortex800')
   v_grid = 16;
 end
 
-% t = license('test','signal_toolbox');
-% if t
-% %   continue
-% else
-%   error('Toolbox not available');
-% end
+addpath /home/tpfeffer/Documents/MATLAB/fieldtrip-20160919/
+ft_defaults()
+
 %% LOAD DATA COMPUTE SRC TIME COURSES
 
 for isubj = SUBJLIST
@@ -116,8 +111,7 @@ for isubj = SUBJLIST
       end
       
       data.trial = data.trial(:,data.start_of_recording:data.end_of_recording);
-      data.time = data.time(data.start_of_recording:data.end_of_recording);
-      
+      data.time = data.time(data.start_of_recording:data.end_of_recording);      
       
       for ifoi = 1:length(foi_range)
         
@@ -163,12 +157,7 @@ for isubj = SUBJLIST
   end
 end
 
-
-
-
 error('!')
-
-
 
 %% CLEAN NON PROCESSED FILES
 outdir   = '/home/tpfeffer/pupmod/proc/conn/';

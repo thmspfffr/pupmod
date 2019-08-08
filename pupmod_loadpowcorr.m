@@ -4,10 +4,16 @@ if v == 1
   siz = 91;
 elseif v == 12 || v == 19 || v ==23
   siz = 400;
+  fc = zeros(siz,siz,34,3,2,25,2,'single');
+  freqs = [1:25];
 elseif v == 20  
   siz = 46;
+  fc = zeros(siz,siz,34,3,2,25,2,'single');
+  freqs = [1:25];
 elseif v == 25
   siz = 90;
+  fc = zeros(siz,siz,34,3,2,3,2,'single');
+  freqs = [10 11 12];
 else
   error('Invalid version')
 end
@@ -27,7 +33,6 @@ ord   = pconn_randomization;
 
 ord = pconn_randomization;
 % fc = zeros(siz,siz,34,3,2,13,2,'single');
-fc = zeros(siz,siz,34,3,2,25,2,'single');
 
 clear r_fc
 for isubj = SUBJLIST
@@ -45,10 +50,10 @@ for isubj = SUBJLIST
 %           fc(:,:,isubj,m,2,ifoi,iblock) = powcorr; clear powcorr
           
           load(sprintf('~/pp/proc/conn/pp_src_powcorr_test_s%d_m%d_v%d.mat',isubj,im,v))
-          fc(:,:,isubj,m,1,:,:) = single(permute(powcorr,[1 2 4 3])); clear powcorr
+          fc(:,:,isubj,m,1,:,:) = single(permute(powcorr(:,:,:,freqs),[1 2 4 3])); clear powcorr
 
           load(sprintf('~/pp/proc/conn/pp_task_src_powcorr_test_s%d_m%d_v%d.mat',isubj,im,v))
-          fc(:,:,isubj,m,2,:,:) = single(permute(powcorr,[1 2 4 3])); clear powcorr
+          fc(:,:,isubj,m,2,:,:) = single(permute(powcorr(:,:,:,freqs),[1 2 4 3])); clear powcorr
         %       end
     end
   end

@@ -63,13 +63,13 @@ if strcmp(para.type,'local') && strcmp(para.correction_method,'single_threshold'
   error('Correction method based on single thresholds is not implemented on a voxel-level! Use ''ranks'' instead.')
 end
 SUBJLIST  = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
-if ~isfield(para,'empirical')
+if ~isfield(para,'emp')
   fprintf('Loading data...\n')
   cleandat = pupmod_loadpowcorr(para.ver,SUBJLIST,1);
   emp = pupmod_compute_altered_correlations(cleandat,para);
   para.fcsize = size(cleandat,1);
 else
-  emp = para.empirical;
+  emp = para.emp;
   para.fcsize = size(emp.n_p_atx_pervoxel,1);
 end
 
@@ -346,12 +346,9 @@ elseif strcmp(para.type,'local')
       % task (indicated by *cnt1* ending)
       perm_n_p_atx_pervoxel((iperm-1)*par.subs+1:(iperm)*par.subs,:,:,2) = permute(par.tperm_cnt1_pervoxel_p,[2 1 3]);
       perm_n_n_atx_pervoxel((iperm-1)*par.subs+1:(iperm)*par.subs,:,:,2) = permute(par.tperm_cnt1_pervoxel_n,[2 1 3]);
-      
-    elseif strcmp(para.cond,'atx_ctx') && strcmp(para.type,'local')
-      %       context-dependence: TO BE IMPLEMENTED
       perm_n_p_context_atx_pervoxel((iperm-1)*par.subs+1:(iperm)*par.subs,:,:,1) = permute(par.tperm_context_diff_atx_p_pervoxel,[2 1 3]);
       perm_n_n_context_atx_pervoxel((iperm-1)*par.subs+1:(iperm)*par.subs,:,:,1) = permute(par.tperm_context_diff_atx_n_pervoxel,[2 1 3]);
-      
+            
     elseif strcmp(para.cond,'dpz') && strcmp(para.type,'local')
       % --------------
       % DONEPEZIL: local effects
@@ -382,12 +379,17 @@ elseif strcmp(para.type,'local')
     
     for ifreq = para.nfreq
       
-      d_max_p  = squeeze(max(perm_n_p_atx_pervoxel(:,:,ifreq,:),[],2));
-      d_max_n  = squeeze(max(perm_n_n_atx_pervoxel(:,:,ifreq,:),[],2));
+      d_max_p     = squeeze(max(perm_n_p_atx_pervoxel(:,:,ifreq,:),[],2));
+      d_max_n     = squeeze(max(perm_n_n_atx_pervoxel(:,:,ifreq,:),[],2));
+      d_max_ctx_p = squeeze(max(perm_n_p_context_atx_pervoxel(:,:,ifreq),[],2));
+      d_max_ctx_n = squeeze(max(perm_n_n_context_atx_pervoxel(:,:,ifreq),[],2));
       
       for ivox = 1 : para.fcsize
-        outp.pval_p_atx(ivox,:,ifreq) = 1-sum(squeeze(para.emp.n_p_atx_pervoxel(ivox,ifreq,:))' > d_max_p)./para.nperm;
-        outp.pval_n_atx(ivox,:,ifreq) = 1-sum(squeeze(para.emp.n_n_atx_pervoxel(ivox,ifreq,:))' > d_max_n)./para.nperm;
+        outp.pval_p_atx(ivox,:,ifreq)     = 1-sum(squeeze(para.emp.n_p_atx_pervoxel(ivox,ifreq,:))' > d_max_p)./para.nperm;
+        outp.pval_n_atx(ivox,:,ifreq)     = 1-sum(squeeze(para.emp.n_n_atx_pervoxel(ivox,ifreq,:))' > d_max_n)./para.nperm;
+        outp.pval_p_atx_ctx(ivox,ifreq) = 1-sum(squeeze(para.emp.n_p_context_atx_pervoxel(ivox,ifreq))' > d_max_ctx_p)./para.nperm;
+        outp.pval_n_atx_ctx(ivox,ifreq) = 1-sum(squeeze(para.emp.n_n_context_atx_pervoxel(ivox,ifreq))' > d_max_ctx_n)./para.nperm;
+      
       end
     end
     
@@ -400,10 +402,15 @@ elseif strcmp(para.type,'local')
       
       d_max_p  = squeeze(max(perm_n_p_dpz_pervoxel(:,:,ifreq,:),[],2));
       d_max_n  = squeeze(max(perm_n_n_dpz_pervoxel(:,:,ifreq,:),[],2));
+      d_max_ctx_p = squeeze(max(perm_n_p_context_dpz_pervoxel(:,:,ifreq),[],2));
+      d_max_ctx_n = squeeze(max(perm_n_n_context_dpz_pervoxel(:,:,ifreq),[],2));
       
       for ivox = 1 : para.fcsize
         outp.pval_p_dpz(ivox,:,ifreq) = 1-sum(squeeze(para.emp.n_p_dpz_pervoxel(ivox,ifreq,:))' > d_max_p)./para.nperm;
         outp.pval_n_dpz(ivox,:,ifreq) = 1-sum(squeeze(para.emp.n_n_dpz_pervoxel(ivox,ifreq,:))' > d_max_n)./para.nperm;
+        outp.pval_p_dpz_ctx(ivox,ifreq) = 1-sum(squeeze(para.emp.n_p_context_dpz_pervoxel(ivox,ifreq))' > d_max_ctx_p)./para.nperm;
+        outp.pval_n_dpz_ctx(ivox,ifreq) = 1-sum(squeeze(para.emp.n_n_context_dpz_pervoxel(ivox,ifreq))' > d_max_ctx_n)./para.nperm;
+      
       end
     end
     

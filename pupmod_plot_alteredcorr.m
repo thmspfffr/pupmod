@@ -155,8 +155,8 @@ if ~exist(sprintf('~/pupmod/proc/pupmod_src_powcorr_alteredcorr_v%d.mat',v))
   para.nfreq = [1:size(emp.n_p_atx,1)]; % freqs 1 - 13
   para.alpha = 0.05; % alpha for adjacency
   para.ver = v;
-  para.nperm = 10000;
-  para.nsubs = 250;
+  para.nperm = 20000;
+  para.nsubs = 500;
   para.type = 'global';
   para.cond = 'atx';
   para.allperms = para.nperm/para.nsubs;
@@ -263,7 +263,7 @@ end
 
 markersize = 4;
   
-alpha1 = 0;
+alpha1 = 0.025;
 alpha2 = 0.01;
 alpha3 = 0.001;
 
@@ -405,14 +405,15 @@ addpath ~/Documents/MATLAB/Colormaps/'Colormaps (5)'/Colormaps/
 %% PLOT RESULTS FOR ATX (TASK) AND DPZ (REST)
 
 close all
-
-ifoi = 11; icond = 2;
+for ifoi = 1 : 25
+% ifoi = 25; 
+icond = 1;
 
 cmap = autumn;
 
 par = nanmean(emp.n_p_atx_pervoxel(:,ifoi,icond),2);
 
-par(outp_atx.pval_p_atx(:,icond,10)>=0.05) = 0;
+par(outp_atx.pval_p_atx(:,icond,ifoi)>=0.05) = 0;
 % par(par<0.4)=0;
 
 cmap = [cmap; 0.98*ones(1,3); cmap];
@@ -423,14 +424,18 @@ para.grid = grid;
 para.dd = 0.75;
 para.fn = sprintf('~/pupmod/plots/pupmod_plot_alteredcorr_atx_f%s_c%d_v%d.png',regexprep(num2str(ifoi),' ',''),icond,v);
 tp_plot_surface(par,para)
+end
+%% MAP DONEPEZIL EFFECT
 
-%%
-ifoi = 13; icond = 1;
+for ifoi = 1 : 25
+% ifoi = 13; 
+icond = 2;
 
 cmap = autumn;
 cmap(:,1) = 0; cmap(:,3) = 1;
 
 par = nanmean(emp.n_n_dpz_pervoxel(:,ifoi,icond),2);
+
 par(outp_dpz.pval_n_dpz(:,icond,ifoi)>=0.05) = 0;
 % par(par<0.4)=0
 % par = emp.n_p_dpz_pervoxel(:,ifoi,icond);
@@ -444,15 +449,102 @@ para.grid = grid;
 para.dd = 0.75;
 para.fn = sprintf('~/pupmod/plots/pupmod_plot_alteredcorr_dpz_f%s_c%d_v%d.png',regexprep(num2str(ifoi),' ',''),icond,v);
 tp_plot_surface(par,para);
+end
 
+%% MAP CONTEXT DEPENDENCE - ATOMOXETINE
+
+for ifoi = 1 : 25
+
+cmap = autumn;
+cmap(:,1) = 0; cmap(:,3) = 1;
+
+par = emp.n_n_context_atx_pervoxel(:,ifoi);
+par(outp_atx.pval_n_atx_ctx(:,ifoi)>=0.05) = 0;
+
+cmap      = [cmap(:,:); 0.98*ones(1,3); cmap(:,:)];
+para      = [];
+para.clim = [-0.75 0.75];
+para.cmap = cmap;
+para.grid = grid;
+para.dd = 0.75;
+para.fn = sprintf('~/pupmod/plots/pupmod_plot_alteredcorr_context_atx_f%s_v%d.png',regexprep(num2str(ifoi),' ',''),v);
+tp_plot_surface(par,para);
+end
+
+%% MAP CONTEXT DEPENDENCE - DONEPEZIL
+
+for ifoi = 1 : 25
+
+  cmap = autumn;
+%   cmap(:,1) = 0; cmap(:,3) = 1;
+
+  par = emp.n_n_context_dpz_pervoxel(:,ifoi);
+  par(outp_dpz.pval_n_dpz_ctx(:,ifoi)>=0.05) = 0;
+
+  cmap      = [cmap(:,:); 0.98*ones(1,3); cmap(:,:)];
+  para      = [];
+  para.clim = [-0.75 0.75];
+  para.cmap = cmap;
+  para.grid = grid;
+  para.dd = 0.75;
+  para.fn = sprintf('~/pupmod/plots/pupmod_plot_alteredcorr_context_dpz_f%s_v%d.png',regexprep(num2str(ifoi),' ',''),v);
+  tp_plot_surface(par,para);
+  
+end
+
+
+%% LOAD SECOND LEVEL STATS (POOLED ACROSS SIGNIFICANT FREQS)
+
+if ~exist('sa_meg_template','var')
+  load /home/gnolte/meth/templates/mri.mat;
+  load /home/gnolte/meth/templates/sa_template.mat;
+  load /home/tpfeffer/pconn/proc/src/pconn_sa_s4_m1_b1_v9.mat
+  grid = sa.grid_cortex_lowres;
+  addpath /home/gnolte/meg_toolbox/toolbox/
+  addpath /home/gnolte/meg_toolbox/fieldtrip_utilities/
+  addpath /home/gnolte/meg_toolbox/toolbox_nightly/
+  addpath /home/gnolte/meg_toolbox/meg/
+end
+
+% ---------
+% Obtain stats for atomoxetine condition
+para.cond     = 'atx';
+data1(:,:,:,:,:,1) = nanmean(cleandat(:,:,:,:,:,10:11:12),6);
+data1(:,:,:,:,:,2) = nanmean(cleandat(:,:,:,:,:,18),6);
+% dpz effect
+data1(:,:,:,:,:,3) =  nanmean(cleandat(:,:,:,:,:,13:14),6);
+
+para          = [];
+para.alpha    = 0.05; % alpha for adjacency
+para.ver      = v;
+para.nperm    = 10000;
+para.nsubs    = 250;
+para.type     = 'local';
+para.cond     = 'atx'
+para.allperms = para.nperm/para.nsubs;
+para.nfreq    = 1:3;
+para.emp      = pupmod_compute_altered_correlations(data1,para);
+para.cleaned  = 0;
+para.v = v;
+
+[outp_atx]    = pupmod_src_powcorr_getstatistics_2nd(data1,para);
+% ---------
+% Obtain stats for donepezil condition
+para.cond     = 'dpz';
+[outp_dpz]    = pupmod_src_powcorr_getstatistics_2nd(data1,para);
+
+emp=para.emp;
+% % ---------
+% addpath ~/Documents/MATLAB/Colormaps/'Colormaps (5)'/Colormaps/
+% 
 %%
-ifoi = 22; icond = 2;
+ifoi =3  ; icond = 2;
 
 % par = nanmean(emp.n_n_dpz_pervoxel(:,ifoi,icond),2);
 % par(outp_dpz.pval_n_dpz(:,icond,ifoi)>=0.05) = 0;
 % par(par<0.4)=0
-par = nanmean(emp.n_p_dpz_pervoxel(:,ifoi,icond),2);
-par(outp_dpz.pval_p_dpz(:,icond,ifoi)>=0.05) = 0;
+par = nanmean(emp.n_p_atx_pervoxel(:,ifoi,icond),2);
+par(outp_atx.pval_p_atx(:,icond,ifoi)>=0.05) = 0;
 % par(par<0.4)=0;
 
 cmap = autumn;
@@ -463,8 +555,50 @@ para.clim = [-0.75 0.75];
 para.cmap = cmap;
 para.grid = grid;
 para.dd = 0.75;
-para.fn = sprintf('~/pupmod/plots/pupmod_plot_alteredcorr_dpz_f%s_c%d_v%d.png',regexprep(num2str(ifoi),' ',''),icond,v);
+para.fn = sprintf('~/pupmod/plots/pupmod_plot_alteredcorr_2nd_atx_f%s_c%d_v%d.png',regexprep(num2str(ifoi),' ',''),icond,v);
 tp_plot_surface(par,para)
+
+% par = nanmean(emp.n_n_dpz_pervoxel(:,ifoi,icond),2);
+% par(outp_dpz.pval_n_dpz(:,icond,ifoi)>=0.05) = 0;
+% par(par<0.4)=0
+% emp = para.emp;
+par = nanmean(emp.n_n_dpz_pervoxel(:,ifoi,icond),2);
+par(outp_dpz.pval_n_dpz(:,icond,ifoi)>=0.05) = 0;
+% par(par<0.4)=0;
+
+cmap = autumn; cmap(:,1) = 0; cmap(:,3) = 1;
+
+cmap = [cmap; 0.98*ones(1,3); cmap];
+para = [];
+para.clim = [-0.75 0.75];
+para.cmap = cmap;
+para.grid = grid;
+para.dd = 0.75;
+para.fn = sprintf('~/pupmod/plots/pupmod_plot_alteredcorr_2nd_dpz_f%s_c%d_v%d.png',regexprep(num2str(ifoi),' ',''),icond,v);
+tp_plot_surface(par,para)
+
+%% CONTEXT: AVERAGE OVER FOIS
+
+ifoi = 3;
+
+% par = nanmean(emp.n_n_dpz_pervoxel(:,ifoi,icond),2);
+% par(outp_dpz.pval_n_dpz(:,icond,ifoi)>=0.05) = 0;
+% par(par<0.4)=0
+par = emp.n_n_context_dpz_pervoxel(:,ifoi);
+% par(outp_atx.pval_n_atx_ctx(:,ifoi)>=0.05) = 0;
+par(par<0.3)=0;
+
+cmap = autumn; cmap(:,1) = 0; cmap(:,3) = 1;
+
+cmap = [cmap; 0.98*ones(1,3); cmap];
+para = [];
+para.clim = [-0.75 0.75];
+para.cmap = cmap;
+para.grid = grid;
+para.dd = 0.75;
+para.fn = sprintf('~/pupmod/plots/pupmod_plot_alteredcorr_2nd_atx_f%s_c%d_v%d.png',regexprep(num2str(ifoi),' ',''),icond,v);
+tp_plot_surface(par,para)
+
 
 %% TASK VS REST
 % TASK VS REST: lineplots

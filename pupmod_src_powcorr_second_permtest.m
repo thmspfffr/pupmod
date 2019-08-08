@@ -36,10 +36,10 @@ nvox = size(fc,1)*size(fc,1)-size(fc,1);
 %%
 
 % atx effect
-data1(:,:,:,:,:,1) = nanmean(fc(:,:,:,:,:,10:11:12),6);
-data1(:,:,:,:,:,2) = nanmean(fc(:,:,:,:,:,18),6);
+data1(:,:,:,:,:,1) = tanh(nanmean(atanh(fc(:,:,:,:,:,10:11:12)),6));
+data1(:,:,:,:,:,2) = tanh(nanmean(atanh(fc(:,:,:,:,:,18)),6));
 % dpz effect
-data1(:,:,:,:,:,3) =  nanmean(fc(:,:,:,:,:,13:14),6);
+data1(:,:,:,:,:,3) = tanh(nanmean(atanh(fc(:,:,:,:,:,13:14)),6));
 
 clear fc
 
@@ -158,24 +158,25 @@ for iperm = 1 : par.allperms
       % -----------------------
       % NUMBER OF ALTERED CORRELATONS - per voxel
       % -----------------------
+      siz=size(t_cnt1,1);
       % count number of altered connections (atx, task)
-      par.tperm_cnt1_pervoxel_n(:,kperm,:)=nansum(t_cnt1<0)./nvox;
-      par.tperm_cnt1_pervoxel_p(:,kperm,:)=nansum(t_cnt1>0)./nvox;
+      par.tperm_cnt1_pervoxel_n(:,kperm,:)=nansum(t_cnt1<0)./siz;
+      par.tperm_cnt1_pervoxel_p(:,kperm,:)=nansum(t_cnt1>0)./siz;
       % count number of altered connections (atx, rest)
-      par.tperm_res1_pervoxel_n(:,kperm,:)=nansum(t_res1<0)./nvox;
-      par.tperm_res1_pervoxel_p(:,kperm,:)=nansum(t_res1>0)./nvox;
+      par.tperm_res1_pervoxel_n(:,kperm,:)=nansum(t_res1<0)./siz;
+      par.tperm_res1_pervoxel_p(:,kperm,:)=nansum(t_res1>0)./siz;
       % count number of altered connections (dpz, task)
-      par.tperm_cnt2_pervoxel_n(:,kperm,:)=nansum(t_cnt2<0)./nvox;
-      par.tperm_cnt2_pervoxel_p(:,kperm,:)=nansum(t_cnt2>0)./nvox;
+      par.tperm_cnt2_pervoxel_n(:,kperm,:)=nansum(t_cnt2<0)./siz;
+      par.tperm_cnt2_pervoxel_p(:,kperm,:)=nansum(t_cnt2>0)./siz;
       % count number of altered connections (dpz, rest)
-      par.tperm_res2_pervoxel_n(:,kperm,:)=nansum(t_res2<0)./nvox;
-      par.tperm_res2_pervoxel_p(:,kperm,:)=nansum(t_res2>0)./nvox;
+      par.tperm_res2_pervoxel_n(:,kperm,:)=nansum(t_res2<0)./siz;
+      par.tperm_res2_pervoxel_p(:,kperm,:)=nansum(t_res2>0)./siz;
      	% number of altered connections, irrespective of direction (atx)
-      par.tperm_atx_during_task_pervoxel(:,kperm,:)=nansum(abs(t_cnt1))./nvox;
-      par.tperm_atx_during_rest_pervoxel(:,kperm,:)=nansum(abs(t_res1))./nvox;
+      par.tperm_atx_during_task_pervoxel(:,kperm,:)=nansum(abs(t_cnt1))./siz;
+      par.tperm_atx_during_rest_pervoxel(:,kperm,:)=nansum(abs(t_res1))./siz;
       % number of altered connections, irrespective of direction (dpz)
-      par.tperm_dpz_during_task_pervoxel(:,kperm,:)=nansum(abs(t_cnt2))./nvox;
-      par.tperm_dpz_during_rest_pervoxel(:,kperm,:)=nansum(abs(t_res2))./nvox;
+      par.tperm_dpz_during_task_pervoxel(:,kperm,:)=nansum(abs(t_cnt2))./siz;
+      par.tperm_dpz_during_rest_pervoxel(:,kperm,:)=nansum(abs(t_res2))./siz;
       
       % -----------------------
       % CONTEXT DEPENDENCE - across space
@@ -206,18 +207,18 @@ for iperm = 1 : par.allperms
       par.tperm_doubledissociation(kperm,:) = a-b;
       
       % context-dependence: number of context-dependent connections 
-      par.tperm_atx_context_test(kperm,:) = nansum(nansum(t_all1))./nvox;
-      par.tperm_dpz_context_test(kperm,:) = nansum(nansum(t_all2))./nvox;
+      par.tperm_atx_context_test(kperm,:) = nansum(nansum(t_all1))./siz;
+      par.tperm_dpz_context_test(kperm,:) = nansum(nansum(t_all2))./siz;
           
       % TASK VS REST ------------------------------------------------------
       [t_tvsr,~,~,s] = ttest(taskvsrest_perm(:,:,:,2,:),taskvsrest_perm(:,:,:,1,:),'dim',3,'alpha',alp);
       t_tvsr = squeeze(t_tvsr.*sign(s.tstat)); clear s   
       
-      par.tperm_taskvsrest_p(kperm,:) = nansum(nansum(t_tvsr>0))./nvox;
-      par.tperm_taskvsrest_n(kperm,:) = nansum(nansum(t_tvsr<0))./nvox;
+      par.tperm_taskvsrest_p(kperm,:) = nansum(nansum(t_tvsr>0))./siz;
+      par.tperm_taskvsrest_n(kperm,:) = nansum(nansum(t_tvsr<0))./siz;
       
-      par.tperm_taskvsrest_pervox_p(:,kperm,:) = nansum(t_tvsr>0)./nvox;
-      par.tperm_taskvsrest_pervox_n(:,kperm,:) = nansum(t_tvsr<0)./nvox;
+      par.tperm_taskvsrest_pervox_p(:,kperm,:) = nansum(t_tvsr>0)./siz;
+      par.tperm_taskvsrest_pervox_n(:,kperm,:) = nansum(t_tvsr<0)./siz;
       
 %     end
   end

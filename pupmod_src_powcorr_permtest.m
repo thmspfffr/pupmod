@@ -11,9 +11,9 @@
 clear 
 v = 23; 
 % alp: standard for all 0.05!!! except verison 13
-nperm = 10000; alp = 0.05;
+nperm = 20000; alp = 0.05;
 nfoi = 25;
-par.subs = 250;
+par.subs = 500;
 par.allperms = nperm/par.subs;
 
 addpath /home/gnolte/meg_toolbox/toolbox/
@@ -29,7 +29,7 @@ SUBJLIST  = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 3
 
 addpath ~/pconn/matlab/
 
-cleandat = pupmod_loadpowcorr(v,SUBJLIST,1);
+cleandat = single(pupmod_loadpowcorr(v,SUBJLIST,1));
 
 nvox = size(cleandat,1)*size(cleandat,1)-size(cleandat,1);
 
@@ -47,14 +47,6 @@ if ~exist(sprintf([outdir 'pupmod_src_powcorr_permtest_perms_subs%d_nperm%d_v%d.
 else
   load(sprintf([outdir 'pupmod_src_powcorr_permtest_perms_subs%d_nperm%d_v%d.mat'],par.subs,nperm,v));
 end
-
-dat_res1 = single(squeeze(cleandat(:,:,:,[1 2],1,:))); 
-dat_cnt1 = single(squeeze(cleandat(:,:,:,[1 2],2,:)));  
-dat_cnt2 = single(squeeze(cleandat(:,:,:,[1 3],2,:))); 
-dat_res2 = single(squeeze(cleandat(:,:,:,[1 3],1,:))); 
-
-taskvsrest(:,:,:,1,:) = dat_res1(:,:,:,1,:);
-taskvsrest(:,:,:,2,:) = dat_cnt1(:,:,:,1,:);
 
 for iperm = 1 : par.allperms
   
@@ -75,30 +67,23 @@ for iperm = 1 : par.allperms
     idx2 = 3-idx1;
     
     for i = 1 : length(idx1)
-      permdat_cnt1(:,:,i,1,:) = dat_cnt1(:,:,i,idx1(i),:);
-      permdat_cnt1(:,:,i,2,:) = dat_cnt1(:,:,i,idx2(i),:);     
-      permdat_res1(:,:,i,1,:) = dat_res1(:,:,i,idx1(i),:);
-      permdat_res1(:,:,i,2,:) = dat_res1(:,:,i,idx2(i),:);
+      permdat_cnt1(:,:,i,1,:) = cleandat(:,:,i,idx1(i),2,:);
+      permdat_cnt1(:,:,i,2,:) = cleandat(:,:,i,idx2(i),2,:);     
+      permdat_res1(:,:,i,1,:) = cleandat(:,:,i,idx1(i),1,:);
+      permdat_res1(:,:,i,2,:) = cleandat(:,:,i,idx2(i),1,:);
     end
     
     % should this be the same as for ATX??
     idx1 = all_idx1(:,iiperm);
     idx2 = 3-idx1;
+    idx1(idx1==2)=3;
+    idx2(idx2==2)=3;
     
     for i = 1 : length(idx1)
-      permdat_cnt2(:,:,i,1,:) = dat_cnt2(:,:,i,idx1(i),:);
-      permdat_cnt2(:,:,i,2,:) = dat_cnt2(:,:,i,idx2(i),:);
-      permdat_res2(:,:,i,1,:) = dat_res2(:,:,i,idx1(i),:);
-      permdat_res2(:,:,i,2,:) = dat_res2(:,:,i,idx2(i),:); 
-    end
-
-    % TASK VS REST ------------------------------------------------------
-    idx1 = all_idx1(:,iiperm);
-    idx2 = 3-idx1;
-    
-    for i = 1 : length(idx1)     
-      taskvsrest_perm(:,:,i,1,:) = taskvsrest(:,:,i,idx1(i),:);
-      taskvsrest_perm(:,:,i,2,:) = taskvsrest(:,:,i,idx2(i),:);       
+      permdat_cnt2(:,:,i,1,:) = cleandat(:,:,i,idx1(i),2,:);
+      permdat_cnt2(:,:,i,2,:) = cleandat(:,:,i,idx2(i),2,:);
+      permdat_res2(:,:,i,1,:) = cleandat(:,:,i,idx1(i),1,:);
+      permdat_res2(:,:,i,2,:) = cleandat(:,:,i,idx2(i),1,:); 
     end
     
 %     for ifoi = 1 : nfoi
@@ -199,6 +184,17 @@ for iperm = 1 : par.allperms
       par.tperm_atx_context_test(kperm,:) = nansum(nansum(t_all1))./nvox;
       par.tperm_dpz_context_test(kperm,:) = nansum(nansum(t_all2))./nvox;
           
+      clear permdat_cnt1 permdat_cnt2 permdat_res1 permdat_res2
+      
+      % TASK VS REST ------------------------------------------------------
+      idx1 = all_idx1(:,iiperm);
+      idx2 = 3-idx1;
+
+      for i = 1 : length(idx1)     
+        taskvsrest_perm(:,:,i,1,:) = cleandat(:,:,i,1,idx1(i),:);
+        taskvsrest_perm(:,:,i,2,:) = cleandat(:,:,i,1,idx2(i),:);       
+      end
+      
       % TASK VS REST ------------------------------------------------------
       [t_tvsr,~,~,s] = ttest(taskvsrest_perm(:,:,:,2,:),taskvsrest_perm(:,:,:,1,:),'dim',3,'alpha',alp);
       t_tvsr = squeeze(t_tvsr.*sign(s.tstat)); clear s   

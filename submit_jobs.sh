@@ -19,5 +19,5 @@ chmod g=wx $PBS_JOBNAME
 
 sleep "$var"
 
-matlab -nodisplay -nodesktop -r "pupmod_all_regressartifacts; exit" 1> ~/jobs/$PBS_JOBID.out 2> ~/jobs/$PBS_JOBID.err
+matlab -nodisplay -nodesktop -r "pupmod_src_variance_task; exit" 1> ~/jobs/$PBS_JOBID.out 2> ~/jobs/$PBS_JOBID.err
 
