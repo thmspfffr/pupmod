@@ -30,10 +30,22 @@ SUBJLIST        = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 2
 % load(sprintf('~/pupmod/pset(gca,'Position',[0.5703 0.2 0.3347 0.3402])roc/conn/pupmod_src_powcorr_cleaned_v%d.mat',v));
 cleandat = pupmod_loadpowcorr(v,SUBJLIST,1);
 
+% all_alp = [0.01:.01:0.1];
+% for i = 1 : 10
+% para = [];
+% para.nfreq = 1:25;
+% para.alpha = all_alp(i);
+% 
+% emp{i}= pupmod_compute_altered_correlations(cleandat,para);
+% end
+% 
+% save(['~/pupmod/proc/conn/emp.mat'],'emp')
+% 
+% error('!')
 %%
 para = [];
 para.nfreq = 1:25;
-para.alpha = 0.05;
+para.alpha = 0.01;
 
 emp = pupmod_compute_altered_correlations(cleandat,para);
 
@@ -795,4 +807,89 @@ para.grid = grid;
 para.dd   = 0.75;
 para.fn = sprintf('~/pupmod/plots/pupmod_plot_alteredcorr_tvr_f%d_c%d_v%d.png',ifoi,icond,v);
 tp_plot_surface(par,sa_template,para)
+
+%% PLOT ALTERED CORRELATION FOR DIFFERENT ALPHA LEVELS
+v = 23;
+load ~/pupmod/proc/conn/emp.mat
+
+figure; set(gcf,'color','w');
+cmap = cbrewer('seq', 'Reds', 10);
+
+subplot(3,2,1);hold on
+for i = 1 : 10
+  plot(100*emp{i}.n_p_atx(:,1),'color',cmap(i,:))
+end
+axis([0 25 -5 60])
+
+set(gca,'tickdir','out','xtick',[1 5 9 13 17 21 25],'xticklabel',[2 4 8 16 32 64 128])
+tp_editplots; xlabel('Carrier frequency [Hz]')
+subplot(3,2,3);hold on
+for i = 1 : 10
+  plot(100*emp{i}.n_p_atx(:,2),'color',cmap(i,:))
+end
+axis([0 25 -5 60])
+set(gca,'tickdir','out','xtick',[1 5 9 13 17 21 25],'xticklabel',[2 4 8 16 32 64 128])
+tp_editplots; xlabel('Carrier frequency [Hz]')
+
+cmap = cbrewer('seq', 'Blues', 10);
+
+subplot(3,2,2);hold on
+for i = 1 : 10
+  plot(100*emp{i}.n_n_atx(:,1),'color',cmap(i,:))
+end
+axis([0 25 -5 60])
+set(gca,'tickdir','out','xtick',[1 5 9 13 17 21 25],'xticklabel',[2 4 8 16 32 64 128])
+tp_editplots; xlabel('Carrier frequency [Hz]')
+subplot(3,2,4);hold on
+for i = 1 : 10
+  plot(100*emp{i}.n_n_atx(:,2),'color',cmap(i,:))
+end
+axis([0 25 -5 60])
+set(gca,'tickdir','out','xtick',[1 5 9 13 17 21 25],'xticklabel',[2 4 8 16 32 64 128])
+tp_editplots; xlabel('Carrier frequency [Hz]'); %ylabel('Fraction of significantly altered correlations [%]')
+
+print(gcf,'-depsc2',sprintf('~/pupmod/plots/pupmod_alteredcorr_alternative_alphas_atx_v%d.eps',v))
+
+figure; set(gcf,'color','w');
+cmap = cbrewer('seq', 'Reds', 10);
+
+subplot(3,2,1);hold on
+for i = 1 : 10
+  plot(100*emp{i}.n_p_dpz(:,1),'color',cmap(i,:))
+end
+axis([0 25 -5 60])
+
+set(gca,'tickdir','out','xtick',[1 5 9 13 17 21 25],'xticklabel',[2 4 8 16 32 64 128])
+tp_editplots; xlabel('Carrier frequency [Hz]')
+subplot(3,2,3);hold on
+for i = 1 : 10
+  plot(100*emp{i}.n_p_dpz(:,2),'color',cmap(i,:))
+end
+axis([0 25 -5 60])
+set(gca,'tickdir','out','xtick',[1 5 9 13 17 21 25],'xticklabel',[2 4 8 16 32 64 128])
+tp_editplots; xlabel('Carrier frequency [Hz]')
+
+cmap = cbrewer('seq', 'Blues', 10);
+
+subplot(3,2,2);hold on
+for i = 1 : 10
+  plot(100*emp{i}.n_n_dpz(:,1),'color',cmap(i,:))
+end
+axis([0 25 -5 60])
+set(gca,'tickdir','out','xtick',[1 5 9 13 17 21 25],'xticklabel',[2 4 8 16 32 64 128])
+tp_editplots; xlabel('Carrier frequency [Hz]')
+subplot(3,2,4);hold on
+for i = 1 : 10
+  plot(100*emp{i}.n_n_dpz(:,2),'color',cmap(i,:))
+end
+axis([0 25 -5 60])
+set(gca,'tickdir','out','xtick',[1 5 9 13 17 21 25],'xticklabel',[2 4 8 16 32 64 128])
+tp_editplots; xlabel('Carrier frequency [Hz]'); %ylabel('Fraction of significantly altered correlations [%]')
+
+print(gcf,'-depsc2',sprintf('~/pupmod/plots/pupmod_alteredcorr_alternative_alphas_dpz_v%d.eps',v))
+
+%% CLEANED SIGNAL 
+
+
+
 

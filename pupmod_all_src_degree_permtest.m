@@ -18,8 +18,16 @@ SUBJLIST  = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 3
 
 %%
 
+fcsize = size(cleandat,1);
+mask    = logical(triu(ones(400,400),1));
+para = [];
+para.alpha = 0.01;
+para.nfreq = 25;
 para.absolute = 0;
 para.relative_degree = 1;
+para.clustering = 1;
+para.transitivity = 1;
+
 
 cleandat = pupmod_loadpowcorr(v,SUBJLIST,1);
 

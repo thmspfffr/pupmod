@@ -197,21 +197,17 @@ ord   = pconn_randomization;
 for m = 1 : 3
   for isubj = SUBJLIST
     isubj
-    for ifoi = 1:13
-      for iblock = 1 : 2
         
-        im = find(ord(isubj,:)==m);
-        
-        load(sprintf([outdir 'pupmod_src_variance_s%d_m%d_b%d_f%d_v%d.mat'],isubj,m,iblock,ifoi,v));
-        
-        var_all_rest(:,isubj,m,ifoi,iblock) = var; clear var
-        
-        load(sprintf([outdir 'pupmod_src_variance_task_s%d_m%d_b%d_f%d_v%d.mat'],isubj,m,iblock,ifoi,v));
-        
-        var_all_task(:,isubj,m,ifoi,iblock) = var; clear var
-        
-      end
-    end
+    im = find(ord(isubj,:)==m);
+    
+    load(sprintf([outdir 'pupmod_src_variance_s%d_m%d_v%d.mat'],isubj,m,v));
+    
+    var_all_rest(:,isubj,m,:,:) = outp.var; clear var
+    
+    load(sprintf([outdir 'pupmod_src_variance_task_s%d_m%d_v%d.mat'],isubj,m,v));
+    
+    var_all_task(:,isubj,m,:,:) = outp.var; clear var
+    
   end
 end
 
@@ -222,23 +218,23 @@ var_all_task = nanmean(var_all_task(:,SUBJLIST,:,:,:),5);
 
 foi_range = [2 3 4 6 8 11 16 23 32 45 64 91 128];
 
-for ifoi = 1 : 13
+for ifoi = 1 : 25
   
   [h,~,~,s]=ttest(var_all_rest(:,:,2,ifoi),var_all_rest(:,:,1,ifoi),'dim',2);
-  n_atx_pos_rest(ifoi) = sum((h>0)&(s.tstat>0))./ length(h);
-  n_atx_neg_rest(ifoi) = sum((h>0)&(s.tstat<0))./ length(h);
+  n_atx_pos_rest(ifoi) = 100*sum((h>0)&(s.tstat>0))./ length(h);
+  n_atx_neg_rest(ifoi) = 100*sum((h>0)&(s.tstat<0))./ length(h);
   
   [h,~,~,s]=ttest(var_all_rest(:,:,3,ifoi),var_all_rest(:,:,1,ifoi),'dim',2);
-  n_dpz_pos_rest(ifoi) = sum((h>0)&(s.tstat>0))./ length(h);
-  n_dpz_neg_rest(ifoi) = sum((h>0)&(s.tstat<0))./ length(h);
+  n_dpz_pos_rest(ifoi) = 100*sum((h>0)&(s.tstat>0))./ length(h);
+  n_dpz_neg_rest(ifoi) = 100*sum((h>0)&(s.tstat<0))./ length(h);
   
   [h,~,~,s]=ttest(var_all_task(:,:,2,ifoi),var_all_task(:,:,1,ifoi),'dim',2);
-  n_atx_pos_task(ifoi) = sum((h>0)&(s.tstat>0))./ length(h);
-  n_atx_neg_task(ifoi) = sum((h>0)&(s.tstat<0))./ length(h);
+  n_atx_pos_task(ifoi) = 100*sum((h>0)&(s.tstat>0))./ length(h);
+  n_atx_neg_task(ifoi) = 100*sum((h>0)&(s.tstat<0))./ length(h);
   
   [h,~,~,s]=ttest(var_all_task(:,:,3,ifoi),var_all_task(:,:,1,ifoi),'dim',2);
-  n_dpz_pos_task(ifoi) = sum((h>0)&(s.tstat>0))./ length(h);
-  n_dpz_neg_task(ifoi) = sum((h>0)&(s.tstat<0))./ length(h);
+  n_dpz_pos_task(ifoi) = 100*sum((h>0)&(s.tstat>0))./ length(h);
+  n_dpz_neg_task(ifoi) = 100*sum((h>0)&(s.tstat<0))./ length(h);
   
 end
 
@@ -269,67 +265,68 @@ for iperm = 1 : nperm
     
   end
   
-  for ifoi = 1 : 13
-    
-    h=ttest(permdat_res1(:,:,2,ifoi),permdat_res1(:,:,1,ifoi),'dim',2);
-    n_atx_rest_perm(iperm,ifoi) = sum(h)./ length(h);
-    
-    h=ttest(permdat_cnt1(:,:,2,ifoi),permdat_cnt1(:,:,1,ifoi),'dim',2);
-    n_atx_task_perm(iperm,ifoi) = sum(h)./ length(h);
-    
-  end
-  
   for i = 1 : length(idx1)
     
-    permdat_cnt1(:,i,1,:) = dat_cnt2(:,i,idx1(i),:);
-    permdat_cnt1(:,i,2,:) = dat_cnt2(:,i,idx2(i),:);
+    permdat_cnt2(:,i,1,:) = dat_cnt2(:,i,idx1(i),:);
+    permdat_cnt2(:,i,2,:) = dat_cnt2(:,i,idx2(i),:);
     
-    permdat_res1(:,i,1,:) = dat_res2(:,i,idx1(i),:);
-    permdat_res1(:,i,2,:) = dat_res2(:,i,idx2(i),:);
+    permdat_res2(:,i,1,:) = dat_res2(:,i,idx1(i),:);
+    permdat_res2(:,i,2,:) = dat_res2(:,i,idx2(i),:);
     
   end
   
-  for ifoi = 1 : 13
+  for ifoi = 1 : 25
     
-    [h,~,~,s]=ttest(var_all_rest(:,:,2,ifoi),var_all_rest(:,:,1,ifoi),'dim',2);
-    perm.n_atx_pos_rest(iperm,ifoi) = sum((h>0)&(s.tstat>0))./ length(h);
-    perm.n_atx_neg_rest(iperm,ifoi) = sum((h>0)&(s.tstat<0))./ length(h);
+    [h,~,~,s]=ttest(permdat_res1(:,:,2,ifoi),permdat_res1(:,:,1,ifoi),'dim',2);
+    perm.n_atx_pos_rest(iperm,ifoi) = 100*sum((h>0)&(s.tstat>0))./ length(h);
+    perm.n_atx_neg_rest(iperm,ifoi) = 100*sum((h>0)&(s.tstat<0))./ length(h);
     
-    [h,~,~,s]=ttest(var_all_rest(:,:,3,ifoi),var_all_rest(:,:,1,ifoi),'dim',2);
-    perm.n_dpz_pos_rest(iperm,ifoi) = sum((h>0)&(s.tstat>0))./ length(h);
-    perm.n_dpz_neg_rest(iperm,ifoi) = sum((h>0)&(s.tstat<0))./ length(h);
+    [h,~,~,s]=ttest(permdat_res2(:,:,2,ifoi),permdat_res2(:,:,1,ifoi),'dim',2);
+    perm.n_dpz_pos_rest(iperm,ifoi) = 100*sum((h>0)&(s.tstat>0))./ length(h);
+    perm.n_dpz_neg_rest(iperm,ifoi) = 100*sum((h>0)&(s.tstat<0))./ length(h);
     
-    [h,~,~,s]=ttest(var_all_task(:,:,2,ifoi),var_all_task(:,:,1,ifoi),'dim',2);
-    perm.n_atx_pos_task(iperm,ifoi) = sum((h>0)&(s.tstat>0))./ length(h);
-    perm.n_atx_neg_task(iperm,ifoi) = sum((h>0)&(s.tstat<0))./ length(h);
+    [h,~,~,s]=ttest(permdat_cnt1(:,:,2,ifoi),permdat_cnt1(:,:,1,ifoi),'dim',2);
+    perm.n_atx_pos_task(iperm,ifoi) = 100*sum((h>0)&(s.tstat>0))./ length(h);
+    perm.n_atx_neg_task(iperm,ifoi) = 100*sum((h>0)&(s.tstat<0))./ length(h);
     
-    [h,~,~,s]=ttest(var_all_task(:,:,3,ifoi),var_all_task(:,:,1,ifoi),'dim',2);
-    perm.n_dpz_pos_task(iperm,ifoi) = sum((h>0)&(s.tstat>0))./ length(h);
-    perm.n_dpz_neg_task(iperm,ifoi) = sum((h>0)&(s.tstat<0))./ length(h);
+    [h,~,~,s]=ttest(permdat_cnt2(:,:,2,ifoi),permdat_cnt2(:,:,1,ifoi),'dim',2);
+    perm.n_dpz_pos_task(iperm,ifoi) = 100*sum((h>0)&(s.tstat>0))./ length(h);
+    perm.n_dpz_neg_task(iperm,ifoi) = 100*sum((h>0)&(s.tstat<0))./ length(h);
     
     
   end
 end
 
-for ifoi = 1 : 13
+save(sprintf([outdir 'pupmod_src_variance_permutation_v%d.mat'],v),'perm');
+
+for ifoi = 1 : 25
   
-  p_atx_rest(ifoi) = 1-(sum(n_atx_rest(:,ifoi)>n_atx_rest_perm(:,ifoi))./nperm);
-  p_atx_task(ifoi) = 1-(sum(n_atx_task(:,ifoi)>n_atx_task_perm(:,ifoi))./nperm);
+  p_atx_pos_rest(ifoi) = 1-(sum(abs(n_atx_pos_rest(:,ifoi))>abs(perm.n_atx_pos_rest(:,ifoi)))./nperm);
+  p_atx_neg_rest(ifoi) = 1-(sum(abs(n_atx_neg_rest(:,ifoi))>abs(perm.n_atx_neg_rest(:,ifoi)))./nperm);
+  p_atx_pos_task(ifoi) = 1-(sum(abs(n_atx_pos_task(:,ifoi))>abs(perm.n_atx_pos_task(:,ifoi)))./nperm);
+  p_atx_neg_task(ifoi) = 1-(sum(abs(n_atx_neg_task(:,ifoi))>abs(perm.n_atx_neg_task(:,ifoi)))./nperm);
   
-  p_dpz_rest(ifoi) = 1-(sum(n_dpz_rest(:,ifoi)>n_dpz_rest_perm(:,ifoi))./nperm);
-  p_dpz_task(ifoi) = 1-(sum(n_dpz_task(:,ifoi)>n_dpz_task_perm(:,ifoi))./nperm);
+  p_dpz_pos_rest(ifoi) = 1-(sum(abs(n_dpz_pos_rest(:,ifoi))>abs(perm.n_dpz_pos_rest(:,ifoi)))./nperm);
+  p_dpz_neg_rest(ifoi) = 1-(sum(abs(n_dpz_neg_rest(:,ifoi))>abs(perm.n_dpz_neg_rest(:,ifoi)))./nperm);
+  p_dpz_pos_task(ifoi) = 1-(sum(abs(n_dpz_pos_task(:,ifoi))>abs(perm.n_dpz_pos_task(:,ifoi)))./nperm);
+  p_dpz_neg_task(ifoi) = 1-(sum(abs(n_dpz_neg_task(:,ifoi))>abs(perm.n_dpz_neg_task(:,ifoi)))./nperm);
   
 end
 
 %%
+
+markersize = 5;
 figure; set(gcf,'color','w')
 
 subplot(4,2,1); hold on
 plot(n_atx_pos_rest,'linewidth',2,'color',[1 0.5 0.2])
 plot(n_atx_neg_rest,'linewidth',2,'color',[0.2 0.5 1])
-% plot(prctile(n_atx_rest_perm,95),'linewidth',1,'color',[1 0.5 0.2],'linestyle',':')
-axis([0 14 -0.02 0.32]);
-set(gca,'tickdir','out','xtick',[1 3 5 7 9 11 13],'xticklabel',num2cell([2 4 8 16 32 64 128]))
+
+plot(find(p_atx_pos_rest<0.05),n_atx_pos_rest(find(p_atx_pos_rest<0.05)),'ko','markersize',markersize,'markerfacecolor','k')
+plot(find(p_atx_neg_rest<0.05),n_atx_neg_rest(find(p_atx_neg_rest<0.05)),'ko','markersize',markersize,'markerfacecolor','k')
+
+axis([0 25 -2 30]);
+set(gca,'tickdir','out','xtick',[1 5 9 13 17 21 25],'xticklabel',[2 4 8 16 32 64 128])
 % xlabel('Frequency [Hz]');
 ylabel(sprintf('Fraction of nodes \n with altered variance [%%]'))
 % title('Atomoxetine vs. placebo')
@@ -338,9 +335,13 @@ tp_editplots
 subplot(4,2,3); hold on
 plot(n_atx_pos_task,'linewidth',2,'color',[1 0.5 0.2])
 plot(n_atx_neg_task,'linewidth',2,'color',[0.2 0.5 1])
+
+plot(find(p_atx_pos_task<0.05),n_atx_pos_task(find(p_atx_pos_task<0.05)),'ko','markersize',markersize,'markerfacecolor','k')
+plot(find(p_atx_neg_task<0.05),n_atx_neg_task(find(p_atx_neg_task<0.05)),'ko','markersize',markersize,'markerfacecolor','k')
+
 % plot(prctile(n_atx_task_perm,95),'linewidth',1,'color',[1 0.1 0.1],'linestyle',':')
-axis([0 14 -0.02 0.32]);
-set(gca,'tickdir','out','xtick',[1 3 5 7 9 11 13],'xticklabel',num2cell([2 4 8 16 32 64 128]))
+axis([0 25 -2 30]);
+set(gca,'tickdir','out','xtick',[1 5 9 13 17 21 25],'xticklabel',[2 4 8 16 32 64 128])
 xlabel('Carrier frequency [Hz]'); ylabel(sprintf('Fraction of nodes \n with altered variance [%%]'))
 % title('Atomoxetine vs. placebo')
 tp_editplots
@@ -348,10 +349,12 @@ tp_editplots
 subplot(4,2,2); hold on
 plot(n_dpz_pos_rest,'linewidth',2,'color',[1 0.5 0.2])
 plot(n_dpz_neg_rest,'linewidth',2,'color',[0.2 0.5 1])
-% plot(prctile(n_dpz_rest_perm,95),'linewidth',1,'color',[0.2 0.5 1],'linestyle',':')
 
-axis([0 14 -0.02 0.32]);
-set(gca,'tickdir','out','xtick',[1 3 5 7 9 11 13],'xticklabel',num2cell([2 4 8 16 32 64 128]))
+plot(find(p_dpz_pos_rest<0.05),n_dpz_pos_rest(find(p_dpz_pos_rest<0.05)),'ko','markersize',markersize,'markerfacecolor','k')
+plot(find(p_dpz_neg_rest<0.05),n_dpz_neg_rest(find(p_dpz_neg_rest<0.05)),'ko','markersize',markersize,'markerfacecolor','k')
+
+axis([0 25 -2 30]);
+set(gca,'tickdir','out','xtick',[1 5 9 13 17 21 25],'xticklabel',[2 4 8 16 32 64 128])
 % xlabel('Frequency [Hz]'); %ylabel(sprintf('Fraction of nodes \n with altered variance [%%]'))
 % title('Donepezil vs. placebo')
 tp_editplots
@@ -359,15 +362,18 @@ tp_editplots
 subplot(4,2,4); hold on
 plot(n_dpz_pos_task,'linewidth',2,'color',[1 0.5 0.2])
 plot(n_dpz_neg_task,'linewidth',2,'color',[0.2 0.5 1])
+plot(find(p_dpz_pos_task<0.05),n_dpz_pos_task(find(p_dpz_pos_task<0.05)),'ko','markersize',markersize,'markerfacecolor','k')
+plot(find(p_dpz_neg_task<0.05),n_dpz_neg_task(find(p_dpz_neg_task<0.05)),'ko','markersize',markersize,'markerfacecolor','k')
+
 % plot(prctile(n_dpz_task_perm,95),'linewidth',1,'color',[0.1 0.1 1],'linestyle',':')
-axis([0 14 -0.02 0.32]);
-set(gca,'tickdir','out','xtick',[1 3 5 7 9 11 13],'xticklabel',num2cell([2 4 8 16 32 64 128]))
-set(gca,'tickdir','out','ytick',[0 0.1 0.2 0.3],'yticklabel',num2cell([0 0.1 0.2 0.3]))
+axis([0 25 -2 30]);
+set(gca,'tickdir','out','xtick',[1 5 9 13 17 21 25],'xticklabel',[2 4 8 16 32 64 128])
+set(gca,'tickdir','out','ytick',[0 10 20 30],'yticklabel',num2cell([0 10 20 30]))
 xlabel('Carrier frequency [Hz]'); %ylabel(sprintf('Fraction of nodes \n with altered variance [%%]'))
 % title('Atomoxetine vs. placebo')
 tp_editplots
 
-print(gcf,'-depsc2',sprintf('~/pupmod/plots/pupmod_src_variance.eps'))
+print(gcf,'-depsc2',sprintf('~/pupmod/plots/pupmod_src_variance_v%d.eps',v))
 
 
 

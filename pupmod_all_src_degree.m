@@ -16,29 +16,24 @@ cleandat = pupmod_loadpowcorr(v,SUBJLIST,0);
 %% COMPUTE "RELATIVE" DEGREE
 % --------------------------------
 fcsize = size(cleandat,1);
+mask    = logical(triu(ones(400,400),1));
 para = [];
 para.alpha = 0.01;
 para.nfreq = 25;
 para.absolute = 0;
-para.relative_degree = 1;
+para.relative_degree = 0;
+para.clustering = 1;
+para.transitivity = 1;
 
 % Atomoxetine (icond = 2) during Rest 
-deg_atx = tp_degree(cleandat(:,:,:,[1 2],1,:),para);
-deg_atx_vox = squeeze(nansum(deg_atx)/fcsize);
-deg_atx = squeeze(nansum(reshape(deg_atx,[fcsize^2 para.nfreq 2]))/fcsize^2);
-% Atomoxetine (icond = 3) during Task 
-deg_atx_task = tp_degree(cleandat(:,:,:,[1 2],2,:),para);
-deg_atx_task_vox = squeeze(nansum(deg_atx_task)/fcsize);
-deg_atx_task = squeeze(nansum(reshape(deg_atx_task,[fcsize^2 para.nfreq 2]))/fcsize^2);
+outp_atx_rest = tp_degree(cleandat(:,:,:,[1 2],1,:),para);
+% Atomoxetine (icond = 2) during Task 
+outp_atx_task = tp_degree(cleandat(:,:,:,[1 2],2,:),para);
 % ------------------
 % Donepezil (icond = 3) during Rest 
-deg_dpz = tp_degree(cleandat(:,:,:,[1 3],1,:),para);
-deg_dpz_vox = squeeze(nansum(deg_dpz)/fcsize);
-deg_dpz = squeeze(nansum(reshape(deg_dpz,[fcsize^2 para.nfreq 2]))/fcsize^2);
+outp_dpz_rest = tp_degree(cleandat(:,:,:,[1 3],1,:),para);
 % Donepezil (icond = 3) during Task 
-deg_dpz_task = tp_degree(cleandat(:,:,:,[1 3],2,:),para);
-deg_dpz_task_vox = squeeze(nansum(deg_dpz_task)/fcsize);
-deg_dpz_task = squeeze(nansum(reshape(deg_dpz_task,[fcsize^2 para.nfreq 2]))/fcsize^2);
+outp_dpz_task = tp_degree(cleandat(:,:,:,[1 3],2,:),para);
 % ------------------
 
 %% PLOT  RESULTS W/O STATISTICS
@@ -50,8 +45,8 @@ subplot(3,2,1); hold on
 title('Atx - Rest')
 
 % area(deg_atx(:,1),'facecolor',[0.8 0.8 0.8],'edgecolor',[1 1 1]);
-plot(deg_atx(:,1),'k')
-plot(deg_atx(:,2),'k','linestyle',':');
+plot(outp_atx_rest.tot_degree(:,1),'k')
+plot(outp_atx_rest.tot_degree(:,2),'k','linestyle',':');
 % area(deg_atx_task(:,1),'facecolor',[0.9 0.9 0.9],'edgecolor',[1 1 1]);
 % plot(deg_atx_task(:,1),'color',[0 0 0],'linestyle',':')
 % k = area(deg_atx(:,2),'facecolor',[1 0.5 0.2],'edgecolor',[0.8 0.8 0.8]);
@@ -59,23 +54,23 @@ plot(deg_atx(:,2),'k','linestyle',':');
 set(gca,'tickdir','out','xtick',[1 5 9 13 17 21 25],'xticklabel',[2 4 8 16 32 64 128])
 xlabel('Carrier frequency [Hz]'); ylabel('Degree [%]')
 tp_editplots
-axis([0 length(foi_range) 0 0.4]);
+axis([0 length(foi_range) 0 0.3]);
 
 subplot(3,2,2); hold on
 title('Atx - Task')
-plot(deg_atx_task(:,1),'k')
-plot(deg_atx_task(:,2),'k','linestyle',':');
+plot(outp_atx_task.tot_degree(:,1),'k')
+plot(outp_atx_task.tot_degree(:,2),'k','linestyle',':');
 % k = area(deg_atx_task(:,2),'facecolor',[1 0.5 0.2],'edgecolor',[0.8 0.8 0.8]);
 % alpha(k,0.6)
 set(gca,'tickdir','out','xtick',[1 5 9 13 17 21 25],'xticklabel',[2 4 8 16 32 64 128])
 xlabel('Carrier frequency [Hz]'); ylabel('Degree [%]')
 tp_editplots
-axis([0 length(foi_range) 0 0.4]);
+axis([0 length(foi_range) 0 0.3]);
 
 subplot(3,2,3); hold on
 title('Dpz - Rest')
-plot(deg_dpz(:,1),'k')
-plot(deg_dpz(:,2),'k','linestyle',':');
+plot(outp_dpz_rest.tot_degree(:,1),'k')
+plot(outp_dpz_rest.tot_degree(:,2),'k','linestyle',':');
 % area(deg_dpz(:,1),'facecolor',[0.8 0.8 0.8],'edgecolor',[1 1 1]);
 % k = area(deg_dpz(:,2),'facecolor',[0.2 0.5 1],'edgecolor',[0.8 0.8 0.8]);
 % alpha(k,0.6)
@@ -86,8 +81,8 @@ axis([0 length(foi_range) 0 0.4]);
 
 subplot(3,2,4); hold on
 title('Dpz - Task')
-plot(deg_dpz_task(:,1),'k')
-plot(deg_dpz_task(:,2),'k','linestyle',':');
+plot(outp_dpz_task.tot_degree(:,1),'k')
+plot(outp_dpz_task.tot_degree(:,2),'k','linestyle',':');
 % area(deg_dpz_task(:,1),'facecolor',[0.8 0.8 0.8],'edgecolor',[1 1 1]);
 % k = area(deg_dpz_task(:,2),'fvacecolor',[0.2 0.5 1],'edgecolor',[0.8 0.8 0.8]);
 % alpha(k,0.6)
@@ -98,9 +93,9 @@ axis([0 length(foi_range) 0 0.4]);
 
 print(gcf,'-dpdf',sprintf('~/pupmod/plots/pupmod_powcorr_degree_abs%d_rel%d_v%d.pdf',para.absolute,para.relative_degree,v))
 %% CONCATENATE PERMUTATONS AND COMPUTE STATS
-v = 12;
-nperm = 50000; 
-par.subs = 100;
+v = 23;
+nperm = 10000; 
+par.subs = 250;
 par.allperms = nperm/par.subs;
 
 for iperm = 1 : par.allperms
@@ -116,23 +111,23 @@ end
 
 clear outp
 
-for ifoi = 1 : 13
+for ifoi = 1 : 25
   
   ifoi 
-  p_atx_task(ifoi) = 1-sum(abs(deg_atx_task(ifoi,2)-deg_atx_task(ifoi,1)) > abs(squeeze(perm_k_atx(ifoi,2,2,:)-perm_k_atx(ifoi,1,2,:))))/50000;
-  p_atx_rest(ifoi) = 1-sum(abs(deg_atx(ifoi,2)-deg_atx(ifoi,1)) > abs(squeeze(perm_k_atx(ifoi,2,1,:)-perm_k_atx(ifoi,1,1,:))))/50000;
-  p_dpz_rest(ifoi) = 1-sum(abs(deg_dpz(ifoi,2)-deg_dpz(ifoi,1)) > abs(squeeze(perm_k_dpz(ifoi,2,1,:)-perm_k_dpz(ifoi,1,1,:))))/50000;
-  p_dpz_task(ifoi) = 1-sum(abs(deg_dpz_task(ifoi,2)-deg_dpz_task(ifoi,1)) > abs(squeeze(perm_k_dpz(ifoi,2,2,:)-perm_k_dpz(ifoi,1,2,:))))/50000;
+  p_atx_task(ifoi) = 1-sum(abs(deg_atx_task(ifoi,2)-deg_atx_task(ifoi,1)) > abs(squeeze(perm_k_atx(ifoi,2,2,:)-perm_k_atx(ifoi,1,2,:))))/nperm;
+  p_atx_rest(ifoi) = 1-sum(abs(deg_atx(ifoi,2)-deg_atx(ifoi,1)) > abs(squeeze(perm_k_atx(ifoi,2,1,:)-perm_k_atx(ifoi,1,1,:))))/nperm;
+  p_dpz_rest(ifoi) = 1-sum(abs(deg_dpz(ifoi,2)-deg_dpz(ifoi,1)) > abs(squeeze(perm_k_dpz(ifoi,2,1,:)-perm_k_dpz(ifoi,1,1,:))))/nperm;
+  p_dpz_task(ifoi) = 1-sum(abs(deg_dpz_task(ifoi,2)-deg_dpz_task(ifoi,1)) > abs(squeeze(perm_k_dpz(ifoi,2,2,:)-perm_k_dpz(ifoi,1,2,:))))/nperm;
   
-  p_atx_vox_task(:,ifoi) = 1-sum(abs(deg_atx_task_vox(:,ifoi,2)-deg_atx_task_vox(:,ifoi,1)) > abs(squeeze(perm_k_atx_vox(:,ifoi,2,2,:)-perm_k_atx_vox(:,ifoi,1,2,:))),2)/50000;
-  p_atx_vox_rest(:,ifoi) = 1-sum(abs(deg_atx_vox(:,ifoi,2)-deg_atx_vox(:,ifoi,1)) > abs(squeeze(perm_k_atx_vox(:,ifoi,2,1,:)-perm_k_atx_vox(:,ifoi,1,1,:))),2)/50000;
-  p_dpz_vox_rest(:,ifoi) = 1-sum(abs(deg_dpz_vox(:,ifoi,2)-deg_dpz_vox(:,ifoi,1)) > abs(squeeze(perm_k_dpz_vox(:,ifoi,2,1,:)-perm_k_dpz_vox(:,ifoi,1,1,:))),2)/50000;
-  p_dpz_vox_task(:,ifoi) = 1-sum(abs(deg_dpz_task_vox(:,ifoi,2)-deg_dpz_task_vox(:,ifoi,1)) > abs(squeeze(perm_k_dpz_vox(:,ifoi,2,2,:)-perm_k_dpz_vox(:,ifoi,1,2,:))),2)/50000;
+  p_atx_vox_task(:,ifoi) = 1-sum(abs(deg_atx_task_vox(:,ifoi,2)-deg_atx_task_vox(:,ifoi,1)) > abs(squeeze(perm_k_atx_vox(:,ifoi,2,2,:)-perm_k_atx_vox(:,ifoi,1,2,:))),2)/nperm;
+  p_atx_vox_rest(:,ifoi) = 1-sum(abs(deg_atx_vox(:,ifoi,2)-deg_atx_vox(:,ifoi,1)) > abs(squeeze(perm_k_atx_vox(:,ifoi,2,1,:)-perm_k_atx_vox(:,ifoi,1,1,:))),2)/nperm;
+  p_dpz_vox_rest(:,ifoi) = 1-sum(abs(deg_dpz_vox(:,ifoi,2)-deg_dpz_vox(:,ifoi,1)) > abs(squeeze(perm_k_dpz_vox(:,ifoi,2,1,:)-perm_k_dpz_vox(:,ifoi,1,1,:))),2)/nperm;
+  p_dpz_vox_task(:,ifoi) = 1-sum(abs(deg_dpz_task_vox(:,ifoi,2)-deg_dpz_task_vox(:,ifoi,1)) > abs(squeeze(perm_k_dpz_vox(:,ifoi,2,2,:)-perm_k_dpz_vox(:,ifoi,1,2,:))),2)/nperm;
   
 
 end
 
-clear perm_k_atx perm_k_dpz perm_k_atx_vox perm_k_dpz_vox
+% clear perm_k_atx perm_k_dpz perm_k_atx_vox perm_k_dpz_vox
 %% PLOT ON SURFACE
 ifoi = 13;
 % icond = 2;
@@ -168,7 +163,7 @@ interp_dpz(:,2) = spatfiltergauss(var2plot_dpz(:,2),g1,dd,g2);
 %% PLOT DEGREE, PLACEBO
 % --------------------------------
 
-for ifoi = 1: 25
+for ifoi = 10:12
   for icond = 1 :2
 % ifoi = 1; icond = 1;
 
@@ -196,6 +191,19 @@ par = deg_atx_task_vox(:,ifoi,icond);
 % cmap      = [cmap(50:end-15,:); 0.98*ones(1,3); cmap(50:end-15,:)];
 para      = [];
 para.clim = [0.1 0.5]
+para.cmap = cmap;
+para.grid = grid;
+para.dd   = 0.75;
+para.fn = sprintf('~/pupmod/plots/pupmod_plot_degree_atx_task_f%s_c%d_v%d.png',regexprep(num2str(ifoi),' ',''),icond,v);
+tp_plot_surface(par,para);
+
+
+par = deg_atx_task_vox(:,ifoi,2)-deg_atx_task_vox(:,ifoi,1);
+cmap = cbrewer('div', 'RdBu', 256,'pchip'); cmap = cmap(end:-1:1,:);
+
+% cmap      = [cmap(50:end-15,:); 0.98*ones(1,3); cmap(50:end-15,:)];
+para      = [];
+para.clim = [-0.3 0.3]
 para.cmap = cmap;
 para.grid = grid;
 para.dd   = 0.75;
