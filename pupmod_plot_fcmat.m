@@ -411,7 +411,26 @@ for isubj = SUBJLIST
 end
 
 
-%% A FEW VERY BASIC ANALYSES
+%% CORRELATIONS ACROSS FREQS
+mask    = logical(triu(ones(400,400),1));
+for icond = 1 : 1
+for ifreq1 = 1 : 25
+  ifreq1
+  for ifreq2 = 1 : 25
+    
+    tmp1 = nanmean(cleandat(:,:,:,2,icond,ifreq1),3); tmp1 = tmp1(mask);
+    tmp2 = nanmean(cleandat(:,:,:,2,icond,ifreq2),3); tmp2 = tmp2(mask);
+    
+    r(ifreq1,ifreq2,icond) = corr(tmp1,tmp2);
+        
+  end
+end
+end
+
+%%
+
+
+% A FEW VERY BASIC ANALYSES
 clear r
 
 % Correlate ATX effect across blocks

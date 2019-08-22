@@ -18,7 +18,6 @@ SUBJLIST  = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 3
 
 %%
 
-fcsize = size(cleandat,1);
 mask    = logical(triu(ones(400,400),1));
 para = [];
 para.alpha = 0.01;
@@ -27,9 +26,10 @@ para.absolute = 0;
 para.relative_degree = 1;
 para.clustering = 1;
 para.transitivity = 1;
-
+para.charpath = 1;
 
 cleandat = pupmod_loadpowcorr(v,SUBJLIST,1);
+fcsize = size(cleandat,1);
 
 tmp = clock;
 
@@ -54,13 +54,13 @@ fcsize = size(cleandat,1);
 % clear cleandat
 
 for iperm = 1 : par.allperms
-  
+%   
   if ~exist(sprintf(['~/pupmod/proc/' 'pupmod_src_degree_permtest_iperm%d_nperm%d_v%d_processing.txt'],iperm,nperm,v))
     system(['touch ' '~/pupmod/proc/' sprintf('pupmod_src_degree_permtest_iperm%d_nperm%d_v%d_processing.txt',iperm,nperm,v)]);
   else
     continue
   end
-  
+%   
   for kperm = 1 : par.subs
     
     iiperm = (iperm-1)*par.subs+kperm;
@@ -104,23 +104,46 @@ for iperm = 1 : par.allperms
 %       para = [];
       para.alpha = 0.01;
       para.nfreq = 25;
+      
+      graph_atx = tp_degree(permdat_atx(:,:,:,:,icond,:),para);
+      graph_dpz = tp_degree(permdat_atx(:,:,:,:,icond,:),para);
 
-      deg_atx(:,:,:,:,icond) = tp_degree(permdat_atx(:,:,:,:,icond,:),para);
-      deg_dpz(:,:,:,:,icond) = tp_degree(permdat_dpz(:,:,:,:,icond,:),para);
+      % total degree
+      outp.perm_k_atx(:,:,icond,kperm) = graph_atx.tot_degree;
+      outp.perm_k_dpz(:,:,icond,kperm) = graph_dpz.tot_degree;
+      
+      % degree per voxel
+      outp.perm_k_atx_pervoxel(:,:,:,icond,kperm) = graph_atx.node_degree;
+      outp.perm_k_dpz_pervoxel(:,:,:,icond,kperm) = graph_dpz.node_degree;
+            
+      % clustering coeff
+      outp.perm_clust_atx(:,:,icond,kperm) = squeeze(mean(graph_atx.clust));
+      outp.perm_clust_dpz(:,:,icond,kperm) = squeeze(mean(graph_dpz.clust));
+      
+      % clustering coeff per voxel
+      outp.perm_clust_atx_pervoxel(:,:,:,icond,kperm) = graph_atx.clust;
+      outp.perm_clust_dpz_pervoxel(:,:,:,icond,kperm) = graph_dpz.clust;
+      
+      % transitivity
+      outp.perm_trans_atx(:,:,icond,kperm) = graph_atx.transitivity;
+      outp.perm_trans_dpz(:,:,icond,kperm) = graph_dpz.transitivity;
+      
+      % char path
+      outp.perm_charpath_atx(:,:,icond,kperm) = graph_atx.charpath;
+      outp.perm_charpath_dpz(:,:,icond,kperm) = graph_dpz.charpath;
+      
+      % compute both for task vs rest
+%       deg_tvr = tp_degree(taskvsrest_perm,para);
+%       outp.perm_k_tvr(:,:,icond,kperm) = nansum(reshape(deg_tvr,[fcsize^2 para.nfreq 2]))/fcsize^2;
+%       outp.perm_k_tvr_pervoxel(:,:,icond,kperm) = squeeze(nansum((deg_tvr)))/fcsize;
+    
+%       deg_atx(:,:,:,:,icond) = tp_degree(permdat_atx(:,:,:,:,icond,:),para);
+%       deg_dpz(:,:,:,:,icond) = tp_degree(permdat_dpz(:,:,:,:,icond,:),para);
 
     end
     
     % compute global degree 
-    outp.perm_k_atx(:,:,:,kperm) = squeeze(nansum(reshape(deg_atx,[fcsize^2 para.nfreq 2 2]))/fcsize^2);
-    outp.perm_k_dpz(:,:,:,kperm) = squeeze(nansum(reshape(deg_dpz,[fcsize^2 para.nfreq 2 2]))/fcsize^2);
-    % compute degree per voxel
-    outp.perm_k_atx_pervoxel(:,:,:,:,kperm) = squeeze(nansum((deg_atx)))/fcsize;
-    outp.perm_k_dpz_pervoxel(:,:,:,:,kperm) = squeeze(nansum((deg_dpz)))/fcsize;
-    % compute both for task vs rest
-    deg_tvr = tp_degree(taskvsrest_perm,para);
-    outp.perm_k_tvr(:,:,:,kperm) = nansum(reshape(deg_tvr,[fcsize^2 para.nfreq 2]))/fcsize^2;
-    outp.perm_k_tvr_pervoxel(:,:,:,kperm) = squeeze(nansum((deg_tvr)))/fcsize;
-    
+   
   end
     
   save(sprintf(['~/pupmod/proc/pupmod_src_degree_permtest_iperm%d_nperm%d_v%d.mat'],iperm,nperm,v),'outp');

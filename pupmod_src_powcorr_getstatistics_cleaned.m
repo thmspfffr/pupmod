@@ -1,4 +1,4 @@
-function [outp] = pupmod_src_powcorr_getstatistics_2nd(cleandat,para)
+function [outp] = pupmod_src_powcorr_getstatistics(para)
 %% OBTAIN CORRECTED STATISTICAL THRESHOLDS FROM PERMUTATION DISTRIBUTIONS
 % This function obtains corrected statstical thresholds based on Hawellek
 % et al. (2013) Journal of Neuroscience.
@@ -56,20 +56,20 @@ allperms = para.nperm/para.nsubs;
 if ~isfield(para,'alpha'); alpha = 0.05; end
 if ~isfield(para,'cleaned'); para.cleaned = 0; end
 if ~isfield(para,'alp'); alp = 0.05; fprintf('Alpha: 0.05 (default)\n'); end
-if ~isfield(para,'nfreq'); para.nfreq = 1:13; fprintf('Freqs: all (default)\n');end
+if ~isfield(para,'nfreq'); para.nfreq = 13; fprintf('Freqs: all (default)\n');end
 if ~isfield(para,'correction_method'); para.correction_method = 'ranks'; fprintf('Correction: ranks (default)\n'); end
 if ~isfield(para,'type'); para.type = 'global'; fprintf('Type: global (default)\n'); end
 if strcmp(para.type,'local') && strcmp(para.correction_method,'single_threshold')
   error('Correction method based on single thresholds is not implemented on a voxel-level! Use ''ranks'' instead.')
 end
 SUBJLIST  = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
-if ~isfield(para,'empirical')
+if ~isfield(para,'emp')
   fprintf('Loading data...\n')
-%   cleandat = pupmod_loadpowcorr(para.ver,SUBJLIST,1);
+  load(sprintf(['~/pupmod/proc/conn/pupmod_src_powcorr_cleaned_within_v%d.mat'],v));
   emp = pupmod_compute_altered_correlations(cleandat,para);
   para.fcsize = size(cleandat,1);
 else
-  emp = para.empirical;
+  emp = para.emp;
   para.fcsize = size(emp.n_p_atx_pervoxel,1);
 end
 
@@ -87,14 +87,16 @@ end
 clear cleandat s_fc
 %% LOAD PERMUTATION DISTRIBUTION
 % --------------------------
+d=dir(sprintf('~/pupmod/proc/conn/pupmod_src_powcorr_permtest_cleaned*iperm*v%d.mat',para.ver));
+load([d(1).folder '/' d(1).name])
+nperm = length(d)*par.subs;
 
 if strcmp(para.type, 'global')
-  for iperm = 1 : allperms
+  for iperm = 1 : length(d)
     
-    fprintf('Load permutation distributions: %d / %d ...\n',iperm,allperms)
+    fprintf('Load permutation distributions: %d / %d ...\n',iperm,length(d))
     
-    load(sprintf(['~/pupmod/proc/conn/pupmod_src_powcorr_second_permtest_iperm%d_nperm%d_v%d.mat'],iperm,para.nperm,para.ver),'par')
-
+    load([d(iperm).folder '/' d(iperm).name])
     % --------------
     % ATOMOXETINE: global effects
     % --------------
@@ -145,6 +147,7 @@ if strcmp(para.type, 'global')
     % MULTIPLE COMPARISONS CORRECTION BASED ON RANKS
     % See Hawellek et al. (2013) Journal of Neuroscience
     % --------------------------
+    r = 1 : size(para.nperm,1);
     
     for ifreq = para.nfreq
       
@@ -187,130 +190,26 @@ if strcmp(para.type, 'global')
     Rmax_tvr_n = max(R_tvr_n,[],2);
     Rmax_tvr_p = max(R_tvr_p,[],2);
     
-    Dmax_res1_p_corr = zeros(para.nperm,para.nfreq);
-    Dmax_res1_n_corr = zeros(para.nperm,para.nfreq);
-    Dmax_cnt1_p_corr = zeros(para.nperm,para.nfreq);
-    Dmax_cnt1_n_corr = zeros(para.nperm,para.nfreq);
-    Dmax_context1_p_corr  = zeros(para.nperm,para.nfreq);
-    Dmax_context1_n_corr  = zeros(para.nperm,para.nfreq);
+    Dmax_res1_p_corr = zeros(para.nperm,13);
+    Dmax_res1_n_corr = zeros(para.nperm,13);
+    Dmax_cnt1_p_corr = zeros(para.nperm,13);
+    Dmax_cnt1_n_corr = zeros(para.nperm,13);
+    Dmax_context1_p_corr  = zeros(para.nperm,13);
+    Dmax_context1_n_corr  = zeros(para.nperm,13);
     
-    Dmax_res2_p_corr = zeros(para.nperm,para.nfreq);
-    Dmax_res2_n_corr = zeros(para.nperm,para.nfreq);
-    Dmax_cnt2_p_corr = zeros(para.nperm,para.nfreq);
-    Dmax_cnt2_n_corr = zeros(para.nperm,para.nfreq);
-    Dmax_context2_p_corr  = zeros(para.nperm,para.nfreq);
-    Dmax_context2_n_corr  = zeros(para.nperm,para.nfreq);
+    Dmax_res2_p_corr = zeros(para.nperm,13);
+    Dmax_res2_n_corr = zeros(para.nperm,13);
+    Dmax_cnt2_p_corr = zeros(para.nperm,13);
+    Dmax_cnt2_n_corr = zeros(para.nperm,13);
+    Dmax_context2_p_corr  = zeros(para.nperm,13);
+    Dmax_context2_n_corr  = zeros(para.nperm,13);
     
-    Dmax_tvr_p_corr = zeros(para.nperm,para.nfreq);
-    Dmax_tvr_n_corr = zeros(para.nperm,para.nfreq);
-    
-    for ifreq = para.nfreq
-      fprintf('Obtaining corrected p-values: freq%d ...\n',ifreq)
-      for irank = 1 : para.nperm
-        
-        Dmax_res1_p_corr(irank,ifreq) = perm_n_p_atx( R_res1_p(:,ifreq) == Rmax_res1_p(irank), ifreq, 1);
-        Dmax_res1_n_corr(irank,ifreq) = perm_n_n_atx( R_res1_n(:,ifreq) == Rmax_res1_n(irank), ifreq, 1);
-        Dmax_cnt1_p_corr(irank,ifreq) = perm_n_p_atx( R_cnt1_p(:,ifreq) == Rmax_cnt1_p(irank), ifreq, 2);
-        Dmax_cnt1_n_corr(irank,ifreq) = perm_n_n_atx( R_cnt1_n(:,ifreq) == Rmax_cnt1_n(irank), ifreq, 2);
-        Dmax_context1_p_corr(irank,ifreq)  = context_allconn_atx_p (R_context1_p(:,ifreq) == Rmax_context1_p(irank), ifreq);
-        Dmax_context1_n_corr(irank,ifreq)  = context_allconn_atx_n (R_context1_n(:,ifreq) == Rmax_context1_n(irank), ifreq);
-        
-        Dmax_res2_p_corr(irank,ifreq) = perm_n_p_dpz( R_res2_p(:,ifreq) == Rmax_res2_p(irank), ifreq, 1);
-        Dmax_res2_n_corr(irank,ifreq) = perm_n_n_dpz( R_res2_n(:,ifreq) == Rmax_res2_n(irank), ifreq, 1);
-        Dmax_cnt2_p_corr(irank,ifreq) = perm_n_p_dpz( R_cnt2_p(:,ifreq) == Rmax_cnt2_p(irank), ifreq, 2);
-        Dmax_cnt2_n_corr(irank,ifreq) = perm_n_n_dpz( R_cnt2_n(:,ifreq) == Rmax_cnt2_n(irank), ifreq, 2);
-        Dmax_context2_p_corr(irank,ifreq)  = context_allconn_dpz_p (R_context2_p(:,ifreq) == Rmax_context2_p(irank), ifreq);
-        Dmax_context2_n_corr(irank,ifreq)  = context_allconn_dpz_n (R_context2_n(:,ifreq) == Rmax_context2_n(irank), ifreq);
-        
-        Dmax_tvr_n_corr(irank,ifreq) = perm_taskvsrest_n_p( R_tvr_n(:,ifreq) == Rmax_tvr_n(irank), ifreq);
-        Dmax_tvr_p_corr(irank,ifreq) = perm_taskvsrest_n_n( R_tvr_p(:,ifreq) == Rmax_tvr_p(irank), ifreq);
-      end
-      
-      % ---------------------------
-      % OBTAIN CORRECTED P-VALUES
-      % ---------------------------
-      % Be careful here to test two-sided!!!
-      outp.p_res1_p(ifreq) = 1-sum(abs(emp.n_p_atx(ifreq,1))>abs(Dmax_res1_p_corr(:,ifreq)))/para.nperm;
-      outp.p_res1_n(ifreq) = 1-sum(abs(emp.n_n_atx(ifreq,1))>abs(Dmax_res1_n_corr(:,ifreq)))/para.nperm;
-      outp.p_cnt1_p(ifreq) = 1-sum(abs(emp.n_p_atx(ifreq,2))>abs(Dmax_cnt1_p_corr(:,ifreq)))/para.nperm;
-      outp.p_cnt1_n(ifreq) = 1-sum(abs(emp.n_n_atx(ifreq,2))>abs(Dmax_cnt1_n_corr(:,ifreq)))/para.nperm;
-      outp.p_context1_p(ifreq) = 1-sum(abs(emp.n_p_context_atx(ifreq))>abs(Dmax_context1_p_corr(:,ifreq)))/para.nperm;
-      outp.p_context1_n(ifreq) = 1-sum(abs(emp.n_n_context_atx(ifreq))>abs(Dmax_context1_n_corr(:,ifreq)))/para.nperm;
-      
-      outp.p_res2_p(ifreq) = 1-sum(abs(emp.n_p_dpz(ifreq,1))>abs(Dmax_res2_p_corr(:,ifreq)))/para.nperm;
-      outp.p_res2_n(ifreq) = 1-sum(abs(emp.n_n_dpz(ifreq,1))>abs(Dmax_res2_n_corr(:,ifreq)))/para.nperm;
-      outp.p_cnt2_p(ifreq) = 1-sum(abs(emp.n_p_dpz(ifreq,2))>abs(Dmax_cnt2_p_corr(:,ifreq)))/para.nperm;
-      outp.p_cnt2_n(ifreq) = 1-sum(abs(emp.n_n_dpz(ifreq,2))>abs(Dmax_cnt2_n_corr(:,ifreq)))/para.nperm;
-      outp.p_context2_p(ifreq) = 1-sum(abs(emp.n_p_context_dpz(ifreq))>abs(Dmax_context2_p_corr(:,ifreq)))/para.nperm;
-      outp.p_context2_n(ifreq) = 1-sum(abs(emp.n_n_context_dpz(ifreq))>abs(Dmax_context2_n_corr(:,ifreq)))/para.nperm;
-      
-      outp.p_tvr_p(ifreq) = 1-sum(emp.taskvsrest_p(ifreq)>Dmax_tvr_p_corr(:,ifreq))/para.nperm;
-      outp.p_tvr_n(ifreq) = 1-sum(emp.taskvsrest_n(ifreq)>Dmax_tvr_n_corr(:,ifreq))/para.nperm;
-    end
-    
-  elseif strcmp(para.correction_method, 'zscore')
-    
-    for ifreq = para.nfreq
-      
-      % GLOBAL EFFECTS
-      % ------------------
-      % ATOMOXETINE
-      [~,R_res1_n(:,ifreq)] = sort(perm_n_n_atx(:,ifreq,1),'ascend');
-      [~,R_res1_p(:,ifreq)] = sort(perm_n_p_atx(:,ifreq,1),'ascend');
-      [~,R_cnt1_n(:,ifreq)] = sort(perm_n_n_atx(:,ifreq,2),'ascend');
-      [~,R_cnt1_p(:,ifreq)] = sort(perm_n_p_atx(:,ifreq,2),'ascend');
-      [~,R_context1_p(:,ifreq)] = sort(context_allconn_atx_p(:,ifreq),'ascend');
-      [~,R_context1_n(:,ifreq)] = sort(context_allconn_atx_n(:,ifreq),'ascend');
-      
-      [~,R_res2_n(:,ifreq)] = sort(perm_n_n_dpz(:,ifreq,1),'ascend');
-      [~,R_res2_p(:,ifreq)] = sort(perm_n_p_dpz(:,ifreq,1),'ascend');
-      [~,R_cnt2_n(:,ifreq)] = sort(perm_n_n_dpz(:,ifreq,2),'ascend');
-      [~,R_cnt2_p(:,ifreq)] = sort(perm_n_p_dpz(:,ifreq,2),'ascend');
-      [~,R_context2_p(:,ifreq)] = sort(context_allconn_dpz_p(:,ifreq),'ascend');
-      [~,R_context2_n(:,ifreq)] = sort(context_allconn_dpz_n(:,ifreq),'ascend');
-      % TASK VS REST
-      [~,R_tvr_p(:,ifreq)] = sort(perm_taskvsrest_n_p(:,ifreq,1),'ascend');
-      [~,R_tvr_n(:,ifreq)] = sort(perm_taskvsrest_n_n(:,ifreq,1),'ascend');
-    end
-    
-    
-    Rmax_res1_n = max(R_res1_n,[],2);
-    Rmax_res1_p = max(R_res1_p,[],2);
-    Rmax_cnt1_p = max(R_cnt1_p,[],2);
-    Rmax_cnt1_n = max(R_cnt1_n,[],2);
-    Rmax_context1_p = max(R_context1_p,[],2);
-    Rmax_context1_n = max(R_context1_n,[],2);
-    
-    Rmax_res2_n = max(R_res2_n,[],2);
-    Rmax_res2_p = max(R_res2_p,[],2);
-    Rmax_cnt2_p = max(R_cnt2_p,[],2);
-    Rmax_cnt2_n = max(R_cnt2_n,[],2);
-    Rmax_context2_p = max(R_context2_p,[],2);
-    Rmax_context2_n = max(R_context2_n,[],2);
-    
-    Rmax_tvr_n = max(R_tvr_n,[],2);
-    Rmax_tvr_p = max(R_tvr_p,[],2);
-    
-    Dmax_res1_p_corr = zeros(para.nperm,para.nfreq);
-    Dmax_res1_n_corr = zeros(para.nperm,para.nfreq);
-    Dmax_cnt1_p_corr = zeros(para.nperm,para.nfreq);
-    Dmax_cnt1_n_corr = zeros(para.nperm,para.nfreq);
-    Dmax_context1_p_corr  = zeros(para.nperm,para.nfreq);
-    Dmax_context1_n_corr  = zeros(para.nperm,para.nfreq);
-    
-    Dmax_res2_p_corr = zeros(para.nperm,para.nfreq);
-    Dmax_res2_n_corr = zeros(para.nperm,para.nfreq);
-    Dmax_cnt2_p_corr = zeros(para.nperm,para.nfreq);
-    Dmax_cnt2_n_corr = zeros(para.nperm,para.nfreq);
-    Dmax_context2_p_corr  = zeros(para.nperm,para.nfreq);
-    Dmax_context2_n_corr  = zeros(para.nperm,para.nfreq);
-    
-    Dmax_tvr_p_corr = zeros(para.nperm,para.nfreq);
-    Dmax_tvr_n_corr = zeros(para.nperm,para.nfreq);
+    Dmax_tvr_p_corr = zeros(para.nperm,13);
+    Dmax_tvr_n_corr = zeros(para.nperm,13);
     
     for ifreq = para.nfreq
       fprintf('Obtaining corrected p-values: freq%d ...\n',ifreq)
-      for irank = 1 : para.nperm
+      for irank = 1 : nperm
         
         Dmax_res1_p_corr(irank,ifreq) = perm_n_p_atx( R_res1_p(:,ifreq) == Rmax_res1_p(irank), ifreq, 1);
         Dmax_res1_n_corr(irank,ifreq) = perm_n_n_atx( R_res1_n(:,ifreq) == Rmax_res1_n(irank), ifreq, 1);
@@ -379,8 +278,8 @@ if strcmp(para.type, 'global')
     idx_R_context2_n = max(abs(context_allconn_dpz_n),[],2);
     % TASK VS REST
     % ------------------
-    idx_R_taskvsrest_p        = max(abs(taskvsrest_p_perm),[],2);
-    idx_R_taskvsrest_n        = max(abs(taskvsrest_n_perm),[],2);
+%     idx_R_taskvsrest_p        = max(abs(taskvsrest_p_perm),[],2);
+%     idx_R_taskvsrest_n        = max(abs(taskvsrest_n_perm),[],2);
     
     
     idx_R_doubledissociation  = max(perm_doubledissociation,[],2);
@@ -394,8 +293,8 @@ if strcmp(para.type, 'global')
       outp.p_cnt1_n(ifreq) = 1-sum(abs(emp.n_n_atx(ifreq,2))>abs(idx_R_cnt1_n))/nperm;
       outp.p_cnt_atx_all(ifreq) = 1-sum(abs(emp.atx(ifreq,2))>abs(idx_R_cnt1_all))/nperm;
       outp.p_res_atx_all(ifreq) = 1-sum(abs(emp.atx(ifreq,1))>abs(idx_R_res1_all))/nperm;
-      outp.p_context_atx_p(ifreq) = 1-sum(abs(emp.n_p_context_atx(ifreq,1))>abs(idx_R_context1_p))/nperm;
-      outp.p_context_atx_n(ifreq) = 1-sum(abs(emp.n_n_context_atx(ifreq,1))>abs(idx_R_context1_n))/nperm;
+%       outp.p_context_atx_p(ifreq) = 1-sum(abs(emp.n_p_context_atx(ifreq,1))>abs(idx_R_context1_p))/nperm;
+%       outp.p_context_atx_n(ifreq) = 1-sum(abs(emp.n_n_context_atx(ifreq,1))>abs(idx_R_context1_n))/nperm;
       
       % DONEPEZIL
       % ------------------
@@ -405,12 +304,28 @@ if strcmp(para.type, 'global')
       outp.p_cnt2_n(ifreq) = 1-sum(abs(emp.n_n_dpz(ifreq,2))>abs(idx_R_cnt2_n))/nperm;
       outp.p_cnt_dpz_all(ifreq) = 1-sum(abs(emp.dpz(ifreq,2))>idx_R_cnt2_all)/nperm;
       outp.p_res_dpz_all(ifreq) = 1-sum(abs(emp.dpz(ifreq,1))>idx_R_res2_all)/nperm;
-      outp.p_context_dpz_p(ifreq) = 1-sum(abs(emp.n_p_context_dpz(ifreq,1))>abs(idx_R_context2_p))/nperm;
-      outp.p_context_dpz_n(ifreq) = 1-sum(abs(emp.n_n_context_dpz(ifreq,1))>abs(idx_R_context2_n))/nperm;
+%       outp.p_context_dpz_p(ifreq) = 1-sum(abs(emp.n_p_context_dpz(ifreq,1))>abs(idx_R_context2_p))/nperm;
+%       outp.p_context_dpz_n(ifreq) = 1-sum(abs(emp.n_n_context_dpz(ifreq,1))>abs(idx_R_context2_n))/nperm;
       % TASK VS REST
       % ------------------
-      outp.pval_taskvsrest_p_corr(ifreq) = 1-sum(abs(emp.taskvsrest_p(ifreq))>idx_R_taskvsrest_p(:,ifreq))/nperm;
-      outp.pval_taskvsrest_n_corr(ifreq) = 1-sum(abs(emp.taskvsrest_n(ifreq))>idx_R_taskvsrest_n(:,ifreq))/nperm;
+%       outp.pval_taskvsrest_p_corr(ifreq) = 1-sum(abs(emp.taskvsrest_p(ifreq))>idx_R_taskvsrest_p(:,ifreq))/nperm;
+%       outp.pval_taskvsrest_n_corr(ifreq) = 1-sum(abs(emp.taskvsrest_n(ifreq))>idx_R_taskvsrest_n(:,ifreq))/nperm;
+    end
+    
+  elseif strcmp(para.correction_method,'uncorrected')
+    for ifreq=  para.nfreq
+      outp.p_res1_p(ifreq)=1-sum(abs(emp.n_p_atx(ifreq,1))>abs(perm_n_p_atx(:,ifreq,1)))/nperm;
+      outp.p_res1_n(ifreq)=1-sum(abs(emp.n_n_atx(ifreq,1))>abs(perm_n_n_atx(:,ifreq,1)))/nperm;
+      
+      outp.p_cnt1_p(ifreq)=1-sum(abs(emp.n_p_atx(ifreq,2))>abs(perm_n_p_atx(:,ifreq,2)))/nperm;
+      outp.p_cnt1_n(ifreq)=1-sum(abs(emp.n_n_atx(ifreq,2))>abs(perm_n_n_atx(:,ifreq,2)))/nperm;
+      
+      outp.p_res2_p(ifreq)=1-sum(abs(emp.n_p_dpz(ifreq,1))>abs(perm_n_p_dpz(:,ifreq,1)))/nperm;
+      outp.p_res2_n(ifreq)=1-sum(abs(emp.n_n_dpz(ifreq,1))>abs(perm_n_n_dpz(:,ifreq,1)))/nperm;
+      
+      outp.p_cnt2_p(ifreq)=1-sum(abs(emp.n_p_dpz(ifreq,2))>abs(perm_n_p_dpz(:,ifreq,2)))/nperm;
+      outp.p_cnt2_n(ifreq)=1-sum(abs(emp.n_n_dpz(ifreq,2))>abs(perm_n_n_dpz(:,ifreq,2)))/nperm;
+ 
     end
   end
   
@@ -424,20 +339,20 @@ if strcmp(para.type, 'global')
 elseif strcmp(para.type,'local')
   
   if strcmp(para.cond,'atx') && strcmp(para.type,'local')
-    perm_n_p_atx_pervoxel = zeros(para.nperm,para.fcsize,length(para.nfreq),2,'single');
-    perm_n_n_atx_pervoxel = zeros(para.nperm,para.fcsize,length(para.nfreq),2,'single');
+    perm_n_p_atx_pervoxel = zeros(nperm,para.fcsize,length(para.nfreq),2,'single');
+    perm_n_n_atx_pervoxel = zeros(nperm,para.fcsize,length(para.nfreq),2,'single');
   elseif strcmp(para.cond,'dpz') && strcmp(para.type,'local')
-    perm_n_p_dpz_pervoxel = zeros(para.nperm,para.fcsize,length(para.nfreq),2,'single');
-    perm_n_n_dpz_pervoxel = zeros(para.nperm,para.fcsize,length(para.nfreq),2,'single');
+    perm_n_p_dpz_pervoxel = zeros(nperm,para.fcsize,length(para.nfreq),2,'single');
+    perm_n_n_dpz_pervoxel = zeros(nperm,para.fcsize,length(para.nfreq),2,'single');
   elseif strcmp(para.cond,'taskvsrest') && strcmp(para.type,'local')
-    perm_taskvsrest_n_p_pervoxel = zeros(para.nperm,para.fcsize,length(para.nfreq),'single');
-    perm_taskvsrest_n_n_pervoxel = zeros(para.nperm,para.fcsize,length(para.nfreq),'single');
+    perm_taskvsrest_n_p_pervoxel = zeros(nperm,para.fcsize,length(para.nfreq),'single');
+    perm_taskvsrest_n_n_pervoxel = zeros(nperm,para.fcsize,length(para.nfreq),'single');
   end
   for iperm = 1 : allperms
     
     fprintf('Concatenating permutation distribution: perm%d ...\n',iperm)
     
-    load(sprintf(['~/pupmod/proc/conn/pupmod_src_powcorr_second_permtest_iperm%d_nperm%d_v%d.mat'],iperm,para.nperm,para.ver),'par')
+    load(sprintf('~/pupmod/proc/conn/pupmod_src_powcorr_permtest_iperm%d_nperm%d_v%d.mat',iperm,para.nperm,para.ver),'par')
     
     if strcmp(para.cond,'atx') && strcmp(para.type,'local')
       % --------------
@@ -449,10 +364,9 @@ elseif strcmp(para.type,'local')
       % task (indicated by *cnt1* ending)
       perm_n_p_atx_pervoxel((iperm-1)*par.subs+1:(iperm)*par.subs,:,:,2) = permute(par.tperm_cnt1_pervoxel_p,[2 1 3]);
       perm_n_n_atx_pervoxel((iperm-1)*par.subs+1:(iperm)*par.subs,:,:,2) = permute(par.tperm_cnt1_pervoxel_n,[2 1 3]);
-            %       context-dependence: TO BE IMPLEMENTED
       perm_n_p_context_atx_pervoxel((iperm-1)*par.subs+1:(iperm)*par.subs,:,:,1) = permute(par.tperm_context_diff_atx_p_pervoxel,[2 1 3]);
       perm_n_n_context_atx_pervoxel((iperm-1)*par.subs+1:(iperm)*par.subs,:,:,1) = permute(par.tperm_context_diff_atx_n_pervoxel,[2 1 3]);
-      
+            
     elseif strcmp(para.cond,'dpz') && strcmp(para.type,'local')
       % --------------
       % DONEPEZIL: local effects
@@ -483,14 +397,14 @@ elseif strcmp(para.type,'local')
     
     for ifreq = para.nfreq
       
-      d_max_p  = squeeze(max(perm_n_p_atx_pervoxel(:,:,ifreq,:),[],2));
-      d_max_n  = squeeze(max(perm_n_n_atx_pervoxel(:,:,ifreq,:),[],2));
+      d_max_p     = squeeze(max(perm_n_p_atx_pervoxel(:,:,ifreq,:),[],2));
+      d_max_n     = squeeze(max(perm_n_n_atx_pervoxel(:,:,ifreq,:),[],2));
       d_max_ctx_p = squeeze(max(perm_n_p_context_atx_pervoxel(:,:,ifreq),[],2));
       d_max_ctx_n = squeeze(max(perm_n_n_context_atx_pervoxel(:,:,ifreq),[],2));
       
       for ivox = 1 : para.fcsize
-        outp.pval_p_atx(ivox,:,ifreq)   = 1-sum(squeeze(para.emp.n_p_atx_pervoxel(ivox,ifreq,:))' > d_max_p)./para.nperm;
-        outp.pval_n_atx(ivox,:,ifreq)   = 1-sum(squeeze(para.emp.n_n_atx_pervoxel(ivox,ifreq,:))' > d_max_n)./para.nperm;
+        outp.pval_p_atx(ivox,:,ifreq)     = 1-sum(squeeze(para.emp.n_p_atx_pervoxel(ivox,ifreq,:))' > d_max_p)./para.nperm;
+        outp.pval_n_atx(ivox,:,ifreq)     = 1-sum(squeeze(para.emp.n_n_atx_pervoxel(ivox,ifreq,:))' > d_max_n)./para.nperm;
         outp.pval_p_atx_ctx(ivox,ifreq) = 1-sum(squeeze(para.emp.n_p_context_atx_pervoxel(ivox,ifreq))' > d_max_ctx_p)./para.nperm;
         outp.pval_n_atx_ctx(ivox,ifreq) = 1-sum(squeeze(para.emp.n_n_context_atx_pervoxel(ivox,ifreq))' > d_max_ctx_n)./para.nperm;
       

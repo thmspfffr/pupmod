@@ -4,11 +4,11 @@
 
 clear
 
-% vv = 11; % muscles
-% vv =12 ; % heart/muscles
-% vv =13 ; % blinks/heart/muscles
+% vv = 44; % muscles
+% vv =33 ; % heart/blinks
+% vv =23 ; % blinks/heart/muscles
 
-v = 23; vv = 23;
+v = 23; vv = 33;
 
 outdir = '~/pupmod/proc/conn/';
 SUBJLIST        = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
@@ -35,7 +35,7 @@ if indiv_subj == 1
       continue
     end
     
-  	res_dat = zeros(size(fc,1),size(fc,1),siz(1), siz(2),25,siz(3));
+  	res_dat = zeros(size(fc,1),size(fc,1),size(fc,4),2,25,2);
 
     for ifoi = 1:25
    ifoi
@@ -49,7 +49,13 @@ if indiv_subj == 1
       art2 = (art2-nanmean(art2))/nanstd(art2);
       art3 = (art3-nanmean(art3))/nanstd(art3);
       
-      nuisance_var = [art1 art2 art3];
+      if vv == 23
+        nuisance_var = [art1 art2 art3];
+      elseif vv == 33
+        nuisance_var = [art1 art2];
+      elseif vv == 44
+        nuisance_var = [art2];
+      end
             
       for i = 1 : size(fc,1)
         
@@ -104,7 +110,13 @@ else
     art2 = (art2-nanmean(art2))/nanstd(art2);
     art3 = (art3-nanmean(art3))/nanstd(art3);
     
-    nuisance_var = [art1 art2 art3];
+    if vv == 23
+      nuisance_var = [art1 art2 art3];
+    elseif vv == 33
+      nuisance_var = [art1 art2];
+    elseif vv == 44
+      nuisance_var = [art2];
+    end
     
     for i = 1 : size(s_fc,1)
       for j = 1 : size(s_fc,1)
@@ -133,50 +145,59 @@ end
 error('!')
 
 %%
-% SUBJLIST  = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
-% % if isubj==length(SUBJLIST)
-%   if vv==1
-%     cleandat = zeros(90,90,28,3,2,13,2,'single');
-%   elseif vv>=11
-%     cleandat = zeros(400,400,28,3,2,25,2,'single');
-%   end
-%   
-%   for isubj = 1:length(SUBJLIST)
-%     isubj
-%     fn = sprintf('pupmod_all_regressartifacts_s%d_v%d',SUBJLIST(isubj),vv);
-%     load(sprintf('~/pupmod/proc/conn/%s.mat',fn))
-%     
-%     cleandat(:,:,isubj,:,:,:,:) = single(res_dat);
-%   end
-%   
-fc = res_dat; clear res_dat; fc = permute(fc,[1 2 3 4 6 5]);
-  save(sprintf(['~/pupmod/proc/conn/pupmod_src_powcorr_cleaned_v%d.mat'],vv),'fc','-v7.3');
-% end
+  v = 33;
+
+if ~exist(sprintf(['~/pupmod/proc/conn/pupmod_src_powcorr_cleaned_within_v%d.mat'],v))
+  SUBJLIST  = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
+  cleandat = zeros(400,400,34,3,2,25,2,'single');
+  
+  
+  for isubj =SUBJLIST
+    
+    fn = sprintf('~/pupmod/proc/conn/pupmod_all_regressartifacts_withinsubj_s%d_v%d.mat',isubj,v);
+    load(fn)
+    cleandat(:,:,isubj,:,:,:,:) = single(res_dat);
+    
+  end
+  cleandat = nanmean(cleandat(:,:,SUBJLIST,:,:,:,:),7);
+  save(sprintf(['~/pupmod/proc/conn/pupmod_src_powcorr_cleaned_within_v%d.mat'],v),'cleandat','-v7.3');
+end
+
+if ~exist(sprintf(['~/pupmod/proc/conn/pupmod_src_powcorr_cleaned_across_v%d.mat'],v))
+  
+  v = 33;
+  SUBJLIST  = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];  
+  cleandat = zeros(400,400,28,3,2,25,'single');
+ 
+  for ifoi  =1:25
+    
+    fn = sprintf('~/pupmod/proc/conn/pupmod_all_regressartifacts_acrosssubj_f%d_v%d.mat',ifoi,v);
+    load(fn)
+    cleandat(:,:,:,:,:,ifoi) = single(res_dat);
+    
+  end
+  save(sprintf(['~/pupmod/proc/conn/pupmod_src_powcorr_cleaned_across_v%d.mat'],v),'cleandat','-v7.3');
+end
+
 %%
 mask    = logical(triu(ones(400,400),1));
 
 for ifoi = 1 :25
   ifoi
-  [h,~,~,s]=ttest(squeeze(res_dat(:,:,:,2,2,ifoi)),squeeze(res_dat(:,:,:,1,2,ifoi)),'dim',3);
+  [h,~,~,s]=ttest(squeeze(cleandat(:,:,:,2,2,ifoi)),squeeze(cleandat(:,:,:,1,2,ifoi)),'dim',3);
   pos_atx(ifoi,2) = 100*sum((h(mask)>0)&(s.tstat(mask)>0))/sum(mask(:));
   neg_atx(ifoi,2) = 100*sum((h(mask)>0)&(s.tstat(mask)<0))/sum(mask(:));
-  [h,~,~,s]=ttest(squeeze(res_dat(:,:,:,3,2,ifoi)),squeeze(res_dat(:,:,:,1,2,ifoi)),'dim',3);
+  [h,~,~,s]=ttest(squeeze(cleandat(:,:,:,3,2,ifoi)),squeeze(cleandat(:,:,:,1,2,ifoi)),'dim',3);
   pos_dpz(ifoi,2) = 100*sum((h(mask)>0)&(s.tstat(mask)>0))/sum(mask(:));
   neg_dpz(ifoi,2) = 100*sum((h(mask)>0)&(s.tstat(mask)<0))/sum(mask(:));
 %   
-  [h,~,~,s]=ttest(squeeze(res_dat(:,:,:,2,1,ifoi)),squeeze(res_dat(:,:,:,1,1,ifoi)),'dim',3);
+  [h,~,~,s]=ttest(squeeze(cleandat(:,:,:,2,1,ifoi)),squeeze(cleandat(:,:,:,1,1,ifoi)),'dim',3);
   pos_atx(ifoi,1) = 100*sum((h(mask)>0)&(s.tstat(mask)>0))/sum(mask(:));
   neg_atx(ifoi,1) = 100*sum((h(mask)>0)&(s.tstat(mask)<0))/sum(mask(:));
-  [h,~,~,s]=ttest(squeeze(res_dat(:,:,:,3,1,ifoi)),squeeze(res_dat(:,:,:,1,1,ifoi)),'dim',3);
+  [h,~,~,s]=ttest(squeeze(cleandat(:,:,:,3,1,ifoi)),squeeze(cleandat(:,:,:,1,1,ifoi)),'dim',3);
   pos_dpz(ifoi,1) = 100*sum((h(mask)>0)&(s.tstat(mask)>0))/sum(mask(:));
   neg_dpz(ifoi,1) = 100*sum((h(mask)>0)&(s.tstat(mask)<0))/sum(mask(:));
-  
-%   [h,~,~,s]=ttest(squeeze(nanmean(pow12_res(:,:,:,:,2,ifoi),3)),squeeze(nanmean(pow12_res(:,:,:,:,1,ifoi),3)),'dim',3);
-%   pos_atx(ifoi,1) = 100*sum((h(mask)>0)&(s.tstat(mask)>0))/sum(mask(:));
-%   neg_atx(ifoi,1) = 100*sum((h(mask)>0)&(s.tstat(mask)<0))/sum(mask(:));
-%   [h,~,~,s]=ttest(squeeze(nanmean(pow12_res(:,:,:,:,3,ifoi),3)),squeeze(nanmean(pow12_res(:,:,:,:,1,ifoi),3)),'dim',3);
-%   pos_dpz(ifoi,1) = 100*sum((h(mask)>0)&(s.tstat(mask)>0))/sum(mask(:));
-%   neg_dpz(ifoi,1) = 100*sum((h(mask)>0)&(s.tstat(mask)<0))/sum(mask(:));
+
 end
 
 

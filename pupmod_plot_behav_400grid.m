@@ -19,14 +19,14 @@
 %---------------
 
 %%
-clear
+% clear
 
 SUBJLIST  = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
 addpath ~/pconn/matlab
 addpath ~/pupmod/matlab
 
 v  = 23;
-fc = pupmod_loadpowcorr(v,SUBJLIST,0);
+cleandat = pupmod_loadpowcorr(v,SUBJLIST,0);
 % fc = cat(4,fc(:,:,:,:,:,:,1),fc(:,:,:,:,:,:,2));
 % fc = (fc-nanmean(fc,4))./nanstd(fc,[],4);
 % fc = cat(7,fc(:,:,:,1:3,:,:),fc(:,:,:,4:6,:,:));
@@ -86,54 +86,53 @@ SUBJ = 1:28;
 icond = 2;
 foi_range = 2.^(1:0.25:7);
 pos = [0.63 0.63 19.73 28.43];
-
-ipharm = 3
+ipharm = 1:3
 
 for ifoi = 1:25
   
   clear r_cnt p_cnt r_cnt1 p_cnt1 r_cnt2 p_cnt2
   
-  d_fc1      = squeeze(nanmean(fc(:,:,SUBJ,ipharm,icond,ifoi,1),4));
-  d_fc2      = squeeze(nanmean(fc(:,:,SUBJ,ipharm,icond,ifoi,2),4));
+%   d_fc1      = squeeze(nanmean(cleandat(:,:,SUBJ,ipharm,icond,ifoi,1),4));
+%   d_fc2      = squeeze(nanmean(cleandat(:,:,SUBJ,ipharm,icond,ifoi,2),4));
   d_behav    = nanmean(nanmean(behav_cnt(ipharm,SUBJ,:),3),1);
-  d_behav1   = nanmean(behav_cnt(ipharm,SUBJ,1),1);
-  d_behav2   = nanmean(behav_cnt(ipharm,SUBJ,2),1);
-  d_fc       = squeeze(nanmean(nanmean(fc(:,:,SUBJ,ipharm,icond,ifoi,:),7),4));
+%   d_behav1   = nanmean(behav_cnt(ipharm,SUBJ,1),1);
+%   d_behav2   = nanmean(behav_cnt(ipharm,SUBJ,2),1);
+  d_fc       = squeeze(nanmean(cleandat(:,:,SUBJ,ipharm,icond,ifoi,:),4));
   
   % identify and ignore nans
-  nan_idx_cnt1   = ~isnan(d_behav1);
-  nan_idx_cnt2   = ~isnan(d_behav2);
-  nan_idx_meg1   = ~any(isnan(squeeze(d_fc1(1,2,:))),2);
-  nan_idx_meg2   = ~any(isnan(squeeze(d_fc2(1,2,:))),2);
-  nan_idx1       = nan_idx_cnt1(:)&nan_idx_meg1(:);
-  nan_idx2       = nan_idx_cnt2(:)&nan_idx_meg2(:);
+%   nan_idx_cnt1   = ~isnan(d_behav1);
+%   nan_idx_cnt2   = ~isnan(d_behav2);
+%   nan_idx_meg1   = ~any(isnan(squeeze(d_fc1(1,2,:))),2);
+%   nan_idx_meg2   = ~any(isnan(squeeze(d_fc2(1,2,:))),2);
+%   nan_idx1       = nan_idx_cnt1(:)&nan_idx_meg1(:);
+%   nan_idx2       = nan_idx_cnt2(:)&nan_idx_meg2(:);
   
-  d_behav1    = permute(repmat(d_behav1(:),[1 400 400]),[2 3 1]);
-  d_behav2    = permute(repmat(d_behav2(:),[1 400 400]),[2 3 1]);
+%   d_behav1    = permute(repmat(d_behav1(:),[1 400 400]),[2 3 1]);
+%   d_behav2    = permute(repmat(d_behav2(:),[1 400 400]),[2 3 1]);
   d_behav     = permute(repmat(d_behav(:),[1 400 400]),[2 3 1]);
   
-  [r_cnt,p_cnt]   = tp_corr(d_fc(:,:,nan_idx1),d_behav(:,:,nan_idx1),3);
-  [r_cnt1,p_cnt1] = tp_corr(d_fc1(:,:,nan_idx1),d_behav1(:,:,nan_idx1),3);
-  [r_cnt2,p_cnt2] = tp_corr(d_fc2(:,:,nan_idx2),d_behav2(:,:,nan_idx2),3);
+  [r_cnt,p_cnt]   = tp_corr(d_fc,d_behav,3);
+%   [r_cnt1,p_cnt1] = tp_corr(d_fc1(:,:,nan_idx1),d_behav1(:,:,nan_idx1),3);
+%   [r_cnt2,p_cnt2] = tp_corr(d_fc2(:,:,nan_idx2),d_behav2(:,:,nan_idx2),3);
   
-  rr(ifoi) = corr(r_cnt1(mask),r_cnt2(mask))
+%   rr(ifoi) = corr(r_cnt1(mask),r_cnt2(mask))
   figure; set(gcf,'color','w');
   
-  subplot(3,2,1); imagesc(r_cnt,[-0.3 0.3]); axis square; title('Counting: Average')
+  subplot(3,2,1); imagesc(r_cnt,[-0.3 0.3]); axis square; title(sprintf('Counting: Average (f=%d',ifoi))
   tp_editplots; set(gca,'FontSize',5)
   subplot(3,2,2); imagesc(r_cnt.*(p_cnt<0.05),[-0.3 0.3]); axis square;
   colormap(cmap); tp_editplots; set(gca,'FontSize',5); tp_colorbar('Correlation');
   
-  subplot(3,2,3); imagesc(r_cnt1,[-0.3 0.3]); axis square; title(sprintf('Counting: Block #1 (f = %.2f Hz)',foi_range(ifoi)))
-  tp_editplots; set(gca,'FontSize',5)
-  subplot(3,2,4); imagesc(r_cnt1.*(p_cnt1<0.05),[-0.3 0.3]); axis square;
-  colormap(cmap); tp_editplots; set(gca,'FontSize',5); tp_colorbar('Correlation');
-  
-  subplot(3,2,5); imagesc(r_cnt2,[-0.3 0.3]); axis square;  title(sprintf('Counting: Block #2 (f = %.2f Hz)',foi_range(ifoi)))
-  tp_editplots; set(gca,'FontSize',5);
-  subplot(3,2,6); imagesc(r_cnt2.*(p_cnt2<0.05),[-0.3 0.3]); axis square;
-  colormap(cmap); tp_editplots; set(gca,'FontSize',5); tp_colorbar('Correlation');
-  
+%   subplot(3,2,3); imagesc(r_cnt1,[-0.3 0.3]); axis square; title(sprintf('Counting: Block #1 (f = %.2f Hz)',foi_range(ifoi)))
+%   tp_editplots; set(gca,'FontSize',5)
+%   subplot(3,2,4); imagesc(r_cnt1.*(p_cnt1<0.05),[-0.3 0.3]); axis square;
+%   colormap(cmap); tp_editplots; set(gca,'FontSize',5); tp_colorbar('Correlation');
+%   
+%   subplot(3,2,5); imagesc(r_cnt2,[-0.3 0.3]); axis square;  title(sprintf('Counting: Block #2 (f = %.2f Hz)',foi_range(ifoi)))
+%   tp_editplots; set(gca,'FontSize',5);
+%   subplot(3,2,6); imagesc(r_cnt2.*(p_cnt2<0.05),[-0.3 0.3]); axis square;
+%   colormap(cmap); tp_editplots; set(gca,'FontSize',5); tp_colorbar('Correlation');
+%   
   print(gcf,'-dpdf',sprintf('~/pupmod/plots/pupmod_fc_corrwithbehav_cortex_cond%d_ipharm%s_f%d_v%d.pdf',icond,regexprep(num2str(ipharm),' ',''),ifoi,v),'-fillpage')
   close
   
@@ -144,34 +143,34 @@ cmap    = cbrewer('div', 'RdBu', 256,'pchip'); cmap = cmap(end:-1:1,:);
 SUBJ    = 1:28;
 
 cond = 2;
-for ipharm = 1:3
+for ipharm = 2
   for ifoi = 1:25
     ifoi
     clear r_cnt p_cnt r_cnt1 p_cnt1 r_cnt2 p_cnt2
     
-    d_fc1      = squeeze(fc(:,:,SUBJ,ipharm,cond,ifoi,1))-squeeze(fc(:,:,SUBJ,1,cond,ifoi,1));
-    d_fc2      = squeeze(fc(:,:,SUBJ,ipharm,cond,ifoi,2))-squeeze(fc(:,:,SUBJ,1,cond,ifoi,2));
-    d_fc       = squeeze(nanmean(fc(:,:,SUBJ,ipharm,cond,ifoi,:),7))-squeeze(nanmean(fc(:,:,SUBJ,1,cond,ifoi,:),7));
+%     d_fc1      = squeeze(fc(:,:,SUBJ,ipharm,cond,ifoi,1))-squeeze(fc(:,:,SUBJ,1,cond,ifoi,1));
+%     d_fc2      = squeeze(fc(:,:,SUBJ,ipharm,cond,ifoi,2))-squeeze(fc(:,:,SUBJ,1,cond,ifoi,2));
+    d_fc       = squeeze(cleandat(:,:,SUBJ,ipharm,cond,ifoi))-squeeze(cleandat(:,:,SUBJ,1,cond,ifoi));
     
     d_behav    = nanmean(behav_cnt(ipharm,SUBJ,:),3)-nanmean(behav_cnt(1,SUBJ,:),3);
-    d_behav1   = behav_cnt(ipharm,SUBJ,1)-behav_cnt(1,SUBJ,1);
-    d_behav2   = behav_cnt(ipharm,SUBJ,2)-behav_cnt(1,SUBJ,2);
+%     d_behav1   = behav_cnt(ipharm,SUBJ,1)-behav_cnt(1,SUBJ,1);
+%     d_behav2   = behav_cnt(ipharm,SUBJ,2)-behav_cnt(1,SUBJ,2);
     
     % identify and ignore nans
-    nan_idx_cnt1   = ~isnan(d_behav1);
-    nan_idx_cnt2   = ~isnan(d_behav2);
-    nan_idx_meg1   = ~any(isnan(squeeze(d_fc1(1,2,:))),2);
-    nan_idx_meg2   = ~any(isnan(squeeze(d_fc2(1,2,:))),2);
-    nan_idx1       = nan_idx_cnt1(:)&nan_idx_meg1(:);
-    nan_idx2       = nan_idx_cnt2(:)&nan_idx_meg2(:);
+%     nan_idx_cnt1   = ~isnan(d_behav1);
+%     nan_idx_cnt2   = ~isnan(d_behav2);
+%     nan_idx_meg1   = ~any(isnan(squeeze(d_fc1(1,2,:))),2);
+%     nan_idx_meg2   = ~any(isnan(squeeze(d_fc2(1,2,:))),2);
+%     nan_idx1       = nan_idx_cnt1(:)&nan_idx_meg1(:);
+%     nan_idx2       = nan_idx_cnt2(:)&nan_idx_meg2(:);
     
-    d_behav1    = permute(repmat(d_behav1(:),[1 400 400]),[2 3 1]);
-    d_behav2    = permute(repmat(d_behav2(:),[1 400 400]),[2 3 1]);
+%     d_behav1    = permute(repmat(d_behav1(:),[1 400 400]),[2 3 1]);
+%     d_behav2    = permute(repmat(d_behav2(:),[1 400 400]),[2 3 1]);
     d_behav     = permute(repmat(d_behav(:),[1 400 400]),[2 3 1]);
     
-    [r_cnt,p_cnt]   = tp_corr(d_fc(:,:,nan_idx1),d_behav(:,:,nan_idx1),3);
-    [r_cnt1,p_cnt1] = tp_corr(d_fc1(:,:,nan_idx1),d_behav1(:,:,nan_idx1),3);
-    [r_cnt2,p_cnt2] = tp_corr(d_fc2(:,:,nan_idx2),d_behav2(:,:,nan_idx2),3);
+    [r_cnt,p_cnt]   = tp_corr(d_fc,d_behav,3);
+%     [r_cnt1,p_cnt1] = tp_corr(d_fc1(:,:,nan_idx1),d_behav1(:,:,nan_idx1),3);
+%     [r_cnt2,p_cnt2] = tp_corr(d_fc2(:,:,nan_idx2),d_behav2(:,:,nan_idx2),3);
     
     figure; set(gcf,'color','w')
     
@@ -180,15 +179,15 @@ for ipharm = 1:3
     subplot(3,2,2); imagesc(r_cnt.*(p_cnt<0.05),[-0.3 0.3]); axis square;
     colormap(cmap); tp_editplots; set(gca,'FontSize',5); tp_colorbar('Correlation');
     
-    subplot(3,2,3); imagesc(r_cnt1,[-0.3 0.3]); axis square; title(sprintf('Counting: Block #1 (f = %.2f)',foi_range(ifoi)))
-    tp_editplots; set(gca,'FontSize',5)
-    subplot(3,2,4); imagesc(r_cnt1.*(p_cnt1<0.05),[-0.3 0.3]); axis square;
-    colormap(cmap); tp_editplots; set(gca,'FontSize',5); tp_colorbar('Correlation');
-    
-    subplot(3,2,5); imagesc(r_cnt2,[-0.3 0.3]); axis square;  title(sprintf('Counting: Block #2 (f = %.2f)',foi_range(ifoi)))
-    tp_editplots; set(gca,'FontSize',5);
-    subplot(3,2,6); imagesc(r_cnt2.*(p_cnt2<0.05),[-0.3 0.3]); axis square;
-    colormap(cmap); tp_editplots; set(gca,'FontSize',5); tp_colorbar('Correlation');
+%     subplot(3,2,3); imagesc(r_cnt1,[-0.3 0.3]); axis square; title(sprintf('Counting: Block #1 (f = %.2f)',foi_range(ifoi)))
+%     tp_editplots; set(gca,'FontSize',5)
+%     subplot(3,2,4); imagesc(r_cnt1.*(p_cnt1<0.05),[-0.3 0.3]); axis square;
+%     colormap(cmap); tp_editplots; set(gca,'FontSize',5); tp_colorbar('Correlation');
+%     
+%     subplot(3,2,5); imagesc(r_cnt2,[-0.3 0.3]); axis square;  title(sprintf('Counting: Block #2 (f = %.2f)',foi_range(ifoi)))
+%     tp_editplots; set(gca,'FontSize',5);
+%     subplot(3,2,6); imagesc(r_cnt2.*(p_cnt2<0.05),[-0.3 0.3]); axis square;
+%     colormap(cmap); tp_editplots; set(gca,'FontSize',5); tp_colorbar('Correlation');
     
     print(gcf,'-dpdf',sprintf('~/pupmod/plots/pupmod_drugeffectonfc_corrwithbehav_cortex_cond%d_ipharm%d_f%d_v%d.pdf',cond,ipharm,ifoi,v),'-fillpage')
     close
@@ -210,18 +209,18 @@ for ipharm = 2 :3
   
   for ifoi = 1:25
     
-    [h,~,~,s]=ttest(nanmean(fc(:,:,:,ipharm,cond,ifoi,iblock),7),nanmean(fc(:,:,:,1,cond,ifoi,iblock),7),'dim',3,'alpha',alpha);
+    [h,~,~,s]=ttest(nanmean(cleandat(:,:,:,ipharm,cond,ifoi,iblock),7),nanmean(cleandat(:,:,:,1,cond,ifoi,iblock),7),'dim',3,'alpha',alpha);
     
     idx = h(mask)>0 & s.tstat(mask)>0;
     
-    d = squeeze(nanmean(fc(:,:,:,ipharm,cond,ifoi,iblock),7)-nanmean(fc(:,:,:,1,cond,ifoi,iblock),7));
+    d = squeeze(nanmean(cleandat(:,:,:,ipharm,cond,ifoi,iblock),7)-nanmean(cleandat(:,:,:,1,cond,ifoi,iblock),7));
     for isubj = 1 : 28
       tmp = d(:,:,isubj);
       dd(:,isubj) = tmp(mask);
     end
     
-    d_fc1      = squeeze(nanmean(fc(:,:,SUBJ,ipharm,icond,ifoi,1),4));
-    d_fc2      = squeeze(nanmean(fc(:,:,SUBJ,ipharm,icond,ifoi,2),4));
+    d_fc1      = squeeze(nanmean(cleandat(:,:,SUBJ,ipharm,icond,ifoi,1),4));
+    d_fc2      = squeeze(nanmean(cleandat(:,:,SUBJ,ipharm,icond,ifoi,2),4));
     m = mean(dd(idx,:));
     
     d_behav = nanmean(behav_cnt(ipharm,:,iblock),3)-nanmean(behav_cnt(1,:,iblock),3);
@@ -310,16 +309,16 @@ print(gcf,'-depsc2',sprintf('~/pupmod/plots/pupmod_drugeffectonfc_signcorrbehav_
 mask    = logical(tril(ones(400,400),-1));
 SUBJ    = 1:28; %SUBJ(13)=[];
 iblock  = 1:2;
-ipharm  = 1:3;
-cond    = 3;
-FOI     = 25;
+ipharm  = 1;
+cond    = 2;
+% FOI     = 25;
 
-for FOI = 1 : 25
+for FOI = 12
   
   % EMPIRICAL
   d_behav    = nanmean(nanmean(behav_cnt(ipharm,SUBJ,iblock),3),1);%-nanmean(nanmean(behav_cnt(1,SUBJ,iblock),3),1);
   d_behav    = permute(repmat(d_behav,[400 1]),[1 2]);
-  d_fc       = squeeze(nanmean(nanmean(nanmean(nanmean(fc(:,:,SUBJ,ipharm,cond,FOI,iblock),6),7),4)));%-squeeze(nanmean(nanmean(nanmean(nanmean(fc(:,:,SUBJ,1,cond,FOI,iblock),6),7),4)));
+  d_fc       = squeeze(nanmean(nanmean(nanmean(cleandat(:,:,SUBJ,ipharm,cond,FOI),6),4)));%-squeeze(nanmean(nanmean(nanmean(nanmean(fc(:,:,SUBJ,1,cond,FOI,iblock),6),7),4)));
   d_fc       = permute(d_fc,[1 3 2]);
   
   nan_idx_meg = ~isnan(squeeze(d_fc(1,:)));
@@ -353,13 +352,13 @@ SUBJ    = 1:28; %SUBJ(13)=[];
 iblock  = 1:2;
 ipharm  = 2;
 cond    = 2;
-FOI     = 23:25;
+FOI     = 24;
 
-for FOI = 1 : 25
+% for FOI = FOIS
   % EMPIRICAL
   d_behav    = nanmean(nanmean(behav_cnt(ipharm,SUBJ,iblock),3),1)-nanmean(nanmean(behav_cnt(1,SUBJ,iblock),3),1);
   d_behav    = permute(repmat(d_behav,[400 1]),[1 2]);
-  d_fc       = squeeze(nanmean(nanmean(nanmean(nanmean(fc(:,:,SUBJ,ipharm,cond,FOI,iblock),6),7),4)))-squeeze(nanmean(nanmean(nanmean(nanmean(fc(:,:,SUBJ,1,cond,FOI,iblock),6),7),4)));
+  d_fc       = squeeze(nanmean(nanmean(nanmean(cleandat(:,:,SUBJ,ipharm,cond,FOI),6),4)))-squeeze(nanmean(nanmean(nanmean(cleandat(:,:,SUBJ,1,cond,FOI),6),4)));
   d_fc       = permute(d_fc,[1 3 2]);
   
   nan_idx_meg = ~isnan(squeeze(d_fc(1,:)));
@@ -384,23 +383,37 @@ for FOI = 1 : 25
   para.fn = sprintf('~/pupmod/plots/pupmod_behav_fc_corr_with_behav_surf_differences_masked_f%s_b%s_pharm%s_v%d.png',regexprep(num2str(FOI),' ',''),regexprep(num2str(iblock),' ',''),regexprep(num2str(ipharm),' ',''),v);
   tp_plot_surface(r.*(p<0.05),para)
   
-  close all
-end
+%   close all
+% end
 
 %% SPECTRUM OF CORRELATIONS BETWEEN FC AND BEHAVIOR
 % ---------------------------------
 
+% load /home/tpfeffer/pconn/proc/src/pconn_sa_s4_m1_b1_v9.mat
+% lab=tp_aal2yeo(grid);
+
+% idx = lab==1;
+idx=ones(400,1)==1;
+mask    = logical(triu(ones(sum(idx),sum(idx)),1));
+
 SUBJ    = 1:28;
 iblock  = 1:2;
-ipharm  = 1:3;
+ipharm  = 2;
 cond    = 2;
 NPERM   = 10000;
 FOI     = 1:25;
 
+d_behav    = nanmean(nanmean(behav_bttn(ipharm,SUBJ,iblock),3),1)-nanmean(nanmean(behav_bttn(1,SUBJ,iblock),3),1);
+d_behav2   = nanmean(nanmean(behav_cnt(ipharm,SUBJ,iblock),3),1)-nanmean(nanmean(behav_cnt(1,SUBJ,iblock),3),1);
+d_behav = (d_behav+d_behav2)./2;
+d_behav(27) = d_behav2(27);
+
+SUBJ = d_behav2>0;
+
 % EMPIRICAL
-d_behav    = nanmean(nanmean(behav_cnt(ipharm,SUBJ,iblock),3),1);%-nanmean(nanmean(behav_cnt(1,SUBJ,iblock),3),1);
-d_behav    = permute(repmat(d_behav(:),[1 400 400 25]),[2 3 4 1]);
-d_fc       = squeeze(nanmean(nanmean(fc(:,:,SUBJ,ipharm,cond,:,iblock),7),4));%-squeeze(nanmean(nanmean(fc(:,:,SUBJ,1,cond,:,iblock),7),4));
+d_behav    = nanmean(nanmean(behav_cnt(1,SUBJ,iblock),3),1);%-nanmean(nanmean(behav_cnt(1,SUBJ,iblock),3),1);
+d_behav    = permute(repmat(d_behav(:),[1 sum(idx) sum(idx) 25]),[2 3 4 1]);
+d_fc       = squeeze(nanmean(cleandat(idx,idx,SUBJ,1,cond,:),4));%-squeeze(nanmean(cleandat(idx,idx,SUBJ,1,cond,:),4));
 d_fc       = permute(d_fc,[1 2 4 3]);
 
 nan_idx_meg = ~isnan(squeeze(d_fc(1,2,1,:)));
@@ -409,6 +422,7 @@ nan_idx     = nan_idx_meg&nan_idx_beh;
 
 % compute correlation
 [r,p] = tp_corr(d_fc(:,:,:,nan_idx),d_behav(:,:,:,nan_idx),4);
+clear pos_corr_vox neg_corr_vox
 
 for ifoi = FOI
   p_tmp = p(:,:,ifoi); r_tmp = r(:,:,ifoi);
@@ -416,7 +430,24 @@ for ifoi = FOI
   neg_corr(ifoi) = 100 * (sum(p_tmp(mask)<0.05 & r_tmp(mask)<0) / sum(mask(:)));
   pos_corr_vox(:,ifoi) = 100 * (sum(p_tmp<0.05 & r_tmp>0)/size(mask,1));
   neg_corr_vox(:,ifoi) = 100 * (sum(p_tmp<0.05 & r_tmp<0)/size(mask,1));
+  
+  
+  tmp = r(:,:,ifoi);
+  tmp = tmp((r(:,:,ifoi)>0));
+  r_pos(ifoi) = mean(tmp);
+  
+  tmp = r(:,:,ifoi);
+  tmp = tmp((r(:,:,ifoi)<0));
+  r_neg(ifoi) = mean(tmp);
 end
+
+% for isubj = 1 : 28
+%   for ifoi = 1 : 25
+%     tmp = d_fc(:,:,ifoi,isubj);
+%     all(isubj,ifoi) = mean(tmp(p(:,:,ifoi)<0.05));
+%   end
+% end
+
 
 figure; set(gcf,'color','w')
 subplot(3,2,1); hold on
@@ -425,17 +456,190 @@ plot(neg_corr,'b');
 set(gca,'tickdir','out','xtick',[1 5 9 13 17 21 25],'xticklabel',[2 4 8 16 32 64 128])
 xlabel('Carrier frequency [Hz]'); ylabel('Fraction of sign. correlations [%]'); tp_editplots
 tp_editplots
+axis([1 25 0 30])
+
+subplot(3,2,2); hold on
+plot(r_pos,'r');
+plot(abs(r_neg),'b');
+set(gca,'tickdir','out','xtick',[1 5 9 13 17 21 25],'xticklabel',[2 4 8 16 32 64 128])
+xlabel('Carrier frequency [Hz]'); ylabel('Fraction of sign. correlations [%]'); tp_editplots
+tp_editplots
+axis([1 25 0 0.6])
 % for ifoi = FOI
-%
-%   para      = [];
-%   para.cmap = cmap;
-%   para.grid = grid;
-%   para.dd   = 0.75;
-%   para.clim = [-1 1];
-%   para.fn   = sprintf('~/pupmod/plots/pupmod_behav_fc_corr_with_behav_surf_fractionsigncorr_f%d_b%s_pharm%s_v%d.png',ifoi,regexprep(num2str(iblock),' ',''),regexprep(num2str(ipharm),' ',''),v);
-%   tp_plot_surface(pos_corr_vox(:,ifoi),para)
-%
-% end
+
+%%
+idx = lab==5
+% idx=ones(400,1)==1;
+mask    = logical(triu(ones(sum(idx),sum(idx)),1));
+
+% d_behav    = nanmean(nanmean(behav_bttn(2,:,iblock),3),1)-nanmean(nanmean(behav_bttn(1,:,iblock),3),1);
+d_behav2   = nanmean(nanmean(behav_cnt(2,:,iblock),3),1)-nanmean(nanmean(behav_cnt(1,:,iblock),3),1);
+% d_behav = (d_behav+d_behav2)./2;
+% d_behav(27) = d_behav2(27);
+% d_behav2 = d_behav;
+
+[i,k]=sort(d_behav2)
+
+% SUBJ1 = k(15:end);
+SUBJ1 = d_behav2>0;
+SUBJ2 = d_behav2<0;
+
+ipharm = 1;
+% EMPIRICAL
+
+d_behav1    = nanmean(nanmean(behav_cnt(ipharm,SUBJ1,iblock),3),1);%-nanmean(nanmean(behav_cnt(1,SUBJ,iblock),3),1);
+d_behav1    = permute(repmat(d_behav1(:),[1 sum(idx) sum(idx) 25]),[2 3 4 1]);
+d_fc1       = squeeze(nanmean(cleandat(idx,idx,SUBJ1,ipharm,cond,:),4));%-squeeze(nanmean(cleandat(idx,idx,SUBJ,1,cond,:),4));
+d_fc1       = permute(d_fc1,[1 2 4 3]);
+
+d_behav    = nanmean(nanmean(behav_cnt(ipharm,SUBJ2,iblock),3),1);%-nanmean(nanmean(behav_cnt(1,SUBJ,iblock),3),1);
+d_behav    = permute(repmat(d_behav(:),[1 sum(idx) sum(idx) 25]),[2 3 4 1]);
+d_fc       = squeeze(nanmean(cleandat(idx,idx,SUBJ2,ipharm,cond,:),4));%-squeeze(nanmean(cleandat(idx,idx,SUBJ,1,cond,:),4));
+d_fc       = permute(d_fc,[1 2 4 3]);
+
+[r2,p2] = tp_corr(d_fc,d_behav,4);
+[r_all2,p_all2] = tp_corr(squeeze(nanmean(nanmean(d_fc,1),2)),squeeze(nanmean(nanmean(d_behav,1),2)),2);
+
+[r1,p1] = tp_corr(d_fc1,d_behav1,4);
+[r_all1,p_all1] = tp_corr(squeeze(nanmean(nanmean(d_fc1,1),2)),squeeze(nanmean(nanmean(d_behav1,1),2)),2);
+
+for ifoi = 1:25
+   
+  tmp = r2(:,:,ifoi);
+  tmp = tmp((r2(:,:,ifoi)>0));
+  r_pos2(ifoi) = tanh(mean(atanh(tmp)));
+  
+  tmp = r2(:,:,ifoi);
+  tmp = tmp((r2(:,:,ifoi)<0));
+  r_neg2(ifoi) = tanh(mean(atanh(tmp)));
+  
+  tmp = r1(:,:,ifoi);
+  tmp = tmp((r1(:,:,ifoi)>0));
+  r_pos1(ifoi) = tanh(mean(atanh(tmp)));
+  
+  tmp = r1(:,:,ifoi);
+  tmp = tmp((r1(:,:,ifoi)<0));
+  r_neg1(ifoi) = tanh(mean(atanh(tmp)));
+  
+end
+
+
+figure; set(gcf,'color','w')
+subplot(3,2,1); hold on
+plot(squeeze(nanmean(nanmean(r1,1),2)),'')
+plot(squeeze(nanmean(nanmean(r2,1),2)))
+line([1 25],[0 0],'linestyle',':','color','k')
+set(gca,'tickdir','out','xtick',[1 5 9 13 17 21 25],'xticklabel',[2 4 8 16 32 64 128]);
+axis([1 21 -0.6 0.6])
+tp_editplots
+subplot(3,2,2); hold on
+plot(r_pos1,'r'); plot(abs(r_neg1),'b');
+plot(r_pos2,'r'); plot(abs(r_neg2),'b');
+
+line([1 25],[0 0],'linestyle',':','color','k')
+set(gca,'tickdir','out','xtick',[1 5 9 13 17 21 25],'xticklabel',[2 4 8 16 32 64 128]);
+axis([1 21 0 0.60])
+tp_editplots
+
+%% PERMUTATION TEST
+% idx = lab==1
+% idx=ones(400,1)==1;
+mask    = logical(triu(ones(sum(idx),sum(idx)),1));
+
+nperm = 1000;
+
+all_idx1 = randi(2,[size(SUBJLIST,2),nperm]);
+
+behav = behav_cnt(1:2,:,:);
+
+for iperm = 1 : nperm
+  iperm
+  idx1 = all_idx1(:,iperm);
+  idx2 = 3-idx1;
+  
+  for i = 1 : length(idx1)
+    behav_perm(1,i,:) = squeeze(behav(idx1(i),i,:));
+    behav_perm(2,i,:) = squeeze(behav(idx2(i),i,:));
+  end
+  
+  d_behav_perm   = nanmean(nanmean(behav_perm(2,:,iblock),3),1)-nanmean(nanmean(behav_perm(1,:,iblock),3),1);
+  
+  [i,k]=sort(d_behav_perm);
+
+%   SUBJ1 = k(15:end);
+
+%   SUBJ1 = k(end-sum(d_behav2>0)+1:end);%d_behav2>0;
+%   SUBJ2 = k(1:14);%d_behav2<0;
+
+  ipharm = 1;
+
+  d_behav_perm    = nanmean(nanmean(behav_perm(ipharm,SUBJ1,iblock),3),1);%-nanmean(nanmean(behav_cnt(1,SUBJ,iblock),3),1);
+  d_behav_perm    = permute(repmat(d_behav_perm(:),[1 sum(idx) sum(idx) 25]),[2 3 4 1]);
+  d_fc_perm       = squeeze(nanmean(cleandat(idx,idx,SUBJ1,ipharm,cond,:),4));%-squeeze(nanmean(cleandat(idx,idx,SUBJ,1,cond,:),4));
+  d_fc_perm       = permute(d_fc_perm,[1 2 4 3]);
+
+  % [r2,p2] = tp_corr(d_fc,d_behav,4);
+  % [r_all2,p_all2] = tp_corr(squeeze(nanmean(nanmean(d_fc,1),2)),squeeze(nanmean(nanmean(d_behav,1),2)),2);
+
+  % [r1,p1] = tp_corr(d_fc1,d_behav1,4);
+  [r_all_perm(:,iperm)] = tp_corr(squeeze(nanmean(nanmean(d_fc_perm,1),2)),squeeze(nanmean(nanmean(d_behav_perm,1),2)),2);
+
+%   for ifoi = 1:25
+% 
+%     tmp = r2(:,:,ifoi);
+%     tmp = tmp((r2(:,:,ifoi)>0));
+%     r_pos2(ifoi) = tanh(mean(atanh(tmp)));
+% 
+%     tmp = r2(:,:,ifoi);
+%     tmp = tmp((r2(:,:,ifoi)<0));
+%     r_neg2(ifoi) = tanh(mean(atanh(tmp)));
+% 
+%     tmp = r1(:,:,ifoi);
+%     tmp = tmp((r1(:,:,ifoi)>0));
+%     r_pos1(ifoi) = tanh(mean(atanh(tmp)));
+% 
+%     tmp = r1(:,:,ifoi);
+%     tmp = tmp((r1(:,:,ifoi)<0));
+%     r_neg1(ifoi) = tanh(mean(atanh(tmp)));
+%   end
+
+end
+%%
+p=1-sum(r_all1>abs(r_all_perm(:,1:nperm)),2)./nperm;
+ci95 = prctile(r_all_perm',95);
+ci5 = prctile(r_all_perm',5);
+
+h=p<0.05;
+% h=p<fdr1(p,0.05)
+% h=(p.*21)<=0.05
+figure; set(gcf,'color','w');
+subplot(3,2,1); hold on
+plot(r_all1,'k')
+plot(ci95,'r','linestyle',':')
+plot(ci5,'r','linestyle',':')
+plot(find(h),r_all1(h),'.','markersize',15)
+line([0 26],[0 0],'linestyle',':','color','k')
+set(gca,'tickdir','out','xtick',[1 5 9 13 17 21 25],'xticklabel',[2 4 8 16 32 64 128])
+axis([1 21 -0.55 0.55]); tp_editplots
+%%
+
+% d_fc       = squeeze(nanmean(cleandat(idx,idx,:,ipharm,cond,:),4));%-squeeze(nanmean(cleandat(idx,idx,SUBJ,1,cond,:),4));
+a=nanmean(behav_cnt(2,SUBJ1,:),3)-nanmean(behav_cnt(1,SUBJ1,:),3);
+b=squeeze(nanmean(nanmean(nanmean(cleandat(:,:,SUBJ1,2,2,find(h)),6)-nanmean(cleandat(:,:,SUBJ1,1,2,find(h)),6),1),2));
+
+corr(a',b)
+%%
+
+%%
+  para      = [];
+  para.cmap = plasma;
+  para.grid = grid;
+  para.dd   = 0.75;
+  para.clim = [0.1 0.4];
+  para.fn   = sprintf('~/pupmod/plots/test.png')
+  tp_plot_surface(nanmean(r1(:,:,24),2),para)
+
+
 
 %%
 clear pp_perm rr_perm r p pos_c*
@@ -652,8 +856,8 @@ for FOI = 1:25
   %     idx(any(isnan(nanmean(behav,3)),2),:) = [];
   
   for isubj = 1:28
-    s1(:,:,isubj) = s1(:,:,isubj)+(nanmean(nanmean(fc(:,:,isubj,ipharm,cond,FOI,idx(isubj,:)==1),6),4))./length(pharm);
-    s2(:,:,isubj) = s2(:,:,isubj)+(nanmean(nanmean(fc(:,:,isubj,ipharm,cond,FOI,idx(isubj,:)==2),6),4))./length(pharm);
+    s1(:,:,isubj) = s1(:,:,isubj)+(nanmean(nanmean(cleandat(:,:,isubj,ipharm,cond,FOI,idx(isubj,:)==1),6),4))./length(pharm);
+    s2(:,:,isubj) = s2(:,:,isubj)+(nanmean(nanmean(cleandat(:,:,isubj,ipharm,cond,FOI,idx(isubj,:)==2),6),4))./length(pharm);
   end
   
   %   end
@@ -666,7 +870,7 @@ for FOI = 1:25
   
   %   [~,~,~,ss]=ttest(squeeze(nanmean(nanmean(fc(:,:,SUBJ,2,2,FOI,:),7),6)),squeeze(nanmean(nanmean(fc(:,:,SUBJ,1,2,FOI,:),7),6)),'dim',3);
   
-  d_fc=squeeze(nanmean(nanmean(fc(:,:,SUBJ,2,2,FOI,:),7),6))-squeeze(nanmean(nanmean(fc(:,:,SUBJ,1,2,FOI,:),7),6));
+  d_fc=squeeze(nanmean(nanmean(cleandat(:,:,SUBJ,2,2,FOI,:),7),6))-squeeze(nanmean(nanmean(cleandat(:,:,SUBJ,1,2,FOI,:),7),6));
   d_beh = s2-s1;
   %   rrr(FOI) = corr(s.tstat(mask),ss.tstat(mask));
   
