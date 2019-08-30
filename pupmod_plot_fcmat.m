@@ -315,7 +315,22 @@ else
   end
 end
 
+%% CORRELATE DRUG EFFECTS REST AND TASK
 
+for isubj = 1 : 28
+  for ifoi = 1 : 25
+    
+    atx_rest = squeeze(nanmean(cleandat(:,:,isubj,2,1,ifoi),2)-nanmean(cleandat(:,:,isubj,1,1,ifoi),2));
+    atx_task = squeeze(nanmean(cleandat(:,:,isubj,2,2,ifoi),2)-nanmean(cleandat(:,:,isubj,1,2,ifoi),2));
+    
+    dpz_rest = squeeze(nanmean(cleandat(:,:,isubj,3,1,ifoi),2)-nanmean(cleandat(:,:,isubj,1,1,ifoi),2));
+    dpz_task = squeeze(nanmean(cleandat(:,:,isubj,3,2,ifoi),2)-nanmean(cleandat(:,:,isubj,1,2,ifoi),2));
+    
+    [corr_taskrest_atx(isubj,ifoi), p_atx(isubj,ifoi)] = corr(atx_rest,atx_task);
+    [corr_taskrest_dpz(isubj,ifoi), p_dpz(isubj,ifoi)]= corr(dpz_rest,dpz_task);
+  
+  end
+end
 
 %% CORRELATIONS OF EFFECTS ACROSS BLOCKS AND CONDITIONS
 ipharm = 3; icont = 1; clear r; clc

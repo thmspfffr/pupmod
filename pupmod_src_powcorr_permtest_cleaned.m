@@ -29,7 +29,11 @@ SUBJLIST  = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 3
 
 addpath ~/pconn/matlab/
 
+if within == 1
 load(sprintf(['~/pupmod/proc/conn/pupmod_src_powcorr_cleaned_within_v%d.mat'],v));
+else
+load(sprintf(['~/pupmod/proc/conn/pupmod_src_powcorr_cleaned_across_v%d.mat'],v));
+end
 
 nvox = size(cleandat,1)*size(cleandat,1)-size(cleandat,1);
 

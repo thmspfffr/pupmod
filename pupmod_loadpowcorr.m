@@ -52,8 +52,8 @@ for isubj = SUBJLIST
           load(sprintf('~/pp/proc/conn/pp_src_powcorr_test_s%d_m%d_v%d.mat',isubj,im,v))
           fc(:,:,isubj,m,1,:,:) = single(permute(powcorr(:,:,:,freqs),[1 2 4 3])); clear powcorr
 
-          load(sprintf('~/pp/proc/conn/pp_task_src_powcorr_test_s%d_m%d_v%d.mat',isubj,im,v))
-          fc(:,:,isubj,m,2,:,:) = single(permute(powcorr(:,:,:,freqs),[1 2 4 3])); clear powcorr
+%           load(sprintf('~/pp/proc/conn/pp_task_src_powcorr_test_s%d_m%d_v%d.mat',isubj,im,v))
+%           fc(:,:,isubj,m,2,:,:) = single(permute(powcorr(:,:,:,freqs),[1 2 4 3])); clear powcorr
         %       end
     end
   end

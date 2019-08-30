@@ -21,15 +21,26 @@ clear
 % version of cleaned data: 
 % v1: AAL, v2: 400 vertices (cortex)
 % -------------
-v = 23;
+v = 33;
 % -------------
 
 % load  data
 cd ~/pupmod/matlab/
 SUBJLIST        = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
 % load(sprintf('~/pupmod/pset(gca,'Position',[0.5703 0.2 0.3347 0.3402])roc/conn/pupmod_src_powcorr_cleaned_v%d.mat',v));
-cleandat = pupmod_loadpowcorr(v,SUBJLIST,1);
+cleaned = 1; within = 1;
 
+
+if ~cleaned
+  cleandat = pupmod_loadpowcorr(v,SUBJLIST,1);
+else
+  if within == 1
+    load(sprintf('/home/tpfeffer/pupmod/proc/conn/pupmod_src_powcorr_cleaned_within_v%d.mat',v))
+  else
+    load(sprintf('/home/tpfeffer/pupmod/proc/conn/pupmod_src_powcorr_cleaned_across_v%d.mat',v)) 
+  end
+end
+  
 % all_alp = [0.01:.01:0.1];
 % for i = 1 : 10
 % para = [];
@@ -104,7 +115,7 @@ print(gcf,'-depsc2',sprintf('~/pupmod/plots/pupmod_rawcorr_bar_v%d.eps',v))
 %% (1) PLOT: No stats
 % ------------------
 
-linewidth = 2;
+linewidth = 1;
 
 figure; set(gcf,'color','w');
 
@@ -114,7 +125,7 @@ plot(emp.n_p_atx(:,1),'r','linewidth',linewidth)
 plot(emp.n_n_atx(:,1),'b','linewidth',linewidth)
 
 axis([0 size(emp.n_p_atx,1)+1 -0.05 0.6])
-set(gca,'tickdir','out','xtick',[1 3 5 7 9 11 13],'xticklabel',[2 4 8 16 32 64 128])
+set(gca,'tickdir','out','xtick',[1 5 9 13 17 21],'xticklabel',[2 4 8 16 32 64])
 ylabel('Frac. of altered corr. [%]')
 
 subplot(3,2,3); hold on
@@ -122,8 +133,9 @@ subplot(3,2,3); hold on
 plot(emp.n_p_atx(:,2),'r','linewidth',linewidth)
 plot(emp.n_n_atx(:,2),'b','linewidth',linewidth)
 
-axis([0 size(emp.n_p_atx,1)+1 -0.05 0.6])
-set(gca,'tickdir','out','xtick',[1 3 5 7 9 11 13],'xticklabel',[2 4 8 16 32 64 128])
+axis([0 21 -0.05 0.6])
+
+set(gca,'tickdir','out','xtick',[1 5 9 13 17 21],'xticklabel',[2 4 8 16 32 64])
 ylabel('Frac. of altered corr. [%]')
 
 subplot(3,2,2); hold on
@@ -131,24 +143,24 @@ subplot(3,2,2); hold on
 plot(emp.n_p_dpz(:,1),'r','linewidth',linewidth)
 plot(emp.n_n_dpz(:,1),'b','linewidth',linewidth)
 
-axis([0 size(emp.n_p_atx,1)+1 -0.05 0.6])
-set(gca,'tickdir','out','xtick',[1 3 5 7 9 11 13],'xticklabel',[2 4 8 16 32 64 128])
+axis([0 21 -0.05 0.6])
+set(gca,'tickdir','out','xtick',[1 5 9 13 17 21],'xticklabel',[2 4 8 16 32 64])
 
 subplot(3,2,4); hold on
 
 plot(emp.n_p_dpz(:,2),'r','linewidth',linewidth)
 plot(emp.n_n_dpz(:,2),'b','linewidth',linewidth)
 
-axis([0 size(emp.n_p_atx,1)+1 -0.05 0.6])
-set(gca,'tickdir','out','xtick',[1 3 5 7 9 11 13],'xticklabel',[2 4 8 16 32 64 128])
+axis([0 21 -0.05 0.6])
+set(gca,'tickdir','out','xtick',[1 5 9 13 17 21],'xticklabel',[2 4 8 16 32 64])
 
 subplot(3,2,5); hold on
 
 plot(emp.n_p_atx(:,1)-emp.n_p_atx(:,2),'r','linewidth',linewidth)
 plot(emp.n_n_atx(:,1)-emp.n_n_atx(:,2),'b','linewidth',linewidth)
 
-axis([0 size(emp.n_p_atx,1)+1 -0.6 0.6])
-set(gca,'tickdir','out','xtick',[1 3 5 7 9 11 13],'xticklabel',[2 4 8 16 32 64 128])
+axis([0 21 -0.6 0.6])
+set(gca,'tickdir','out','xtick',[1 5 9 13 17 21],'xticklabel',[2 4 8 16 32 64])
 xlabel('Frequency [Hz]'); ylabel('Frac. of altered corr. [%]')
 
 subplot(3,2,6); hold on
@@ -156,9 +168,11 @@ subplot(3,2,6); hold on
 plot(emp.n_p_dpz(:,1)-emp.n_p_dpz(:,2),'r','linewidth',linewidth)
 plot(emp.n_n_dpz(:,1)-emp.n_p_dpz(:,2),'b','linewidth',linewidth)
 
-axis([0 size(emp.n_p_atx,1)+1 -0.6 0.6])
-set(gca,'tickdir','out','xtick',[1 3 5 7 9 11 13],'xticklabel',[2 4 8 16 32 64 128])
+axis([0 21 -0.6 0.6])
+set(gca,'tickdir','out','xtick',[1 5 9 13 17 21],'xticklabel',[2 4 8 16 32 64])
 xlabel('Frequency [Hz]'); ylabel('Frac. of altered corr. [%]')
+
+print(gcf,'-dpdf',sprintf('~/pupmod/plots/pupmod_plot_alteredcorr_lineplots_allfreqs_NOSTATS_cleaned%d_within%d_v%d.pdf',cleaned,within,v));
 
 %%
 if ~exist(sprintf('~/pupmod/proc/pupmod_src_powcorr_alteredcorr_v%d.mat',v))
@@ -180,85 +194,9 @@ if ~exist(sprintf('~/pupmod/proc/pupmod_src_powcorr_alteredcorr_v%d.mat',v))
   
   save(sprintf('~/pupmod/proc/pupmod_src_powcorr_alteredcorr_v%d.mat',v),'outp_atx','outp_dpz','emp')
 
-%   for iperm = 1 : para.allperms
-%   
-%     fprintf('Load permutation distributions: %d / %d ...\n',iperm,para.allperms)
-%   
-%     load(sprintf('~/pupmod/proc/pupmod_src_powcorr_permtest_iperm%d_nperm%d_v%d.mat',iperm,para.nperm,para.ver),'par')
-%     
-%     atx(:,(iperm-1)*para.nsubs+1:(iperm)*para.nsubs) = par.tperm_cnt1_pervoxel_p(:,:,6);
-%     p_atx_vox = 1-sum(abs(emp.n_p_atx_pervoxel(:,6,2))>abs(atx),2)/para.nperm;
-%     
-%     dpz(:,(iperm-1)*para.nsubs+1:(iperm)*para.nsubs) = par.tperm_res2_pervoxel_p(:,:,7);
-%     p_dpz_vox = 1-sum(abs(emp.n_n_dpz_pervoxel(:,7,1))>abs(dpz),2)/para.nperm;
-%     
-%   ends
-  
 else
   load(sprintf('~/pupmod/proc/pupmod_src_powcorr_alteredcorr_v%d.mat',v))
 end
-%% (2) PLOT: P-Values (corrected) 
-mfilename('fullpath')
-figure;  set(gcf,'color','white')
-
-subplot(3,2,1); hold on
-plot(-log10(outp_atx.p_res1_n),'b-','linewidth',3)
-plot(-log10(outp_atx.p_res1_p),'r-','linewidth',3)
-
-line([0 size(emp.n_p_atx,1)],[-log10(0.025) -log10(0.025)],'linestyle','--','color','k')
-axis([0 size(emp.n_p_atx,1) 0 4])
-set(gca,'tickdir','out','ytick',[0 1 2 3],'yticklabel',[0 0.1 0.01 0.001])
-set(gca,'tickdir','out','xtick',[1 3 5 7 9 11 13],'xticklabel',[2 4 8 16 32 64 128])
-xlabel('Carrier frequency [Hz]'); ylabel('P-Value (uncorrected)')
-title('Rest')
-
-subplot(3,2,2); hold on
-plot(-log10(outp_dpz.p_res2_n),'b-','linewidth',3)
-plot(-log10(outp_dpz.p_res2_p),'r-','linewidth',3)
-line([0 size(emp.n_p_atx,1)],[-log10(0.025) -log10(0.025)],'linestyle','--','color','k')
-axis([0 size(emp.n_p_atx,1) 0 4])
-set(gca,'tickdir','out','ytick',[0 1 2 3],'yticklabel',[0 0.1 0.01 0.001])
-set(gca,'tickdir','out','xtick',[1 3 5 7 9 11 13],'xticklabel',[2 4 8 16 32 64 128])
-xlabel('Carrier frequency [Hz]'); ylabel('P-Value (uncorrected)')
-
-subplot(3,2,3); hold on
-plot(-log10(outp_atx.p_cnt1_n),'b-','linewidth',3)
-plot(-log10(outp_atx.p_cnt1_p),'r-','linewidth',3)
-line([0 size(emp.n_p_atx,1)],[-log10(0.025) -log10(0.025)],'linestyle','--','color','k')
-axis([0 size(emp.n_p_atx,1) 0 4])
-set(gca,'tickdir','out','ytick',[0 1 2 3],'yticklabel',[0 0.1 0.01 0.001])
-set(gca,'tickdir','out','xtick',[1 3 5 7 9 11 13],'xticklabel',[2 4 8 16 32 64 128])
-xlabel('Carrier frequency [Hz]'); ylabel('P-Value (uncorrected)')
-title('Task')
-
-subplot(3,2,4); hold on
-plot(-log10(outp_dpz.p_cnt2_n),'b-','linewidth',3)
-plot(-log10(outp_dpz.p_cnt2_p),'r-','linewidth',3)
-line([0 size(emp.n_p_atx,1)],[-log10(0.025) -log10(0.025)],'linestyle','--','color','k')
-axis([0 size(emp.n_p_atx,1) 0 4])
-set(gca,'tickdir','out','ytick',[0 1 2 3],'yticklabel',[0 0.1 0.01 0.001])
-set(gca,'tickdir','out','xtick',[1 3 5 7 9 11 13],'xticklabel',[2 4 8 16 32 64 128])
-xlabel('Carrier frequency [Hz]'); ylabel('P-Value (uncorrected)')
-
-% subplot(3,2,5); hold on
-% plot(-log10(p_d1_n),'b-','linewidth',3)
-% plot(-log10(p_d1_p),'r-','linewidth',3)
-% line([0 14],[-log10(0.025) -log10(0.025)],'linestyle','--','color','k')
-% axis([0 14 0 4])
-% set(gca,'tickdir','out','ytick',[0 1 2 3],'yticklabel',[0 0.1 0.01 0.001])
-% set(gca,'tickdir','out','xtick',[1 3 5 7 9 11 13],'xticklabel',[2 4 8 16 32 64 128])
-% xlabel('Carrier frequency [Hz]'); ylabel('P-Value (uncorrected)')
-% 
-% subplot(3,2,6); hold on
-% plot(-log10(p_d2_n),'b-','linewidth',3)
-% plot(-log10(p_d2_p),'r-','linewidth',3)
-% line([0 14],[-log10(0.025) -log10(0.025)],'linestyle','--','color','k')
-% axis([0 14 0 4])
-% set(gca,'tickdir','out','ytick',[0 1 2 3],'yticklabel',[0 0.1 0.01 0.001])
-% set(gca,'tickdir','out','xtick',[1 3 5 7 9 11 13],'xticklabel',[2 4 8 16 32 64 128])
-% xlabel('Carrier frequency [Hz]'); ylabel('P-Value (uncorrected)')
-% % tp_editplots
-print(gcf,'-dpdf',sprintf('~/pupmod/plots/pupmod_src_powcorr_taskrestcomp_pval.pdf'));
 
 %% (3a) PLOT: Altered correlations
 % Plot altered correlations and highlights significant differences
