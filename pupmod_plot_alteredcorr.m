@@ -21,28 +21,29 @@ clear
 % version of cleaned data: 
 % v1: AAL, v2: 400 vertices (cortex)
 % -------------
-v = 33;
+v = 23;
 % -------------
 
 % load  data
 cd ~/pupmod/matlab/
 SUBJLIST        = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
 % load(sprintf('~/pupmod/pset(gca,'Position',[0.5703 0.2 0.3347 0.3402])roc/conn/pupmod_src_powcorr_cleaned_v%d.mat',v));
-cleaned = 1; within = 1;
+cleaned = 0; within = 1;
 
 
 if ~cleaned
   cleandat = pupmod_loadpowcorr(v,SUBJLIST,1);
 else
-  if within == 1
-    load(sprintf('/home/tpfeffer/pupmod/proc/conn/pupmod_src_powcorr_cleaned_within_v%d.mat',v))
-  else
-    load(sprintf('/home/tpfeffer/pupmod/proc/conn/pupmod_src_powcorr_cleaned_across_v%d.mat',v)) 
-  end
+%   if within == 1
+%     load(sprintf('/home/tpfeffer/pupmod/proc/conn/pupmod_src_powcorr_cleaned_within_v%d.mat',v))
+%   else
+%     load(sprintf('/home/tpfeffer/pupmod/proc/conn/pupmod_src_powcorr_cleaned_across_v%d.mat',v)) 
+%   end
 end
   
 % all_alp = [0.01:.01:0.1];
-% for i = 1 : 10
+% for i = 1 : 10whos
+
 % para = [];
 % para.nfreq = 1:25;
 % para.alpha = all_alp(i);
@@ -55,7 +56,7 @@ end
 % error('!')
 %%
 para = [];
-para.nfreq = 1:21;
+para.nfreq = 1:25;
 para.alpha = 0.05;
 
 emp = pupmod_compute_altered_correlations(cleandat,para);
@@ -181,8 +182,8 @@ if ~exist(sprintf('~/pupmod/proc/pupmod_src_powcorr_alteredcorr_v%d.mat',v))
   para.nfreq = [1:size(emp.n_p_atx,1)]; % freqs 1 - 13
   para.alpha = 0.05; % alpha for adjacency
   para.ver = v;
-  para.nperm = 20000;
-  para.nsubs = 500;
+  para.nperm = 10000;
+  para.nsubs = 250;
   para.type = 'global';
   para.cond = 'atx';
   para.allperms = para.nperm/para.nsubs;
@@ -356,77 +357,73 @@ para.cond     = 'atx';
 [outp_atx]    = pupmod_src_powcorr_getstatistics(para);
 % ---------
 % Obtain stats for donepezil condition
-para.cond     = 'dpz';
-[outp_dpz]    = pupmod_src_powcorr_getstatistics(para);
+% para.cond     = 'dpz';
+% [outp_dpz]    = pupmod_src_powcorr_getstatistics(para);
 % ---------
 addpath ~/Documents/MATLAB/Colormaps/'Colormaps (5)'/Colormaps/
 %% PLOT RESULTS FOR ATX (TASK) AND DPZ (REST)
 
 close all
-for ifoi = 1 : 25
-% ifoi = 25; 
-icond = 1;
+for ifoi = 18
+  icond = 2;
 
-cmap = autumn;
+  cmap  = autumn;
+  par   = nanmean(emp.n_p_atx_pervoxel(:,ifoi,icond),2);
 
-par = nanmean(emp.n_p_atx_pervoxel(:,ifoi,icond),2);
+  par(outp_atx.pval_p_atx(:,icond,ifoi)>=0.05) = 0;
 
-par(outp_atx.pval_p_atx(:,icond,ifoi)>=0.05) = 0;
-% par(par<0.4)=0;
-
-cmap = [cmap; 0.98*ones(1,3); cmap];
-para = [];
-para.clim = [-0.75 0.75];
-para.cmap = cmap;
-para.grid = grid;
-para.dd = 0.75;
-para.fn = sprintf('~/pupmod/plots/pupmod_plot_alteredcorr_atx_f%s_c%d_v%d.png',regexprep(num2str(ifoi),' ',''),icond,v);
-tp_plot_surface(par,para)
+  cmap      = [cmap; 0.98*ones(1,3); cmap];
+  para      = [];
+  para.clim = [-0.75 0.75];
+  para.cmap = cmap;
+  para.grid = grid;
+  para.dd   = 0.75;
+  para.fn   = sprintf('~/pupmod/plots/pupmod_plot_alteredcorr_atx_f%s_c%d_v%d.png',regexprep(num2str(ifoi),' ',''),icond,v);
+  tp_plot_surface(par,para)
+  
 end
 %% MAP DONEPEZIL EFFECT
 
 for ifoi = 1 : 25
-% ifoi = 13; 
-icond = 2;
+  
+  icond     = 2;
+  cmap      = autumn;
+  cmap(:,1) = 0; 
+  cmap(:,3) = 1;
 
-cmap = autumn;
-cmap(:,1) = 0; cmap(:,3) = 1;
+  par = nanmean(emp.n_n_dpz_pervoxel(:,ifoi,icond),2);
 
-par = nanmean(emp.n_n_dpz_pervoxel(:,ifoi,icond),2);
+  par(outp_dpz.pval_n_dpz(:,icond,ifoi)>=0.05) = 0;
 
-par(outp_dpz.pval_n_dpz(:,icond,ifoi)>=0.05) = 0;
-% par(par<0.4)=0
-% par = emp.n_p_dpz_pervoxel(:,ifoi,icond);
-% par(outp_dpz.pval_n_dpz(:,icond,ifoi)>=0.05) = 0;
-
-cmap      = [cmap(:,:); 0.98*ones(1,3); cmap(:,:)];
-para      = [];
-para.clim = [-0.75 0.75];
-para.cmap = cmap;
-para.grid = grid;
-para.dd = 0.75;
-para.fn = sprintf('~/pupmod/plots/pupmod_plot_alteredcorr_dpz_f%s_c%d_v%d.png',regexprep(num2str(ifoi),' ',''),icond,v);
-tp_plot_surface(par,para);
+  cmap      = [cmap(:,:); 0.98*ones(1,3); cmap(:,:)];
+  para      = [];
+  para.clim = [-0.75 0.75];
+  para.cmap = cmap;
+  para.grid = grid;
+  para.dd   = 0.75;
+  para.fn   = sprintf('~/pupmod/plots/pupmod_plot_alteredcorr_dpz_f%s_c%d_v%d.png',regexprep(num2str(ifoi),' ',''),icond,v);
+  tp_plot_surface(par,para);
 end
 
 %% MAP CONTEXT DEPENDENCE - ATOMOXETINE
 
 for ifoi = 1 : 25
 
-cmap = autumn;
-cmap(:,1) = 0; cmap(:,3) = 1;
+  cmap = autumn;
+  cmap(:,1) = 0; cmap(:,3) = 1;
 
-par = emp.n_n_context_atx_pervoxel(:,ifoi);
-par(outp_atx.pval_n_atx_ctx(:,ifoi)>=0.05) = 0;
+  par = emp.n_n_context_atx_pervoxel(:,ifoi);
+  par(outp_atx.pval_n_atx_ctx(:,ifoi)>=0.05) = 0;
 
-cmap      = [cmap(:,:); 0.98*ones(1,3); cmap(:,:)];
-para      = [];
-para.clim = [-0.75 0.75];
-para.cmap = cmap;
-para.grid = grid;
-para.dd = 0.75;
-para.fn = sprintf('~/pupmod/plots/pupmod_plot_alteredcorr_context_atx_f%s_v%d.png',regexprep(num2str(ifoi),' ',''),v);
-tp_plot_surface(par,para);
+  cmap      = [cmap(:,:); 0.98*ones(1,3); cmap(:,:)];
+  para      = [];
+  para.clim = [-0.75 0.75];
+  para.cmap = cmap;
+  para.grid = grid;
+  para.dd   = 0.75;
+  para.fn   = sprintf('~/pupmod/plots/pupmod_plot_alteredcorr_context_atx_f%s_v%d.png',regexprep(num2str(ifoi),' ',''),v);
+  tp_plot_surface(par,para);
+  
 end
 
 %% MAP CONTEXT DEPENDENCE - DONEPEZIL
@@ -478,7 +475,7 @@ para.ver      = v;
 para.nperm    = 10000;
 para.nsubs    = 250;
 para.type     = 'local';
-para.cond     = 'atx'
+para.cond     = 'atx';
 para.allperms = para.nperm/para.nsubs;
 para.nfreq    = 1:3;
 para.emp      = pupmod_compute_altered_correlations(data1,para);
@@ -709,7 +706,7 @@ plot(emp.taskvsrest_p,'r-','linewidth',2)
 plot(emp.taskvsrest_n,'b-','linewidth',2)
 set(gca,'tickdir','out','xtick',[1 5 9 13 17 21 25],'xticklabel',num2cell([2 4 8 16 32 64 128]))
 set(gca,'tickdir','out','ytick',lims,'yticklabel',lims_lab)
-axis([0 size(emp.n_p_atx,1) lims(1)-0.05 lims(end)])
+axis([0 21 lims(1)-0.05 lims(end)])
 plot(find(outp_atx.p_tvr_p<alpha1),emp.taskvsrest_p(find(outp_atx.p_tvr_p<alpha1)),'ko','markersize',markersize,'markerfacecolor','k')
 plot(find(outp_atx.p_tvr_n<alpha1),emp.taskvsrest_n(find(outp_atx.p_tvr_n<alpha1)),'ko','markersize',markersize,'markerfacecolor','k')
 plot(find(outp_atx.p_tvr_p<alpha2),emp.taskvsrest_p(find(outp_atx.p_tvr_p<alpha2)),'ko','markersize',markersize,'markerfacecolor','w')
@@ -718,43 +715,43 @@ plot(find(outp_atx.p_tvr_p<alpha3),emp.taskvsrest_p(find(outp_atx.p_tvr_p<alpha3
 plot(find(outp_atx.p_tvr_n<alpha3),emp.taskvsrest_n(find(outp_atx.p_tvr_n<alpha3)),'ko','markersize',markersize,'markerfacecolor','m')
 xlabel('Carrier frequency [Hz]'); ylabel('Difference')
 tp_editplots
-pos(2,:)=get(gca,'Position')
+pos(2,:)=get(gca,'Position');
 
 print(gcf,'-dpdf',sprintf('~/pupmod/plots/pupmod_plot_alteredcorr_tvr_lineplots_allfreqs_stats_v%d.pdf',v));
 
 %%
-ifoi = 8:9; icond = 1;
+ifoi = 1:3; icond = 1;
 
 cmap = autumn;
-cmap(:,1) = 0; cmap(:,3) = 1;
-
-par = nanmean(emp.taskvsrest_n_pervoxel(:,ifoi),2);
-% par(outp_tvr.pval_n_tvr(:,ifoi(1))>=0.2) = 0;
-par(par<0.2)=0
-cmap = [cmap(:,:); 0.98*ones(1,3); cmap(:,:)];
-para      = [];
-para.clim = [-1 1];
-para.cmap = cmap;
-para.grid = grid;
-para.dd   = 0.75;
-para.fn = sprintf('~/pupmod/plots/pupmod_plot_alteredcorr_tvr_f%s_c%d_v%d.png',regexprep(num2str(ifoi),' ',''),icond,v);
-tp_plot_surface(par,para)
-
-ifoi = 2;
-
-cmap = autumn;
-
+% cmap(:,1) = 0; cmap(:,3) = 1;
+% 
 par = nanmean(emp.taskvsrest_p_pervoxel(:,ifoi),2);
-par(outp_tvr.pval_p_tvr(:,ifoi(1))>=0.05) = 0;
+% par(outp_tvr.pval_p_tvr(:,ifoi(1))>=0.05) = 0;
 % par(par<0.2)=0
 cmap = [cmap(:,:); 0.98*ones(1,3); cmap(:,:)];
 para      = [];
-para.clim = [-1 1];
+para.clim = [-0.2 0.2];
 para.cmap = cmap;
 para.grid = grid;
 para.dd   = 0.75;
 para.fn = sprintf('~/pupmod/plots/pupmod_plot_alteredcorr_tvr_f%s_c%d_v%d.png',regexprep(num2str(ifoi),' ',''),icond,v);
 tp_plot_surface(par,para)
+
+% ifoi = 2;
+% 
+% cmap = autumn;
+% 
+% par = nanmean(emp.taskvsrest_p_pervoxel(:,ifoi),2);
+% par(outp_tvr.pval_p_tvr(:,ifoi(1))>=0.05) = 0;
+% % par(par<0.2)=0
+% cmap = [cmap(:,:); 0.98*ones(1,3); cmap(:,:)];
+% para      = [];
+% para.clim = [-1 1];
+% para.cmap = cmap;
+% para.grid = grid;
+% para.dd   = 0.75;
+% para.fn = sprintf('~/pupmod/plots/pupmod_plot_alteredcorr_tvr_f%s_c%d_v%d.png',regexprep(num2str(ifoi),' ',''),icond,v);
+% tp_plot_surface(par,para)
 
 
 %%
@@ -892,7 +889,7 @@ subplot(3,2,1);hold on
 for i = 1 : 10
   plot(100*emp{i}.n_p_atx(:,1),'color',cmap(i,:))
 end
-axis([0 25 -5 60])
+axis([0 21 -5 60])
 
 set(gca,'tickdir','out','xtick',[1 5 9 13 17 21 25],'xticklabel',[2 4 8 16 32 64 128])
 tp_editplots; xlabel('Carrier frequency [Hz]')
@@ -900,7 +897,7 @@ subplot(3,2,3);hold on
 for i = 1 : 10
   plot(100*emp{i}.n_p_atx(:,2),'color',cmap(i,:))
 end
-axis([0 25 -5 60])
+axis([0 21 -5 60])
 set(gca,'tickdir','out','xtick',[1 5 9 13 17 21 25],'xticklabel',[2 4 8 16 32 64 128])
 tp_editplots; xlabel('Carrier frequency [Hz]')
 
@@ -910,14 +907,14 @@ subplot(3,2,2);hold on
 for i = 1 : 10
   plot(100*emp{i}.n_n_atx(:,1),'color',cmap(i,:))
 end
-axis([0 25 -5 60])
+axis([0 21 -5 60])
 set(gca,'tickdir','out','xtick',[1 5 9 13 17 21 25],'xticklabel',[2 4 8 16 32 64 128])
 tp_editplots; xlabel('Carrier frequency [Hz]')
 subplot(3,2,4);hold on
 for i = 1 : 10
   plot(100*emp{i}.n_n_atx(:,2),'color',cmap(i,:))
 end
-axis([0 25 -5 60])
+axis([0 21 -5 60])
 set(gca,'tickdir','out','xtick',[1 5 9 13 17 21 25],'xticklabel',[2 4 8 16 32 64 128])
 tp_editplots; xlabel('Carrier frequency [Hz]'); %ylabel('Fraction of significantly altered correlations [%]')
 
@@ -930,7 +927,7 @@ subplot(3,2,1);hold on
 for i = 1 : 10
   plot(100*emp{i}.n_p_dpz(:,1),'color',cmap(i,:))
 end
-axis([0 25 -5 60])
+axis([0 21 -5 60])
 
 set(gca,'tickdir','out','xtick',[1 5 9 13 17 21 25],'xticklabel',[2 4 8 16 32 64 128])
 tp_editplots; xlabel('Carrier frequency [Hz]')
@@ -938,7 +935,7 @@ subplot(3,2,3);hold on
 for i = 1 : 10
   plot(100*emp{i}.n_p_dpz(:,2),'color',cmap(i,:))
 end
-axis([0 25 -5 60])
+axis([0 21 -5 60])
 set(gca,'tickdir','out','xtick',[1 5 9 13 17 21 25],'xticklabel',[2 4 8 16 32 64 128])
 tp_editplots; xlabel('Carrier frequency [Hz]')
 
@@ -948,14 +945,14 @@ subplot(3,2,2);hold on
 for i = 1 : 10
   plot(100*emp{i}.n_n_dpz(:,1),'color',cmap(i,:))
 end
-axis([0 25 -5 60])
+axis([0 21 -5 60])
 set(gca,'tickdir','out','xtick',[1 5 9 13 17 21 25],'xticklabel',[2 4 8 16 32 64 128])
 tp_editplots; xlabel('Carrier frequency [Hz]')
 subplot(3,2,4);hold on
 for i = 1 : 10
   plot(100*emp{i}.n_n_dpz(:,2),'color',cmap(i,:))
 end
-axis([0 25 -5 60])
+axis([0 21 -5 60])
 set(gca,'tickdir','out','xtick',[1 5 9 13 17 21 25],'xticklabel',[2 4 8 16 32 64 128])
 tp_editplots; xlabel('Carrier frequency [Hz]'); %ylabel('Fraction of significantly altered correlations [%]')
 
@@ -1024,43 +1021,85 @@ tp_plot_surface(par,para)
 
 
 %% PLOT FC IN YEO ATLAS SPACE
-
+addpath /home/tpfeffer/Documents/MATLAB/fieldtrip-20160919/
+ft_defaults
 load /home/tpfeffer/pconn/proc/src/pconn_sa_s4_m1_b1_v9.mat
 grid = sa.grid_cortex_lowres;
 
 lab=tp_aal2yeo(grid);
 cmap = cbrewer('qual', 'Dark2', 7); 
 para = [];
-para.nfreq = 1:25;
+para.nfreq = 1:21;
 para.alpha = 0.05;
 
 for i = 1 : 7
 emp{i} = pupmod_compute_altered_correlations(cleandat(lab==i,lab==i,:,:,:,:),para);
 end
+
+%%
+
+
+para          = [];
+para.nfreq    = 1:21; % freqs 1 - 13
+para.alpha    = 0.05; % alpha for adjacency
+para.ver      = v;
+para.nperm    = 10000;
+para.nsubs    = 250;
+para.type     = 'local';
+para.allperms = para.nperm/para.nsubs;
+para.emp      = emp;
+para.cleaned  = 0;
+% ---------
+% Obtain stats for atomoxetine condition
+para.cond     = 'atx';
+[outp_atx]    = pupmod_src_powcorr_getstatistics_yeo(para);
+
+
 %%
 cmap = cbrewer('qual', 'Dark2', 7);
 figure; set(gcf,'color','w'); hold on
 subplot(3,2,1); hold on
-for i = 1 : 7
+alpha1 = 0.01;
+markersize=3;
+for i = [1 2 3 4 6 7]
 
-  plot(100*emp{i}.n_p_atx(1:25,2),'color',cmap(i,:))
-end
-set(gca,'tickdir','out','xtick',[1 5 9 13 17 21 25],'xticklabel',[2 4 8 16 32 64 128])
-xlabel('Carrier frequency [Hz]')
-tp_editplots
-axis([1 25 0 50])
-subplot(3,2,2); hold on
-for i = 1 : 7
-
-  plot(100*emp{i}.n_n_dpz(1:25,1),'color',cmap(i,:))
+  plot(100*emp{i}.n_p_atx(1:21,2),'color',cmap(i,:))
+  [cl,n] = bwlabeln(outp_atx(i).p_cnt1_p<alpha1);
+ 
+  for in = 1 : n
+    if sum(cl==in)>1
+      line([min(find(cl==in)) max(find(cl==in))],[61+2*i 61+2*i],'color',cmap(i,:))
+    else
+      plot(find(cl==n),61+2*i,'ko','markersize',markersize,'markerfacecolor',cmap(i,:),'markeredgecolor',cmap(i,:))
+    end
+  end
 end
 set(gca,'tickdir','out','xtick',[1 5 9 13 17 21],'xticklabel',[2 4 8 16 32 64])
 xlabel('Carrier frequency [Hz]')
 tp_editplots
-axis([1 21 0 30])
+axis([0 21 0 80])
+subplot(3,2,2); hold on
+for i = [1 2 3 4 6 7]
+
+   plot(100*emp{i}.n_n_dpz(1:21,1),'color',cmap(i,:))
+  [cl,n] = bwlabeln(outp_atx(i).p_res2_n<alpha1);
+ 
+  for in = 1 : n
+    if sum(cl==in)>1
+      line([min(find(cl==in)) max(find(cl==in))],[61+2*i 61+2*i],'color',cmap(i,:))
+    else
+      plot(find(cl==n),61+2*i,'ko','markersize',markersize,'markerfacecolor',cmap(i,:),'markeredgecolor',cmap(i,:))
+    end
+  end
+  
+end
+set(gca,'tickdir','out','xtick',[1 5 9 13 17 21],'xticklabel',[2 4 8 16 32 64])
+xlabel('Carrier frequency [Hz]')
+tp_editplots
+axis([0 21 0 80])
 
 subplot(3,2,3); hold on
-for i = 1 : 7
+for i = [1 2 3 4 6 7]
 
   plot(100*emp{i}.n_n_dpz(1:21,1),'color',cmap(i,:))
 end

@@ -107,6 +107,44 @@ axis([0 25 0 15])
 
 print(gcf,'-dpdf',sprintf('~/pupmod/plots/pupmod_all_dimensionality_v%d.pdf',v))
 
+%%
+behav_pooled = nanmean(behav_pooled,3);
+behav = nanmean(behav_cnt,3);
+d_behav = nanmean(behav_cnt(2,:,:),3)-nanmean(behav_cnt(1,:,:),3);
+
+% d_behav = behav_pooled(2,:)-behav_pooled(1,:,:);
+
+d_dim2 = squeeze(dim(~isnan(d_behav),2,2,:)-dim(~isnan(d_behav),1,2,:));
+d_dim1 = squeeze(dim(~isnan(d_behav),2,1,:)-dim(~isnan(d_behav),1,1,:));
+
+[rr1,p1]=corr(d_dim1,d_behav(~isnan(d_behav))')
+[rr2,p2]=corr(d_dim2,d_behav(~isnan(d_behav))')
+
+perm = 1;
+
+
+nperm= 20000;
+   all_idx1 = randi(2,[28,nperm]);
+
+for iperm =1  :nperm
+iperm
+    idx1 = all_idx1(:,iperm);
+    idx2 = 3-idx1;
+    
+    for i = 1 : length(idx1)
+      permdat(i,1) = behav(idx1(i),i);
+      permdat(i,2) = behav(idx2(i),i);
+    end
+    
+  d_behav = permdat(:,2)-permdat(:,1);
+
+  [r1(:,iperm)]=corr(d_dim1,d_behav);  
+  [r2(:,iperm)]=corr(d_dim2,d_behav);
+
+  
+  
+end
+
 %% PLOT MEAN FC AS COMPARISON
 fc1 = squeeze(nanmean(nanmean(nanmean(fc,1),2),7));
 

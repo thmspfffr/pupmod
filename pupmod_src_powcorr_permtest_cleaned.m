@@ -11,7 +11,7 @@
 clear 
 v = 23; 
 % alp: standard for all 0.05!!! except verison 13
-nperm = 20000; alp = 0.05;
+nperm = 10000; alp = 0.05;
 nfoi = 25;
 par.subs = 500;
 par.allperms = nperm/par.subs;

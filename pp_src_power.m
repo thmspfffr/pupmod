@@ -6,25 +6,54 @@
 
 clear
 % --------------------------------------------------------
-% VERSION 23 - VOXEL LEVEL, 400 samples cortex
+% VERSION 12 - VOXEL LEVEL, 400 samples cortex
 % --------------------------------------------------------
-v               = 23;
+% v               = 23;
+% SUBJLIST        = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
+% allpara.filt    = 'jh_lcmv';
+% allpara.grid    = 'cortex_lowres';
+% foi_range       = 2.^[1:.25:7];
+% para.wavelet    = 'bp_filt';
+% para.scnd_filt  = 0;
+% allpara.reg     = 0.05;
+% allpara.weigh   = 0;
+% allpara.tau     = nan;
+% fsample         = 400;
+% segleng         = 80;
+% segshift        = 40;
+% width           = 4;
+% --------------------------------------------------------
+% VERSION 12 - VOXEL LEVEL, 400 samples cortex
+% --------------------------------------------------------
+% v               = 24;
+% SUBJLIST        = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
+% allpara.filt    = 'jh_lcmv';
+% allpara.grid    = 'aal_4mm';
+% foi_range       = 2.^[1:.25:7];
+% para.wavelet    = 'bp_filt';
+% para.scnd_filt  = 0;
+% allpara.reg     = 0.05;
+% allpara.weigh   = 0;
+% allpara.tau     = nan;
+% weighting       = 1;
+% width           = 4;
+% --------------------------------------------------------
+% VERSION 25 - VOXEL LEVEL, 90 samples AAL (6mm sampling)
+% --------------------------------------------------------
+v               = 25;
 SUBJLIST        = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
 allpara.filt    = 'jh_lcmv';
-allpara.grid    = 'cortex_lowres';
+allpara.grid    = 'aal_6mm';
 foi_range       = 2.^[1:.25:6];
 para.wavelet    = 'bp_filt';
 para.scnd_filt  = 0;
 allpara.reg     = 0.05;
 allpara.weigh   = 0;
 allpara.tau     = nan;
-fsample         = 400;
-segleng         = 80;
-segshift        = 40;
+weighting       = 0;
 width           = 4;
-weighting = 0;
+FOI             = [10 11 12];
 % --------------------------------------------------------
-
 
 
 if strcmp(allpara.grid,'xcoarse')
@@ -63,14 +92,14 @@ addpath /home/tpfeffer/pconn/matlab/
 ord   = pconn_randomization;
 %% LOAD DATA COMPUTE SRC TIME COURSES
 
-for isubj = SUBJLIST
+for isubj = [12 13 21 22 25]
   for m = 1 : 3
     
-%     if ~exist(sprintf([outdir 'pupmod_src_power_s%d_m%d_v%d_processing.txt'],isubj,m,v))
-%       system(['touch ' outdir sprintf('pupmod_src_power_s%d_m%d_v%d_processing.txt',isubj,m,v)]);
-%     else
-%       continue
-%     end
+    if ~exist(sprintf([outdir 'pp_src_powcorr_test_s%d_m%d_v%d_processing.txt'],isubj,m,v))
+      system(['touch ' outdir sprintf('pp_src_powcorr_test_s%d_m%d_v%d_processing.txt',isubj,m,v)]);
+    else
+      continue
+    end
 
     if ~weighting
       if v~=25
@@ -128,7 +157,7 @@ for isubj = SUBJLIST
       data.trial = data.trial(:,data.start_of_recording:data.end_of_recording);
       data.time = data.time(data.start_of_recording:data.end_of_recording);
       
-      for ifoi = 1:length(foi_range)
+      for ifoi = FOI
         
         fprintf('Processing s%d m%d b%d f%d  ...\n', isubj,m,iblock,ifoi)
         data.time(isnan(data.trial(1,:)))=[];
@@ -138,47 +167,26 @@ for isubj = SUBJLIST
         
         para.iscs = 1;
         para.reg  = 0.05;
-        
-        sa.sa.filt      = pconn_beamformer(real(cs),sa.sa.L_coarse,para);
+        if strcmp(allpara.grid,'aal_4mm')
+          sa.sa.L_coarse = sa.sa.L_aal_4mm;
+          sa.sa.filt      = pconn_beamformer(real(cs),sa.sa.L_coarse,para);
 
-
-          fprintf('Computing pow corr  ...\n')
+        else
         
-        f = foi_range(ifoi);
-        
-        KERNEL = tp_mkwavelet(f,0.5,data.fsample);
-        
-        n_win = size(KERNEL,1);
-        n_shift = round(0.5*n_win);
-        nseg = floor((size(data.trial,2)-n_win)/n_shift+1);
-        
-        clear datasf1
-        
-        for j=1:nseg
-          dloc2=data.trial(:,(j-1)*n_shift+1:(j-1)*n_shift+n_win)';
-          if any(isnan(dloc2(:,1)))
-            warning('NaN detected')
-            continue
-          end
-          dataf=dloc2'*KERNEL;
-          datasf1(:,j)=dataf'*sa.sa.filt;
+          sa.sa.filt      = pconn_beamformer(real(cs),sa.sa.L_aal_6mm,para);
+        end
+        fprintf('Computing pow corr  ...\n')
+        if ~weighting
+          powcorr(:,:,iblock,ifoi) = tp_data2orthopowcorr_wavelet(data,foi_range(ifoi),sa);
+        else
+          powcorr(:,:,iblock,ifoi) = tp_data2orthopowcorr_wavelet_weighted(data,foi_range(ifoi),sa);
         end
         
-        outp.pow(:,ifoi,iblock) = mean(abs(datasf1).^2,2);
-        
-        
-%         fprintf('Computing pow corr  ...\n')
-%         if ~weighting
-%           powcorr(:,:,iblock,ifoi) = tp_data2orthopowcorr_wavelet(data,foi_range(ifoi),sa);
-%         else
-%           powcorr(:,:,iblock,ifoi) = tp_data2orthopowcorr_wavelet_weighted(data,foi_range(ifoi),sa);
-%         end
-%         
         
       end
            
     end
-    save(sprintf([outdir 'pupmod_src_power_s%d_m%d_v%d.mat'],isubj,m,v),'outp');
+    save(sprintf([outdir 'pp_src_powcorr_test_s%d_m%d_v%d.mat'],isubj,m,v),'powcorr');
 
   end
 end

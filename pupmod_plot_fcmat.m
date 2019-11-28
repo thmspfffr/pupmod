@@ -6,7 +6,7 @@
 
 clear
 
-v = 25;
+v = 23;
 
 addpath /home/gnolte/meg_toolbox/toolbox/
 addpath /home/gnolte/meg_toolbox/fieldtrip_utilities/
@@ -20,7 +20,7 @@ fprintf('Loading grid...\n')
 grid  = select_chans(sa_meg_template.grid_cortex3000,400); fprintf('Loading grid... Done\n')
 SUBJLIST  = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
 
-fc = pupmod_loadpowcorr(v,SUBJLIST,0);
+fc = pupmod_loadpowcorr(v,SUBJLIST,1);
 
 if v == 20
   tmp = tp_create_grid('vtpm');
@@ -29,6 +29,8 @@ if v == 20
   iismember(idx,[21 22 23 44 45 46]);
   reg = tmp.tissuelabel_4mm(idx);
 end
+
+
 %% PLOT FC MATRIX FOR DIFFERENT CONDITIONS
 % significant v23: atx 10/11/12 & 18, dpz 13/14
 ifoi = 13:14;
@@ -53,159 +55,58 @@ if v == 12 | v == 19 | v==23
       fc3 = fc_tmp(front_to_back(right),front_to_back(left));
       fc4 = fc_tmp(front_to_back(right),front_to_back(right));
 
-      fc_rest = [fc1 fc2; fc3 fc4];
-
+      fc_rest_tmp = [fc1 fc2; fc3 fc4];
+      fc_rest(:,:,i) = triu(fc_rest_tmp,1);
+      
+      subplot(1,3,i); imagesc(fc_rest(:,:,i),[0.05 0.12]); axis square off
+      colormap(plasma)
+      
+     
+    end
+    
+    print(gcf,'-depsc2',sprintf('~/pupmod/plots/pupmod_powcorr_raw_fcmat_rest_f%s_v%d.eps',regexprep(num2str(ifoi),' ',''),v))
+    
+    % DO THE SAME FOR TASK
+    cmap = cbrewer('div', 'RdBu', 256,'pchip'); cmap = cmap(end:-1:1,:);
+    figure; set(gcf,'color','w')
+    
+    for i = 1 : 3
+      
       fc_tmp = nanmean(nanmean(nanmean(fc(:,:,:,cond(i),2,ifoi,:),6),7),3);
-
+% 
       fc1 = fc_tmp(front_to_back(left),front_to_back(left));
       fc2 = fc_tmp(front_to_back(left),front_to_back(right));
       fc3 = fc_tmp(front_to_back(right),front_to_back(left));
       fc4 = fc_tmp(front_to_back(right),front_to_back(right));
 
-      fc_task = [fc1 fc2; fc3 fc4];
-
-      fc_tmp = tril(fc_rest,-1)+triu(fc_task,1);
+      fc_task_tmp = [fc1 fc2; fc3 fc4];
+      fc_task(:,:,i) = triu(fc_task_tmp,1);
       
-      min_val = min([min(fc_tmp(logical(triu(ones(400,400),1)))) min(fc_tmp(logical(tril(ones(400,400),-1))))]);
-      max_val = max([max(fc_tmp(logical(triu(ones(400,400),1)))) max(fc_tmp(logical(tril(ones(400,400),-1))))]);
-      
-      
-      subplot(1,3,i); imagesc(fc_tmp,[2*min_val 0.75*max_val]); axis square off
-      colormap(plasma)
-
+      subplot(1,3,i); imagesc(fc_task(:,:,i),[0.05 0.12]); axis square off
+      colormap(plasma)  
+    
     end
-    print(gcf,'-dpdf',sprintf('~/pupmod/plots/pupmod_powcorr_raw_fcmat_f%s_v%d.pdf',regexprep(num2str(ifoi),' ',''),v))
+        print(gcf,'-depsc2',sprintf('~/pupmod/plots/pupmod_powcorr_raw_fcmat_task_f%s_v%d.eps',regexprep(num2str(ifoi),' ',''),v))
+
+    lim = [-0.015 0.015];
+    
 
     figure; set(gcf,'color','w');
     
-    % PLOT DRUG CONTRASTS 
-    % ----------------
-    % Atomoxetine first
-    fc_tmp = nanmean(nanmean(nanmean(fc(:,:,:,2,1,ifoi,:),6),7),3)-nanmean(nanmean(nanmean(fc(:,:,:,1,1,ifoi,:),6),7),3);
+     subplot(1,3,1); imagesc(fc_task(:,:,2)-fc_task(:,:,1),lim); axis square off
+     colormap(cmap)
+     
+     subplot(1,3,2); imagesc(fc_rest(:,:,3)-fc_rest(:,:,1),lim); axis square off
+     colormap(cmap)
+        print(gcf,'-depsc2',sprintf('~/pupmod/plots/pupmod_powcorr_raw_fcmat_drugcontrast_f%s_v%d.eps',regexprep(num2str(ifoi),' ',''),v))
 
-    fc1 = fc_tmp(front_to_back(left),front_to_back(left));
-    fc2 = fc_tmp(front_to_back(left),front_to_back(right));
-    fc3 = fc_tmp(front_to_back(right),front_to_back(left));
-    fc4 = fc_tmp(front_to_back(right),front_to_back(right));
+    subplot(1,3,1); imagesc(fc_rest(:,:,2)-fc_rest(:,:,1),lim); axis square off
+     colormap(cmap)
+     
+     subplot(1,3,2); imagesc(fc_task(:,:,3)-fc_task(:,:,1),lim); axis square off
+     colormap(cmap)
+        print(gcf,'-depsc2',sprintf('~/pupmod/plots/pupmod_powcorr_raw_fcmat_drugcontrast_othercond_f%s_v%d.eps',regexprep(num2str(ifoi),' ',''),v))
 
-    fc_rest = [fc1 fc2; fc3 fc4];
-    
-    fc_tmp = nanmean(nanmean(nanmean(fc(:,:,:,2,2,ifoi,:),6),7),3)-nanmean(nanmean(nanmean(fc(:,:,:,1,2,ifoi,:),6),7),3);
-
-    fc1 = fc_tmp(front_to_back(left),front_to_back(left));
-    fc2 = fc_tmp(front_to_back(left),front_to_back(right));
-    fc3 = fc_tmp(front_to_back(right),front_to_back(left));
-    fc4 = fc_tmp(front_to_back(right),front_to_back(right));
-
-    fc_task = [fc1 fc2; fc3 fc4];
-    
-    fc_tmp = tril(fc_rest,-1)+triu(fc_task,1);
-    
-%     min_val = min([min(fc_tmp(logical(triu(ones(400,400),1)))) min(fc_tmp(logical(tril(ones(400,400),-1))))]);
-%     max_val = max([max(fc_tmp(logical(triu(ones(400,400),1)))) max(fc_tmp(logical(tril(ones(400,400),-1))))]);
-    min_val = -0.02; max_val = 0.02;
-
-    
-    subplot(1,3,2); imagesc(fc_tmp,[min_val max_val]); axis square off
-    colormap(cmap)
-    
-    % Donepezil second
-    fc_tmp = nanmean(nanmean(nanmean(fc(:,:,:,3,1,ifoi,:),6),7),3)-nanmean(nanmean(nanmean(fc(:,:,:,1,1,ifoi,:),6),7),3);
-
-    fc1 = fc_tmp(front_to_back(left),front_to_back(left));
-    fc2 = fc_tmp(front_to_back(left),front_to_back(right));
-    fc3 = fc_tmp(front_to_back(right),front_to_back(left));
-    fc4 = fc_tmp(front_to_back(right),front_to_back(right));
-
-    fc_rest = [fc1 fc2; fc3 fc4];
-    
-    fc_tmp = nanmean(nanmean(nanmean(fc(:,:,:,3,2,ifoi,:),6),7),3)-nanmean(nanmean(nanmean(fc(:,:,:,1,2,ifoi,:),6),7),3);
-
-    fc1 = fc_tmp(front_to_back(left),front_to_back(left));
-    fc2 = fc_tmp(front_to_back(left),front_to_back(right));
-    fc3 = fc_tmp(front_to_back(right),front_to_back(left));
-    fc4 = fc_tmp(front_to_back(right),front_to_back(right));
-
-    fc_task = [fc1 fc2; fc3 fc4];
-    
-    fc_tmp = tril(fc_rest,-1)+triu(fc_task,1);
-    
-%     min_val = min([min(fc_tmp(logical(triu(ones(400,400),1)))) min(fc_tmp(logical(tril(ones(400,400),-1))))]);
-%     max_val = max([max(fc_tmp(logical(triu(ones(400,400),1)))) max(fc_tmp(logical(tril(ones(400,400),-1))))]);
-%     min_val = -0.03; max_val = 0.03;
-
-
-    subplot(1,3,3); imagesc(fc_tmp,[min_val max_val]); axis square off
-    colormap(cmap)
-    
-    print(gcf,'-dpdf',sprintf('~/pupmod/plots/pupmod_powcorr_diff_fcmat_f%s_v%d.pdf',regexprep(num2str(ifoi),' ',''),v))
-
-    % -------------
-    % TASK VS REST
-    % --------------------------------------------------
-     % PLOT TASK VS REST CONTRASTS 
-    % ----------------
-    % Placebo first
-    fc_tmp = nanmean(nanmean(nanmean(fc(:,:,:,1,2,ifoi,:),6),7),3)-nanmean(nanmean(nanmean(fc(:,:,:,1,1,ifoi,:),6),7),3);
-
-    fc1 = fc_tmp(front_to_back(left),front_to_back(left));
-    fc2 = fc_tmp(front_to_back(left),front_to_back(right));
-    fc3 = fc_tmp(front_to_back(right),front_to_back(left));
-    fc4 = fc_tmp(front_to_back(right),front_to_back(right));
-
-    fc_rest = [fc1 fc2; fc3 fc4];
-    
-    subplot(1,3,1); imagesc(fc_rest,[min_val max_val]);axis square off
-    colormap(cmap)
-    
-    fc_tmp = nanmean(nanmean(nanmean(fc(:,:,:,2,2,ifoi,:),6),7),3)-nanmean(nanmean(nanmean(fc(:,:,:,2,1,ifoi,:),6),7),3);
-
-    fc1 = fc_tmp(front_to_back(left),front_to_back(left));
-    fc2 = fc_tmp(front_to_back(left),front_to_back(right));
-    fc3 = fc_tmp(front_to_back(right),front_to_back(left));
-    fc4 = fc_tmp(front_to_back(right),front_to_back(right));
-
-    fc_rest = [fc1 fc2; fc3 fc4];
-    
-    
-    subplot(1,3,2); imagesc(fc_rest,[min_val max_val]);axis square off
-    colormap(cmap)
-    
-    fc_tmp = nanmean(nanmean(nanmean(fc(:,:,:,3,2,ifoi,:),6),7),3)-nanmean(nanmean(nanmean(fc(:,:,:,3,1,ifoi,:),6),7),3);
-
-    fc1 = fc_tmp(front_to_back(left),front_to_back(left));
-    fc2 = fc_tmp(front_to_back(left),front_to_back(right));
-    fc3 = fc_tmp(front_to_back(right),front_to_back(left));
-    fc4 = fc_tmp(front_to_back(right),front_to_back(right));
-
-    fc_rest = [fc1 fc2; fc3 fc4];
-    
-    
-    subplot(1,3,3); imagesc(fc_rest,[min_val max_val]);axis square off
-    colormap(cmap)
-    
-elseif v== 20
-  for ifoi = FOI
-
-    figure; set(gcf,'color','w')
-    cond = [1 2 3];
-    
-    for i = 1 : 3
-      
-      fc_rest = nanmean(nanmean(fc(idx,idx,:,cond(i),1,ifoi,:),7),3);
-      fc_task = nanmean(nanmean(fc(idx,idx,:,cond(i),2,ifoi,:),7),3);
-      
-      fc = tril(fc_rest,-1)+triu(fc_task,1);
-%       if ifoi ~= 7
-      subplot(1,3,3); imagesc(fc,[0.04 0.12]); axis square %off
-      
-      set(gca,'xTick',1:2:40,'xTickLabels',reg(1:2:40),'ticklabelinterpreter','none');xtickangle(90)
-      set(gca,'yTick',1:2:40,'yTickLabels',reg(1:2:40),'ticklabelinterpreter','none')
-      colormap(inferno); tp_editplots; set(gca,'FontSize',5)
-
-    end
-    print(gcf,'-dpdf',sprintf('~/pupmod/plots/pupmod_powcorr_raw_fcmat_f%s_v%d.pdf',regexprep(num2str(ifoi),' ',''),v))
-  end
 end
 
 %% DRUG CONTRASTS FOR EACH BLOCK

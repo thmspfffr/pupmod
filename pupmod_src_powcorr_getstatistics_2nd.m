@@ -147,7 +147,6 @@ if strcmp(para.type, 'global')
     % --------------------------
     
     for ifreq = para.nfreq
-      
       % GLOBAL EFFECTS
       % ------------------
       % ATOMOXETINE
@@ -168,7 +167,6 @@ if strcmp(para.type, 'global')
       [~,R_tvr_p(:,ifreq)] = sort(perm_taskvsrest_n_p(:,ifreq,1),'ascend');
       [~,R_tvr_n(:,ifreq)] = sort(perm_taskvsrest_n_n(:,ifreq,1),'ascend');
     end
-    
     
     Rmax_res1_n = max(R_res1_n,[],2);
     Rmax_res1_p = max(R_res1_p,[],2);
@@ -272,8 +270,7 @@ if strcmp(para.type, 'global')
       [~,R_tvr_p(:,ifreq)] = sort(perm_taskvsrest_n_p(:,ifreq,1),'ascend');
       [~,R_tvr_n(:,ifreq)] = sort(perm_taskvsrest_n_n(:,ifreq,1),'ascend');
     end
-    
-    
+
     Rmax_res1_n = max(R_res1_n,[],2);
     Rmax_res1_p = max(R_res1_p,[],2);
     Rmax_cnt1_p = max(R_cnt1_p,[],2);
@@ -352,11 +349,11 @@ if strcmp(para.type, 'global')
       outp.p_tvr_n(ifreq) = 1-sum(emp.taskvsrest_n(ifreq)>Dmax_tvr_n_corr(:,ifreq))/para.nperm;
     end
     
-    
   elseif strcmp(para.correction_method,'single_threshold')
     
     % do not perform rank conversion, but only single threshold test
     % extract maximum fraction of altered corr. across freq first
+    
     % ATOMOXETINE
     % ------------------
     idx_R_res1_p   = max(abs(perm_n_p_atx(:,:,1)),[],2);
