@@ -3,26 +3,21 @@
 % see hawellek et al. (2013) for details
 % cleaned data is generated in pupmod_all_powcorr_periphereal
 
-% data is collected in: pupmod_all_powcorr_plot_alteredcorr
-% data is plotted in: pupmod_all_powcorr_plot_alteredcorr.m
+% data is used in: pupmod_plot_alteredcorr
 
 % last update: 26-10-2018
 
 clear 
-v = 23; 
-% alp: standard for all 0.05!!! except verison 13
-nperm = 10000; alp = 0.05;
-nfoi = 25;
-par.subs = 250;
+
+v     = 1; 
+nperm = 10000; 
+alp   = 0.05;
+nfoi  = 17;
+
+par.subs     = 250;
 par.allperms = nperm/par.subs;
 
-addpath /home/gnolte/meg_toolbox/toolbox/
-addpath /home/gnolte/meg_toolbox/fieldtrip_utilities/
-addpath /home/gnolte/meg_toolbox/toolbox_nightly/
-addpath /home/gnolte/meg_toolbox/meg/
-% addpath /home/tpfeffer/Documents/MATLAB/fieldtrip-20130925/
-
-outdir   = '/home/tpfeffer/pupmod/proc/conn/';
+outdir = '/home/tpfeffer/pupmod/proc/conn/';
 addpath /home/tpfeffer/pconn/matlab/
 
 SUBJLIST  = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
@@ -35,13 +30,14 @@ nvox = size(fc,1)*size(fc,1)-size(fc,1);
 
 %%
 
-% atx effect
-data1(:,:,:,:,:,1) = tanh(nanmean(atanh(fc(:,:,:,:,:,10:11:12)),6));
-data1(:,:,:,:,:,2) = tanh(nanmean(atanh(fc(:,:,:,:,:,18)),6));
+% atx effect #1 (9.5-16 Hz), where p<0.025
+fc(:,:,:,:,:,18) = tanh(nanmean(atanh(fc(:,:,:,:,:,[6 7 8 9])),6));
+% atx effect #1 (9.5-16 Hz), where p<0.025
+fc(:,:,:,:,:,19) = tanh(nanmean(atanh(fc(:,:,:,:,:,13)),6));
+fc(:,:,:,:,:,20) = tanh(nanmean(atanh(fc(:,:,:,:,:,13:14)),6));
+% data1(:,:,:,:,:,2) = tanh(nanmean(atanh(fc(:,:,:,:,:,13)),6));
 % dpz effect
-data1(:,:,:,:,:,3) = tanh(nanmean(atanh(fc(:,:,:,:,:,13:14)),6));
-
-clear fc
+% data1(:,:,:,:,:,3) = tanh(nanmean(atanh(fc(:,:,:,:,:,13:14)),6));
 
 clear fc
 

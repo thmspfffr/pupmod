@@ -6,7 +6,7 @@
 
 clear
 
-v = 23;
+v = 1;
 
 addpath /home/gnolte/meg_toolbox/toolbox/
 addpath /home/gnolte/meg_toolbox/fieldtrip_utilities/
@@ -33,12 +33,12 @@ end
 
 %% PLOT FC MATRIX FOR DIFFERENT CONDITIONS
 % significant v23: atx 10/11/12 & 18, dpz 13/14
-ifoi = 13:14;
+ifoi = 1;
 
 
 cmap = cbrewer('div', 'RdBu', 256,'pchip'); cmap = cmap(end:-1:1,:);
 
-if v == 12 | v == 19 | v==23
+if v == 12 | v == 19 | v==23 | v==1
 %   for ifoi = FOI
 
     figure; set(gcf,'color','w')
@@ -58,7 +58,7 @@ if v == 12 | v == 19 | v==23
       fc_rest_tmp = [fc1 fc2; fc3 fc4];
       fc_rest(:,:,i) = triu(fc_rest_tmp,1);
       
-      subplot(1,3,i); imagesc(fc_rest(:,:,i),[0.05 0.12]); axis square off
+      subplot(1,3,i); imagesc(fc_rest(:,:,i),[0.05 0.15]); axis square off
       colormap(plasma)
       
      
@@ -82,13 +82,13 @@ if v == 12 | v == 19 | v==23
       fc_task_tmp = [fc1 fc2; fc3 fc4];
       fc_task(:,:,i) = triu(fc_task_tmp,1);
       
-      subplot(1,3,i); imagesc(fc_task(:,:,i),[0.05 0.12]); axis square off
+      subplot(1,3,i); imagesc(fc_task(:,:,i),[0.05 0.15]); axis square off
       colormap(plasma)  
     
     end
         print(gcf,'-depsc2',sprintf('~/pupmod/plots/pupmod_powcorr_raw_fcmat_task_f%s_v%d.eps',regexprep(num2str(ifoi),' ',''),v))
 
-    lim = [-0.015 0.015];
+    lim = [-0.05 0.05];
     
 
     figure; set(gcf,'color','w');
@@ -105,7 +105,7 @@ if v == 12 | v == 19 | v==23
      
      subplot(1,3,2); imagesc(fc_task(:,:,3)-fc_task(:,:,1),lim); axis square off
      colormap(cmap)
-        print(gcf,'-depsc2',sprintf('~/pupmod/plots/pupmod_powcorr_raw_fcmat_drugcontrast_othercond_f%s_v%d.eps',regexprep(num2str(ifoi),' ',''),v))
+      print(gcf,'-depsc2',sprintf('~/pupmod/plots/pupmod_powcorr_raw_fcmat_drugcontrast_othercond_f%s_v%d.eps',regexprep(num2str(ifoi),' ',''),v))
 
 end
 
@@ -277,25 +277,25 @@ end
 
 % close all
 
-ifoi = 6; ipharm = 2; icont = 1; iblock = 1;
+ifoi = 6:9; ipharm = 2; icont = 2; iblock = 1;
 
 % cmap =  hot
 cmap = cbrewer('div','RdBu',128); cmap = cmap(end:-1:1,:);
 % cmap = cmap;
 
-par_drug = nanmean(nanmean(nanmean(fc(:,:,:,ipharm,icont,ifoi,iblock),7),3));
-par_plac = nanmean(nanmean(nanmean(fc(:,:,:,1,icont,ifoi,iblock),7),3));
+par_drug = nanmean(nanmean(nanmean(nanmean(fc(:,:,:,ipharm,icont,ifoi,iblock),7),3),6));
+par_plac = nanmean(nanmean(nanmean(nanmean(fc(:,:,:,1,icont,ifoi,iblock),7),3),6));
 
-[h,p]=ttest(nanmean(nanmean(fc(:,:,:,ipharm,icont,ifoi,iblock),7)),nanmean(nanmean(fc(:,:,:,1,icont,ifoi,iblock),7)),'dim',3);
+[h,p]=ttest(nanmean(nanmean(nanmean(fc(:,:,:,ipharm,icont,ifoi,iblock),7),6)),nanmean(nanmean(nanmean(fc(:,:,:,1,icont,ifoi,iblock),7),6)),'dim',3);
 par = 100*(par_drug-par_plac)./par_plac;
-% par = par.*(p<0.4);
+par = par.*(p<0.007);
 
 % % para = [];
 % para.clim = [min(par) max(par)];
 para.cmap = cmap;
 para.grid = grid;
 para.dd = 0.75;
-para.clim = [-15 15];
+para.clim = [-30 30];
 para.fn = sprintf('~/pupmod/plots/test.png');
 tp_plot_surface(par,para)
 
@@ -343,7 +343,64 @@ for ifreq1 = 1 : 25
 end
 end
 
+%% PLOT FOR METHODS FIGURE
+
+
+figure; set(gcf,'color','w')
+cond = [1 2 3];
+[~,front_to_back] = sort(grid(:,2),'descend');
+left  = find(grid(:,1)<0);
+right = find(grid(:,1)>0);
+
+isubj = 18;
+icond = 1;
+
+  
+fc_tmp = nanmean(nanmean(nanmean(fc(:,:,isubj,1,icond,ifoi,:),6),7),3);
+
+fc1 = fc_tmp(front_to_back(left),front_to_back(left));
+fc2 = fc_tmp(front_to_back(left),front_to_back(right));
+fc3 = fc_tmp(front_to_back(right),front_to_back(left));
+fc4 = fc_tmp(front_to_back(right),front_to_back(right));
+
+fc_rest_tmp = [fc1 fc2; fc3 fc4];
+% fc_rest(:,:,i) = triu(fc_rest_tmp,1);
+
+subplot(1,3,i); imagesc(fc_rest_tmp,[0.03 0.10]); axis square off
+colormap(plasma)
+  
+ 
+
+print(gcf,'-depsc2',sprintf('~/pupmod/plots/pupmod_fcmat_methodsfig_isubj%d_cond%d_v%d.eps',isubj,icond,v))
+
+
+figure; set(gcf,'color','w')
+cond = [1 2 3];
+[~,front_to_back] = sort(grid(:,2),'descend');
+left  = find(grid(:,1)<0);
+right = find(grid(:,1)>0);
+
+for isubj = 1 : 28
+  icond = 1;
+ifoi = 13
+  
+fc_tmp = nanmean(nanmean(nanmean(fc(:,:,isubj,1,2,ifoi,:),6),7),3)-nanmean(nanmean(nanmean(fc(:,:,isubj,1,1,ifoi,:),6),7),3);
+
+fc1 = fc_tmp(front_to_back(left),front_to_back(left));
+fc2 = fc_tmp(front_to_back(left),front_to_back(right));
+fc3 = fc_tmp(front_to_back(right),front_to_back(left));
+fc4 = fc_tmp(front_to_back(right),front_to_back(right));
+
+fc_rest_tmp = [fc1 fc2; fc3 fc4];
+
+subplot(1,3,i); imagesc(fc_rest_tmp,[-0.1 0.1]); axis square off
+colormap(cmap)
+  
+print(gcf,'-depsc2',sprintf('~/pupmod/plots/pupmod_fcmat_methodsfig_isubj%d_cond%d_v%d.eps',isubj,icond,v))
+
+end
 %%
+    
 
 
 % A FEW VERY BASIC ANALYSES

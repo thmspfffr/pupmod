@@ -9,10 +9,10 @@
 % last update: 26-10-2018
 
 clear
-v = 23;
+v = 1;
 % alp: standard for all 0.05!!! except verison 13
 nperm = 10000; alp = 0.05;
-nfoi = 25;
+nfoi = 17;
 par.subs = 250;
 par.allperms = nperm/par.subs;
 

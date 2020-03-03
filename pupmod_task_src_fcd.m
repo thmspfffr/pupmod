@@ -1,5 +1,5 @@
 
-%% pupmod_src_fcd
+%% pupmod_task_src_fcd
 
 % Call pupmod_all_powcorr_periphereal.m next, in order to clean
 % estimated FCs from artifacts.
@@ -102,10 +102,10 @@ include_bcn = find(~ismember(k,exclude_bcn));
 %% LOAD DATA COMPUTE SRC TIME COURSES
 
 for isubj = SUBJLIST
-  for m = 1:3
+  for m = 1 : 3
     
-    if ~exist(sprintf([outdir 'pupmod_src_task_fcd_s%d_m%d_v%d_processing.txt'],isubj,m,v))
-      system(['touch ' outdir sprintf('pupmod_src_task_fcd_s%d_m%d_v%d_processing.txt',isubj,m,v)]);
+    if ~exist(sprintf([outdir 'pupmod_task_src_fcd_s%d_m%d_v%d_processing.txt'],isubj,m,v))
+      system(['touch ' outdir sprintf('pupmod_task_src_fcd_s%d_m%d_v%d_processing.txt',isubj,m,v)]);
     else
       continue
     end
@@ -174,8 +174,6 @@ for isubj = SUBJLIST
         data.trial=data.trial/scale;
         
         nanyesno = 0;
-        clear datasf1 
-        
         for j=1:nseg
           
           dloc2=data.trial(:,(j-1)*opt.n_shift+1:(j-1)*opt.n_shift+opt.n_win)';
@@ -275,9 +273,7 @@ for isubj = SUBJLIST
           para.transfer = 'to_bcn';
           para.N        = 90;
           
-          tmp = tp_match_aal(para,pcorr);
-          
-          powcorr(:,:,j) = tmp(include_bcn,include_bcn);
+          powcorr(:,:,j) = tp_match_aal(para,pcorr);
           
         end
         
@@ -289,9 +285,7 @@ for isubj = SUBJLIST
           end
         end
         
-        clear powcorr
-        
-        save(sprintf([outdir 'pupmod_src_task_fcd_s%d_m%d_f%d_b%d_v%d.mat'],isubj,m,ifoi,iblock,v),'fcd');
+        save(sprintf([outdir 'pupmod_task_src_fcd_s%d_m%d_f%d_b%d_v%d.mat'],isubj,m,ifoi,iblock,v),'fcd');
         
       end
     end

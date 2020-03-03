@@ -239,5 +239,38 @@ plot(n_dpz,'linewidth',2,'color',[0.2 0.5 1])
 
 
 
+%% RANGE NORMALIZE
+
+for isubj = 1 : 28
+  for ifoi = 1:21
+  
+  tmp = squeeze(cleandat(:,:,isubj,:,:,ifoi,:));
+  min_t = min(tmp(:));
+  max_t = max(tmp(:));
+  
+  tmp=(tmp-min_t)/(max_t-min_t);
+  
+  cleandat(:,:,isubj,:,:,ifoi,:)=tmp;
+  
+  end
+end
+
+%%
+
+  para.alpha = 0.05;
+  para.nfreq = 1:21
+  
+  emp = compute_altered_correlations(cleandat,para);
+
+%%
+figure_w;
+subplot(3,2,1)
+plot(emp.n_p_atx); axis([0 21 0 0.4])
+subplot(3,2,2)
+plot(emp.n_n_atx); axis([0 21 0 0.4])
+subplot(3,2,3)
+plot(emp.n_p_dpz); axis([0 21 0 0.4])
+subplot(3,2,4)
+plot(emp.n_n_dpz); axis([0 21 0 0.4])
 
 

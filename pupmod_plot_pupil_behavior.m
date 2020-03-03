@@ -133,57 +133,69 @@ print(gcf,'-dpdf',sprintf('~/pupmod/plots/pupmod_plot_pupil_behavior.pdf'))
 
 %%
 
-cols = cbrewer('seq', 'Blues', 28);
+cond = [2 3];
+r=rand(28,1)-0.5;
+par = squeeze(nanmean(pup,3));
+par([14 20],:,:)=[];
+
+for icond = 1 : 2
 
 figure; set(gcf,'color','w');
 subplot(3,3,1:2); hold on
 
-par = squeeze(nanmean(pup,3));
-par([14 20],:,:)=[];
 
-r=rand(28,1)-0.5;
+
+
+c = cond(icond);
+if icond == 1
+  cols = cbrewer('seq', 'Reds', 28);
+
+else
+  cols = cbrewer('seq', 'Blues', 28);
+
+end
 
 for isubj=1:size(par,1)
   plot(r(isubj),par(isubj,1,1),'.','markersize',10,'color',cols(isubj,:))
-  plot(r(isubj)+2,par(isubj,3,1),'.','markersize',10,'color',cols(isubj,:))
-  line([r(isubj) r(isubj)+2],[par(isubj,1,1) par(isubj,3,1)],'color',cols(isubj,:))
+  plot(r(isubj)+2,par(isubj,c,1),'.','markersize',10,'color',cols(isubj,:))
+  line([r(isubj) r(isubj)+2],[par(isubj,1,1) par(isubj,c,1)],'color',cols(isubj,:))
   
   plot(r(isubj)+6,par(isubj,1,2),'.','markersize',10,'color',cols(isubj,:))
-  plot(r(isubj)+8,par(isubj,3,2),'.','markersize',10,'color',cols(isubj,:))
-  line([r(isubj)+6 r(isubj)+8],[par(isubj,1,2) par(isubj,3,2)],'color',cols(isubj,:))
+  plot(r(isubj)+8,par(isubj,c,2),'.','markersize',10,'color',cols(isubj,:))
+  line([r(isubj)+6 r(isubj)+8],[par(isubj,1,2) par(isubj,c,2)],'color',cols(isubj,:))
 end
 for isubj=1:size(par,1)
   if any(isnan(par_pooled(isubj,:))); continue; end
   plot(r(isubj)+12,par_pooled(isubj,1),'.','markersize',10,'color',cols(isubj,:))
-  plot(r(isubj)+14,par_pooled(isubj,3),'.','markersize',10,'color',cols(isubj,:))
-  line([r(isubj)+12 r(isubj)+14],[par_pooled(isubj,1) par_pooled(isubj,3)],'color',cols(isubj,:))
+  plot(r(isubj)+14,par_pooled(isubj,c),'.','markersize',10,'color',cols(isubj,:))
+  line([r(isubj)+12 r(isubj)+14],[par_pooled(isubj,1) par_pooled(isubj,c)],'color',cols(isubj,:))
 end
 
 
 plot(-1,nanmean(par(:,1,1)),'.','markersize',20,'color','k')
-plot(3,nanmean(par(:,3,1)),'.','markersize',20,'color','k')
-line([-1 3],[nanmean(par(:,1,1)) nanmean(par(:,3,1))],'color','k')
+plot(3,nanmean(par(:,c,1)),'.','markersize',20,'color','k')
+line([-1 3],[nanmean(par(:,1,1)) nanmean(par(:,c,1))],'color','k')
 
 plot(5,nanmean(par(:,1,2)),'.','markersize',20,'color','k')
-plot(9,nanmean(par(:,3,2)),'.','markersize',20,'color','k')
-line([5 9],[nanmean(par(:,1,2)) nanmean(par(:,3,2))],'color','k')
+plot(9,nanmean(par(:,c,2)),'.','markersize',20,'color','k')
+line([5 9],[nanmean(par(:,1,2)) nanmean(par(:,c,2))],'color','k')
 
 plot(11,nanmean(par_pooled(:,1)),'.','markersize',20,'color','k')
-plot(15,nanmean(par_pooled(:,3)),'.','markersize',20,'color','k')
-line([11 15],[nanmean(par_pooled(:,1)) nanmean(par_pooled(:,3))],'color','k')
+plot(15,nanmean(par_pooled(:,c)),'.','markersize',20,'color','k')
+line([11 15],[nanmean(par_pooled(:,1)) nanmean(par_pooled(:,c))],'color','k')
 
 axis([-2 25 4000 12000]); tp_editplots
 ylabel('Pupil diameter [a.U.]');
 
 subplot(3,3,3); hold on
 for isubj=1:size(par,1)
-plot(par(isubj,3,1)-par(isubj,1,1),par(isubj,3,2)-par(isubj,1,2),'.','markersize',10,'color',cols(isubj,:))
+plot(par(isubj,3,1)-par(isubj,1,1),par(isubj,c,2)-par(isubj,1,2),'.','markersize',10,'color',cols(isubj,:))
 end
 
-plot(nanmean(par(:,3,1)-par(:,1,1)),nanmean(par(:,3,2)-par(:,1,2)),'.','markersize',20,'color','k')
+plot(nanmean(par(:,3,1)-par(:,1,1)),nanmean(par(:,c,2)-par(:,1,2)),'.','markersize',20,'color','k')
 
 
-[rr,p]=corr(par(:,3,1)-par(:,1,1),par(:,3,2)-par(:,1,2));
+[rr,p]=corr(par(:,3,1)-par(:,1,1),par(:,c,2)-par(:,1,2));
 text(-3000, 2750,sprintf('r=%3f\np=%3f',rr,p),'fontsize',6)
 
 axis([-3500 3500 -3500 3500]); tp_editplots; %lsline
@@ -197,6 +209,13 @@ set(gca,'tickdir','out','xtick',[-3000 0 3000],'xticklabel',num2str([-3000; 0; 3
 set(gca,'tickdir','out','ytick',[-3000 0 3000],'yticklabel',num2str([-3000; 0; 3000]));
 % set(gca,'XTick'
 
+print(gcf,'-depsc2',sprintf('~/pupmod/plots/pupmpd_pupil_cond%d.eps',icond))
+
+end
+
+
+
+%%
 subplot(3,3,4:5); hold on
 
 par=nanmean(behav_cnt,3)';

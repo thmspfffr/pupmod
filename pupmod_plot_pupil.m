@@ -16,7 +16,7 @@ addpath ~/pconn/matlab/
 addpath ~/pp/matlab
 outdir = '~/pupmod/proc/conn/';
 
-cleandat = pupmod_loadpowcorr(v,0);
+cleandat = pupmod_loadpowcorr(v,SUBJLOST,0);
 
 if v == 20
   tmp = tp_create_grid('vtpm');
@@ -672,13 +672,13 @@ m2 = nanmean(pup(:,[1 2],2,2));
 s1 = sqrt(nansum((pup(:,[1 2],1,2)-nanmean(pup(:,[1 2],1,2))).^2)/27)/sqrt(28);
 s2 = sqrt(nansum((pup(:,[1 2],2,2)-nanmean(pup(:,[1 2],2,2))).^2)/27)/sqrt(28);
 
-subplot(2,2,1);
+subplot(3,2,1);
 bar(m1);  title('Block #1')
 line([1 1],[m1(1)-s1(1) m1(1)+s1(1)],'linestyle','-','color','k')
 line([2 2],[m1(2)-s1(2) m1(2)+s1(2)],'linestyle','-','color','k')
 set(gca,'xTick',[1 2],'xTickLabels',{'Pbo';'Atx'},'ticklabelinterpreter','none');xtickangle(90)
 tp_editplots; ylabel('Pupil diameter'); axis([0 3 6000 9000])
-subplot(2,2,2); 
+subplot(3,2,2); 
 bar(m2);  title('Block #2')
 line([1 1],[m2(1)-s2(1) m2(1)+s2(1)],'linestyle','-','color','k')
 line([2 2],[m2(2)-s2(2) m2(2)+s2(2)],'linestyle','-','color','k')

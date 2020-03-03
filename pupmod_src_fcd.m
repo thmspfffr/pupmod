@@ -101,25 +101,25 @@ include_bcn = find(~ismember(k,exclude_bcn));
 
 %% LOAD DATA COMPUTE SRC TIME COURSES
 
-for isubj = SUBJLIST
-  for m = 1:3
+for isubj = 33
+  for m = 1
     
-    if ~exist(sprintf([outdir 'pupmod_src_task_fcd_s%d_m%d_v%d_processing.txt'],isubj,m,v))
-      system(['touch ' outdir sprintf('pupmod_src_task_fcd_s%d_m%d_v%d_processing.txt',isubj,m,v)]);
-    else
-      continue
-    end
+%     if ~exist(sprintf([outdir 'pupmod_src_fcd_s%d_m%d_v%d_processing.txt'],isubj,m,v))
+%       system(['touch ' outdir sprintf('pupmod_src_fcd_s%d_m%d_v%d_processing.txt',isubj,m,v)]);
+%     else
+%       continue
+%     end
 
-    for iblock = 1:2
+    for iblock = 2
       
       pars = [];
-      pars.sa   = sprintf('~/pconn_cnt/proc/src/pconn_cnt_sa_s%d_m%d_b%d_v%d.mat',isubj,m,iblock,v_grid);
+      pars.sa   = sprintf('~/pconn/proc/src/pconn_sa_s%d_m%d_b%d_v%d.mat',isubj,m,iblock,v_grid);
       sa        = load(pars.sa);
       
       fprintf('Loading MEG data ...\n');
       
       try
-        load(sprintf('~/pp/proc/pp_cnt_sens_cleandat_s%d_m%d_b%d_v%d.mat',isubj,m,iblock,1))
+        load(sprintf('~/pp/proc/pp_sens_cleandat_s%d_m%d_b%d_v%d.mat',isubj,m,iblock,1))
       catch me
          continue
       end
@@ -291,7 +291,7 @@ for isubj = SUBJLIST
         
         clear powcorr
         
-        save(sprintf([outdir 'pupmod_src_task_fcd_s%d_m%d_f%d_b%d_v%d.mat'],isubj,m,ifoi,iblock,v),'fcd');
+        save(sprintf([outdir 'pupmod_src_fcd_s%d_m%d_f%d_b%d_v%d.mat'],isubj,m,ifoi,iblock,v),'fcd');
         
       end
     end

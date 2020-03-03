@@ -20,7 +20,7 @@ fprintf('Loading grid...\n')
 grid  = select_chans(sa_meg_template.grid_cortex3000,400); fprintf('Loading grid... Done\n')
 SUBJLIST  = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
 
-fc = pupmod_loadpowcorr(v,SUBJLIST,0);
+fc = pupmod_loadcov(v,SUBJLIST,0);
 
 if v == 20
   tmp = tp_create_grid('vtpm');
@@ -32,13 +32,13 @@ end
 
 
 %% COMPUTE DIMENSIONALITY
-dim = zeros(28,3,2,25);
+dim = zeros(28,3,2,21);
 for isubj = 1:28
   isubj
   cnt = 0;
   for m = 1 : 3
-    for ifoi=1:25
-      for cond = 1 : 2
+    for ifoi=1:21
+      for cond = 2 : 2
 %         cnt=cnt+1
         % compute according to ito et al. (2019) biorxiv
         [a,b,eig]=pca(nanmean(fc(:,:,isubj,m,cond,ifoi,:),7));
