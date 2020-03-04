@@ -30,16 +30,12 @@ nvox = size(fc,1)*size(fc,1)-size(fc,1);
 
 %%
 
-% atx effect #1 (9.5-16 Hz), where p<0.025
+% atx effect #1 (9.5-16 Hz), where p<0.05
 fc(:,:,:,:,:,18) = tanh(nanmean(atanh(fc(:,:,:,:,:,[6 7 8 9])),6));
-% atx effect #1 (9.5-16 Hz), where p<0.025
-fc(:,:,:,:,:,19) = tanh(nanmean(atanh(fc(:,:,:,:,:,13)),6));
-fc(:,:,:,:,:,20) = tanh(nanmean(atanh(fc(:,:,:,:,:,13:14)),6));
-% data1(:,:,:,:,:,2) = tanh(nanmean(atanh(fc(:,:,:,:,:,13)),6));
+% atx effect #1 (9.5-16 Hz), where p<0.05
+fc(:,:,:,:,:,19) = tanh(nanmean(atanh(fc(:,:,:,:,:,[13 14])),6));
 % dpz effect
-% data1(:,:,:,:,:,3) = tanh(nanmean(atanh(fc(:,:,:,:,:,13:14)),6));
-
-clear fc
+fc(:,:,:,:,:,20) = tanh(nanmean(atanh(fc(:,:,:,:,:,[8 9 10])),6));
 
 tmp = clock;
 
@@ -54,10 +50,10 @@ else
   load(sprintf([outdir 'pupmod_src_powcorr_second_permtest_perms_subs%d_nperm%d_v%d.mat'],par.subs,nperm,v));
 end
 
-dat_res1 = single(squeeze(data1(:,:,:,[1 2],1,:))); 
-dat_cnt1 = single(squeeze(data1(:,:,:,[1 2],2,:)));  
-dat_cnt2 = single(squeeze(data1(:,:,:,[1 3],2,:))); 
-dat_res2 = single(squeeze(data1(:,:,:,[1 3],1,:))); 
+dat_res1 = single(squeeze(fc(:,:,:,[1 2],1,:))); 
+dat_cnt1 = single(squeeze(fc(:,:,:,[1 2],2,:)));  
+dat_cnt2 = single(squeeze(fc(:,:,:,[1 3],2,:))); 
+dat_res2 = single(squeeze(fc(:,:,:,[1 3],1,:))); 
 
 taskvsrest(:,:,:,1,:) = dat_res1(:,:,:,1,:);
 taskvsrest(:,:,:,2,:) = dat_cnt1(:,:,:,1,:);

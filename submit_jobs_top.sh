@@ -21,7 +21,7 @@ case $choice in
   s)
   echo "Submitting jobs..."
   for i in $( seq 1 $NJOBS); do
-    let var1=10*$i;
+    let var1=5*$i;
     echo 'Start Job ' $i 'wait for: ' $var1 's'
     qsub -v var="$var1" submit_jobs.sh
   done

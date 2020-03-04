@@ -9,11 +9,11 @@
 % last update: 26-10-2018
 
 clear 
-v = 19; 
+v = 23; 
 % alp: standard for all 0.05!!! except verison 13
 nperm = 10000; alp = 0.05;
 nfoi = 25;
-par.subs = 250;
+par.subs = 500;
 par.allperms = nperm/par.subs;
 
 addpath /home/gnolte/meg_toolbox/toolbox/
@@ -29,7 +29,7 @@ SUBJLIST  = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 3
 
 addpath ~/pconn/matlab/
 
-cleandat = pupmod_loadpowcorr(v,1);
+cleandat = single(pupmod_loadpowcorr(v,SUBJLIST,1));
 
 nvox = size(cleandat,1)*size(cleandat,1)-size(cleandat,1);
 
@@ -47,14 +47,6 @@ if ~exist(sprintf([outdir 'pupmod_src_powcorr_permtest_perms_subs%d_nperm%d_v%d.
 else
   load(sprintf([outdir 'pupmod_src_powcorr_permtest_perms_subs%d_nperm%d_v%d.mat'],par.subs,nperm,v));
 end
-
-dat_res1 = single(squeeze(cleandat(:,:,:,[1 2],1,:))); 
-dat_cnt1 = single(squeeze(cleandat(:,:,:,[1 2],2,:)));  
-dat_cnt2 = single(squeeze(cleandat(:,:,:,[1 3],2,:))); 
-dat_res2 = single(squeeze(cleandat(:,:,:,[1 3],1,:))); 
-
-taskvsrest(:,:,:,1,:) = dat_res1(:,:,:,1,:);
-taskvsrest(:,:,:,2,:) = dat_cnt1(:,:,:,1,:);
 
 for iperm = 1 : par.allperms
   
@@ -75,33 +67,26 @@ for iperm = 1 : par.allperms
     idx2 = 3-idx1;
     
     for i = 1 : length(idx1)
-      permdat_cnt1(:,:,i,1,:) = dat_cnt1(:,:,i,idx1(i),:);
-      permdat_cnt1(:,:,i,2,:) = dat_cnt1(:,:,i,idx2(i),:);     
-      permdat_res1(:,:,i,1,:) = dat_res1(:,:,i,idx1(i),:);
-      permdat_res1(:,:,i,2,:) = dat_res1(:,:,i,idx2(i),:);
+      permdat_cnt1(:,:,i,1,:) = cleandat(:,:,i,idx1(i),2,:);
+      permdat_cnt1(:,:,i,2,:) = cleandat(:,:,i,idx2(i),2,:);     
+      permdat_res1(:,:,i,1,:) = cleandat(:,:,i,idx1(i),1,:);
+      permdat_res1(:,:,i,2,:) = cleandat(:,:,i,idx2(i),1,:);
     end
     
     % should this be the same as for ATX??
     idx1 = all_idx1(:,iiperm);
     idx2 = 3-idx1;
+    idx1(idx1==2)=3;
+    idx2(idx2==2)=3;
     
     for i = 1 : length(idx1)
-      permdat_cnt2(:,:,i,1,:) = dat_cnt2(:,:,i,idx1(i),:);
-      permdat_cnt2(:,:,i,2,:) = dat_cnt2(:,:,i,idx2(i),:);
-      permdat_res2(:,:,i,1,:) = dat_res2(:,:,i,idx1(i),:);
-      permdat_res2(:,:,i,2,:) = dat_res2(:,:,i,idx2(i),:); 
-    end
-
-    % TASK VS REST ------------------------------------------------------
-    idx1 = all_idx1(:,iiperm);
-    idx2 = 3-idx1;
-    
-    for i = 1 : length(idx1)     
-      taskvsrest_perm(:,:,i,1,:) = taskvsrest(:,:,i,idx1(i),:);
-      taskvsrest_perm(:,:,i,2,:) = taskvsrest(:,:,i,idx2(i),:);       
+      permdat_cnt2(:,:,i,1,:) = cleandat(:,:,i,idx1(i),2,:);
+      permdat_cnt2(:,:,i,2,:) = cleandat(:,:,i,idx2(i),2,:);
+      permdat_res2(:,:,i,1,:) = cleandat(:,:,i,idx1(i),1,:);
+      permdat_res2(:,:,i,2,:) = cleandat(:,:,i,idx2(i),1,:); 
     end
     
-    for ifoi = 1 : nfoi
+%     for ifoi = 1 : nfoi
       
       % -----------
       % compute ttest during task and atomoxetine
@@ -184,32 +169,43 @@ for iperm = 1 : par.allperms
       % CONTEXT DEPENDENCE - per voxel
       % -----------------------
       % context dependence: diff in counts (atx) between task and rest
-      par.tperm_context_diff_atx_n_pervoxel(:,kperm,:) = par.tperm_cnt1_pervoxel_n(:,kperm,:) - par.tperm_res1_pervoxel_n(:,kperm,ifoi);
-      par.tperm_context_diff_atx_p_pervoxel(:,kperm,:) = par.tperm_cnt1_pervoxel_p(:,kperm,:) - par.tperm_res1_pervoxel_p(:,kperm,ifoi);
+      par.tperm_context_diff_atx_n_pervoxel(:,kperm,:) = par.tperm_cnt1_pervoxel_n(:,kperm,:) - par.tperm_res1_pervoxel_n(:,kperm,:);
+      par.tperm_context_diff_atx_p_pervoxel(:,kperm,:) = par.tperm_cnt1_pervoxel_p(:,kperm,:) - par.tperm_res1_pervoxel_p(:,kperm,:);
       % context dependence: diff in counts (dpz) between task and rest
-      par.tperm_context_diff_dpz_n_pervoxel(:,kperm,:) = par.tperm_cnt2_pervoxel_n(:,kperm,:) - par.tperm_res2_pervoxel_n(:,kperm,ifoi);
-      par.tperm_context_diff_dpz_p_pervoxel(:,kperm,:) = par.tperm_cnt2_pervoxel_p(:,kperm,:) - par.tperm_res2_pervoxel_p(:,kperm,ifoi);
+      par.tperm_context_diff_dpz_n_pervoxel(:,kperm,:) = par.tperm_cnt2_pervoxel_n(:,kperm,:) - par.tperm_res2_pervoxel_n(:,kperm,:);
+      par.tperm_context_diff_dpz_p_pervoxel(:,kperm,:) = par.tperm_cnt2_pervoxel_p(:,kperm,:) - par.tperm_res2_pervoxel_p(:,kperm,:);
 
       % test double dissociation (atx vs. dpz, rest vs. task)
       a = par.tperm_context_diff_atx_n(kperm,:)+par.tperm_context_diff_atx_p(kperm,:);
       b = par.tperm_context_diff_dpz_n(kperm,:)+par.tperm_context_diff_dpz_p(kperm,:);
-      par.tperm_doubledissociation(kperm,ifoi) = a-b;
+      par.tperm_doubledissociation(kperm,:) = a-b;
       
       % context-dependence: number of context-dependent connections 
-      par.tperm_atx_context_test(kperm,ifoi) = nansum(nansum(t_all1))./nvox;
-      par.tperm_dpz_context_test(kperm,ifoi) = nansum(nansum(t_all2))./nvox;
+      par.tperm_atx_context_test(kperm,:) = nansum(nansum(t_all1))./nvox;
+      par.tperm_dpz_context_test(kperm,:) = nansum(nansum(t_all2))./nvox;
           
+      clear permdat_cnt1 permdat_cnt2 permdat_res1 permdat_res2
+      
       % TASK VS REST ------------------------------------------------------
-      [t_tvsr,~,~,s] = ttest(taskvsrest_perm(:,:,:,2,ifoi),taskvsrest_perm(:,:,:,1,ifoi),'dim',3,'alpha',alp);
-      t_tvsr = t_tvsr.*sign(s.tstat); clear s   
+      idx1 = all_idx1(:,iiperm);
+      idx2 = 3-idx1;
+
+      for i = 1 : length(idx1)     
+        taskvsrest_perm(:,:,i,1,:) = cleandat(:,:,i,1,idx1(i),:);
+        taskvsrest_perm(:,:,i,2,:) = cleandat(:,:,i,1,idx2(i),:);       
+      end
       
-      par.tperm_taskvsrest_p(kperm,ifoi) = nansum(nansum(t_tvsr>0))./nvox;
-      par.tperm_taskvsrest_n(kperm,ifoi) = nansum(nansum(t_tvsr<0))./nvox;
+      % TASK VS REST ------------------------------------------------------
+      [t_tvsr,~,~,s] = ttest(taskvsrest_perm(:,:,:,2,:),taskvsrest_perm(:,:,:,1,:),'dim',3,'alpha',alp);
+      t_tvsr = squeeze(t_tvsr.*sign(s.tstat)); clear s   
       
-      par.tperm_taskvsrest_pervox_p(:,kperm,ifoi) = nansum(t_tvsr>0)./size(cleandat,1);
-      par.tperm_taskvsrest_pervox_n(:,kperm,ifoi) = nansum(t_tvsr<0)./size(cleandat,1);
+      par.tperm_taskvsrest_p(kperm,:) = nansum(nansum(t_tvsr>0))./nvox;
+      par.tperm_taskvsrest_n(kperm,:) = nansum(nansum(t_tvsr<0))./nvox;
       
-    end
+      par.tperm_taskvsrest_pervox_p(:,kperm,:) = nansum(t_tvsr>0)./size(cleandat,1);
+      par.tperm_taskvsrest_pervox_n(:,kperm,:) = nansum(t_tvsr<0)./size(cleandat,1);
+      
+%     end
   end
   
    save(sprintf([outdir 'pupmod_src_powcorr_permtest_iperm%d_nperm%d_v%d.mat'],iperm,nperm,v),'par')

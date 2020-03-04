@@ -1,11 +1,11 @@
-%% pp_cnt_align_data
+%% pupmod_cnt_align_data
 % subj < 25: all good
 % difficulty with subj > 25: i first rejected artifacts, and then removed
 % first 20s of the data. 
 
 clear
 
-v = 2;
+v = 1;
 
 
 addpath ~/Documents/MATLAB/fieldtrip-20160919/
@@ -14,8 +14,8 @@ ft_defaults
 % SUBJECT10, M3, B1: no triggers
 % sth was weird with subject 24, also subject 10 failed
 
-SUBJLIST  = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
-for isubj = 34
+SUBJLIST  = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 34];
+for isubj = SUBJLIST
   for m = 1:3
     for iblock = 1:2
 
@@ -185,10 +185,11 @@ for isubj = 34
     end
   end
 end
-   
+    
+  
 %% LOAD DATA AND HIGH PASS FILTER (AS SOME WERENT PROPERLY HIGH PASSED)
 
-for isubj = 34
+for isubj = SUBJLIST
   for m = 1:3
     for iblock = 1:2
       
@@ -199,7 +200,8 @@ for isubj = 34
       catch me
         continue
       end
-
+      
+      
       % SELECT DATA
       
       dat = data.trial';
@@ -214,74 +216,74 @@ for isubj = 34
       
 %       TEST FILTER
 %       --------------------------
-%       all_idx = find(isnan(data.trial(1,:)));
-%       start = 1;
-%       while 1
-% %         
-%         if start == 1
-%           idx=find(isnan(data.trial(1,start:end)),1,'first');
-%         else
-%           idx=all_idx(find(all_idx>start,1,'first'));
-%           if isempty(idx)
-%             idx=size(data.trial,2);
-%           end
-%         end
-%         if isnan(data.trial(1,idx))
-%           tmp_dat = data.trial(:,start:idx-1);
-%         else
-%           tmp_dat = data.trial(:,start:idx);
-%         end
+      all_idx = find(isnan(data.trial(1,:)));
+      start = 1;
+      while 1
 %         
-%         if size(tmp_dat,2)<300
-%           warning('data short')
-%           data.trial(:,start:idx-1) = nan;
-% %           out.cnt = out.cnt+1;
-%           while isnan(data.trial(1,idx))
-%             idx=idx+1;
-%             if idx==size(data.trial,2)
-%               break
-%             end
-%           end
-%           
-%           if idx==size(data.trial,2)
-%             break
-%           end
-%           start=idx;
-%           continue
-%         end
-%         
-%         clear mirr_dat
-%         
-%         mirr_dat=padarray(tmp_dat',800,'symmetric','both');       
-%         mirr_dat_filt = ft_preproc_highpassfilter(mirr_dat',400,2,4,'but');
-%         tmp_dat = mirr_dat_filt(:,801:size(mirr_dat_filt,2)-800);
-%         if isnan(data.trial(1,idx))
-%           data.trial(:,start:idx-1)=tmp_dat;
-%         else
-%           data.trial(:,start:idx)=tmp_dat;
-%         end
-%         
-%         while isnan(data.trial(1,idx))
-%           idx=idx+1;
-%           if idx==size(data.trial,2)
-%             break
-%           end
-%         end
-%         
-%         if idx==size(data.trial,2)
-%           break
-%         end
-%         start=idx;
-%       end
-%       % --------------------------
+        if start == 1
+          idx=find(isnan(data.trial(1,start:end)),1,'first');
+        else
+          idx=all_idx(find(all_idx>start,1,'first'));
+          if isempty(idx)
+            idx=size(data.trial,2);
+          end
+        end
+        if isnan(data.trial(1,idx))
+          tmp_dat = data.trial(:,start:idx-1);
+        else
+          tmp_dat = data.trial(:,start:idx);
+        end
+        
+        if size(tmp_dat,2)<300
+          warning('data short')
+          data.trial(:,start:idx-1) = nan;
+%           out.cnt = out.cnt+1;
+          while isnan(data.trial(1,idx))
+            idx=idx+1;
+            if idx==size(data.trial,2)
+              break
+            end
+          end
+          
+          if idx==size(data.trial,2)
+            break
+          end
+          start=idx;
+          continue
+        end
+        
+        clear mirr_dat
+        
+        mirr_dat=padarray(tmp_dat',800,'symmetric','both');       
+        mirr_dat_filt = ft_preproc_highpassfilter(mirr_dat',400,2,4,'but');
+        tmp_dat = mirr_dat_filt(:,801:size(mirr_dat_filt,2)-800);
+        if isnan(data.trial(1,idx))
+          data.trial(:,start:idx-1)=tmp_dat;
+        else
+          data.trial(:,start:idx)=tmp_dat;
+        end
+        
+        while isnan(data.trial(1,idx))
+          idx=idx+1;
+          if idx==size(data.trial,2)
+            break
+          end
+        end
+        
+        if idx==size(data.trial,2)
+          break
+        end
+        start=idx;
+      end
+      % --------------------------
+      
+      dat = data.trial';
+      dat(isnan(dat(:,1)),:)=[];
+      
+      [px,f]=pwelch(dat,hanning(4000),0.5,0:0.1:50,400,'power');
+      out.pwelch_post = px;
+      out.pwelchfreq = f;
 %       
-%       dat = data.trial';
-%       dat(isnan(dat(:,1)),:)=[];
-%       
-%       [px,f]=pwelch(dat,hanning(4000),0.5,0:0.1:50,400,'power');
-%       out.pwelch_post = px;
-%       out.pwelchfreq = f;
-% %       
       if isempty(data.start_of_recording) && ~isempty(data.end_of_recording)
         if (data.end_of_recording-600*data.fsample)<1
           data.start_of_recording = 1;
@@ -316,10 +318,31 @@ for isubj = 34
   end
 end
 
-%%
+%% TEST STH
+clear mi ma
+isubj = 4; m = 3;
 
-    
-    
-    
+load(sprintf('/home/tpfeffer/pupmod/proc/conn/pupmod_task_src_powcorr_s%d_m%d_v1.mat',isubj,m))
+
+a1=squeeze(powcorr(:,:,1,:));
+a2=squeeze(powcorr(:,:,2,:));
+
+load(sprintf('/home/tpfeffer/pupmod/proc/conn/pupmod_task_src_powcorr_s%d_m%d_v2.mat',isubj,m))
+
+b1=squeeze(powcorr(:,:,1,:));
+b2=squeeze(powcorr(:,:,2,:));
+
+d1 = a1-b1;
+d2 = a2-b2;
+
+for i = 1 : 17
+mi(i,1)=min(reshape(d1(:,:,i),[400*400 1]));
+ma(i,1)=max(reshape(d1(:,:,i),[400*400 1]));
+mi(i,2)=min(reshape(d2(:,:,i),[400*400 1]));
+ma(i,2)=max(reshape(d2(:,:,i),[400*400 1]));
+end
+
+plot(mi); hold on
+plot(ma)
     
     

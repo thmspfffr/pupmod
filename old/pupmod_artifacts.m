@@ -1,0 +1,347 @@
+SUBJLIST        = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
+ord = pconn_randomization;
+
+
+
+%% LOAD UNCLEAND CONNECITIVYT DATA (KEEP BLOCKS)
+
+%
+clear p1 p2
+dat = zeros(400,400,28,3,2,13,2);
+for ifoi = 1:13
+  ifoi
+  for isubj = SUBJLIST
+    for m = 1 : 3
+      
+      im = find(ord(isubj,:)==m);
+      
+      for iblock = 1 : 2
+        clear tmp
+        load(sprintf(['~/pupmod/proc/conn/' 'pupmod_src_powcorr_s%d_m%d_b%d_f%d_v%d.mat'],isubj,im,iblock,ifoi,12));
+        p1(:,:,iblock) = single(powcorr);
+        clear powcorr
+        
+        load(sprintf(['~/pupmod/proc/conn/' 'pupmod_task_src_powcorr_s%d_m%d_b%d_f%d_v%d.mat'],isubj,im,iblock,ifoi,12));
+        p2(:,:,iblock) = single(powcorr);
+        clear powcorr
+      end
+      
+      dat(:,:,isubj,m,1,ifoi,:) = p1; clear p1
+      dat(:,:,isubj,m,2,ifoi,:) = p2; clear p2
+      
+    end
+  end
+end
+
+dat = dat(:,:,SUBJLIST,:,:,:,:);
+
+%%
+for isubj = SUBJLIST
+  isubj
+  for m = 1 : 3
+    im = find(ord(isubj,:)==m);
+    for ibl = 1 : 2
+      try
+        load(['/home/tpfeffer/pconn/proc/preproc/' sprintf('pconn_preproc_artvec_s%d_m%d_b%d_v%d.mat',isubj,im,ibl,1)])
+        artcnt(isubj,m,1,ibl) = size(art,1);
+        artlen(isubj,m,1,ibl) = mean(art(:,2)-art(:,1));
+      catch me
+        try
+          load(['/home/tpfeffer/pconn/proc/preproc/' sprintf('pconn_preproc_artvec_s%d_m%d_b%d_v%d.mat',isubj,im,ibl,2)])
+          artcnt(isubj,m,1,ibl) = size(art,1);
+          artlen(isubj,m,1,ibl) = mean(art(:,2)-art(:,1));
+        catch
+          artcnt(isubj,m,1,ibl) = nan;
+          artlen(isubj,m,1,ibl) = nan;
+        end
+      end
+      
+    end
+  end
+  for m = 1 : 3
+    im = find(ord(isubj,:)==m);
+    for ibl = 1 : 2
+      try
+        load(['/home/tpfeffer/pconn_cnt/proc/preproc/' sprintf('pconn_cnt_preproc_artvec_s%d_m%d_b%d_v%d.mat',isubj,im,ibl,1)])
+        artcnt(isubj,m,2,ibl) = size(art,1);
+        artlen(isubj,m,2,ibl) = mean(art(:,2)-art(:,1));
+      catch me
+        try
+          load(['/home/tpfeffer/pconn_cnt/proc/preproc/' sprintf('pconn_cnt_preproc_artvec_s%d_m%d_b%d_v%d.mat',isubj,im,ibl,1)])
+          artcnt(isubj,m,2,ibl) = size(art,1);
+          artlen(isubj,m,2,ibl) = mean(art(:,2)-art(:,1));
+        catch
+          artcnt(isubj,m,2,ibl) = nan;
+          artlen(isubj,m,2,ibl) = nan;
+        end
+      end
+      
+    end
+    %     artcnt(isubj,m) = nanmean(tmp,2);
+    %     artlen(isubj,m) = nanmean(tmp2,2);
+    
+  end
+end
+
+
+artcnt= artcnt(SUBJLIST,:,:,:)
+artlen= artlen(SUBJLIST,:,:,:)
+
+%%
+close all
+
+figure; set(gcf,'color','w')
+subplot(2,2,1); hold on
+
+m = squeeze(nanmean(nanmean(artcnt,4),1));
+s = squeeze(nanstd(nanmean(artcnt,4),[],1))/sqrt(28);
+
+bar([1,2,3],m(:,1),0.7,'facecolor',[0.3 0.3 0.3]);
+line([1 1; 2 2; 3 3]',[m(1,1)-s(1,1) m(1,1)+s(1,1);m(2,1)-s(2,1) m(2,1)+s(2,1);m(3,1)-s(3,1) s(3,1)+m(3,1)]','color','k','linewidth',1)
+
+axis square
+ylabel('Number of artifactual segments')
+set(gca,'xtick',1:3,'xticklabel',{'PBO';'ATX';'DPZ'})
+axis([0 4 0 30])
+title('Rest'); tp_editplots; xtickangle(45)
+
+ss=subplot(2,2,3); hold on
+
+par = nanmean(artcnt,4);
+[~,p1,~,t1]=ttest(zeros(28,1),par(:,2,1)-par(:,1,1));
+[~,p2,~,t2]=ttest(zeros(28,1),par(:,3,1)-par(:,1,1));
+[~,p3,~,t3]=ttest(zeros(28,1),par(:,3,1)-par(:,2,1));
+bar([1,2,3],[m(2,1)-m(1,1) m(3,1)-m(1,1) m(3,1)-m(2,1)],0.7,'facecolor',[0.3 0.3 0.3]);
+% line([1 1; 2 2; 3 3]',[m(1,1)-s(1,1) m(1,1)+s(1,1);m(2,1)-s(2,1) m(2,1)+s(2,1);m(3,1)-s(3,1) s(3,1)+m(3,1)]','color','k','linewidth',1)
+
+text(ss,1,4.5,sprintf('p = \n%.2f',p1),'horizontalalignment','center')
+text(ss,2,4.5,sprintf('p = \n%.2f',p2),'horizontalalignment','center')
+text(ss,3,4.5,sprintf('p = \n%.2f',p3),'horizontalalignment','center')
+
+axis square
+ylabel('Difference')
+set(gca,'xtick',1:3,'xticklabel',{'ATX vs. PBO';'DPZ vs. PBO';'DPZ vs. ATX'})
+axis([0 4 -5 5])
+tp_editplots; xtickangle(45)
+
+subplot(2,2,2); hold on
+
+bar([1,2,3],m(:,2),0.7,'facecolor',[0.7 0.7 0.7]);
+line([1 1; 2 2; 3 3]',[m(1,2)-s(1,2) m(1,2)+s(1,2);m(2,2)-s(2,2) m(2,2)+s(2,2);m(3,2)-s(3,2) s(3,2)+m(3,2)]','color','k','linewidth',1)
+axis square
+ylabel('Number of artifactual segments')
+set(gca,'xtick',1:3,'xticklabel',{'PBO';'ATX';'DPZ'})
+axis([0 4 0 30])
+title('Task'); tp_editplots; xtickangle(45)
+
+ss=subplot(2,2,4); hold on
+
+par = nanmean(artcnt,4);
+[~,p1,~,t1]=ttest(zeros(28,1),par(:,2,2)-par(:,1,2));
+[~,p2,~,t2]=ttest(zeros(28,1),par(:,3,2)-par(:,1,2));
+[~,p3,~,t3]=ttest(zeros(28,1),par(:,3,2)-par(:,2,2));
+
+bar([1,2,3],[m(2,2)-m(1,2) m(3,2)-m(1,2) m(3,2)-m(2,2)],0.7,'facecolor',[0.7 0.7 0.7]);
+% line([1 1; 2 2; 3 3]',[m(1,1)-s(1,1) m(1,1)+s(1,1);m(2,1)-s(2,1) m(2,1)+s(2,1);m(3,1)-s(3,1) s(3,1)+m(3,1)]','color','k','linewidth',1)
+text(ss,1,4.5,sprintf('p = \n%.2f',p1),'horizontalalignment','center')
+text(ss,2,4.5,sprintf('p = \n%.2f',p2),'horizontalalignment','center')
+text(ss,3,4.5,sprintf('p = \n%.2f',p3),'horizontalalignment','center')
+
+axis square
+ylabel('Difference')
+set(gca,'xtick',1:3,'xticklabel',{'ATX vs. PBO';'DPZ vs. PBO';'DPZ vs. ATX'})
+axis([0 4 -5 5])
+tp_editplots; xtickangle(45)
+
+print(gcf,'-dpdf',sprintf('~/pupmod/plots/artifacts/pupmod_artifacts_numberofartifacts.pdf'))
+
+%% CORRELATION BETWEEN ARTIFACTS AND FC, ACROSS FREQS AND CONDS
+foi_range       = unique(round(2.^[1:.5:7]));
+for ifoi = 1 : 13
+  for m = 1 : 3
+    idx = ~isnan(artcnt(:,m,2,1));
+    [r(ifoi,m,1),p(ifoi,m,1)]=corr(fc(idx,m,1,ifoi),nanmean(artcnt(idx,m,1,:),4));
+    idx = ~isnan(artcnt(:,m,2,1));
+    [r(ifoi,m,2),p(ifoi,m,2)]=corr(fc(idx,m,2,ifoi),nanmean(artcnt(idx,m,2,:),4));
+    
+    %         [r_hb(ifoi,m,1),p_hb(ifoi,m,1)]=corr(fc(:,m,1,ifoi),hb_all(:,m));
+    %          [r_hb(ifoi,m,2),p_hb(ifoi,m,2)]=corr(fc(:,m,2,ifoi),hb_all_cnt(:,m));
+    
+  end
+end
+
+load redblue.mat
+figure; set(gcf,'color','w')
+
+subplot(2,2,1)
+imagesc(r(:,:,1),[-1 1])
+colormap(redblue); colorbar; axis square
+set(gca,'xtick',1:3,'xticklabel',{'PBO';'ATX';'DPZ'})
+set(gca,'ytick',1:13,'yticklabel',num2cell(foi_range))
+ylabel('Carrier frequency [Hz]')
+set(gca,'YDir','normal'); title('Artifacts (Rest)')
+
+subplot(2,2,2)
+imagesc(r(:,:,2),[-1 1])
+colormap(redblue); colorbar; axis square
+set(gca,'xtick',1:3,'xticklabel',{'PBO';'ATX';'DPZ'})
+set(gca,'ytick',1:13,'yticklabel',num2cell(foi_range))
+ylabel('Carrier frequency [Hz]')
+set(gca,'YDir','normal'); title('Artifacts (Task)')
+
+subplot(2,2,3)
+imagesc(r(:,:,1).*(p(:,:,1)<0.05),[-1 1])
+colormap(redblue); colorbar; axis square
+set(gca,'xtick',1:3,'xticklabel',{'PBO';'ATX';'DPZ'})
+set(gca,'ytick',1:13,'yticklabel',num2cell(foi_range))
+ylabel('Carrier frequency [Hz]')
+set(gca,'YDir','normal'); title('Artifacts (Rest)')
+
+subplot(2,2,4)
+imagesc(r(:,:,2).*(p(:,:,2)<0.05),[-1 1])
+colormap(redblue); colorbar; axis square
+set(gca,'xtick',1:3,'xticklabel',{'PBO';'ATX';'DPZ'})
+set(gca,'ytick',1:13,'yticklabel',num2cell(foi_range))
+ylabel('Carrier frequency [Hz]')
+set(gca,'YDir','normal'); title('Artifacts (Task)')
+
+print(gcf,'-dpdf',sprintf('~/pupmod/plots/artifacts/pupmod_artifacts_artifact_correlation.pdf'))
+
+%% CORRELATION OF CHANGES ACROSS BLOCKS
+% Correlate change in number of artifacts (block1 - block2) with changes in
+% FC (block1 - block2) in both contexts and alpha as well as beta
+
+fc = squeeze(nanmean(nanmean(dat(:,:,:,:,:,:,:),2)));
+
+% IS THE CODE TESTED?
+%
+
+m = [1 1 2 2 3 3; 1 1 2 2 3 3];
+f = [6 7 6 7 6 7; 6 7 6 7 6 7];
+plots = [1 2 5 6 9 10; 3 4 7 8 11 12];
+
+conds = {'Rest';'Task'};
+freqs = {'Alpha';'Beta'};
+drugs = {'PBO';'ATX';'DPZ'};
+
+figure; set(gcf,'color','w');
+for icond = 1 : 2
+  for iplot = 1 : 6
+    ss= subplot(3,4,plots(icond,iplot)); hold on
+    title(sprintf('%s-%s-%s',conds{icond},freqs{f(icond,iplot)-5},drugs{m(icond,iplot)}))
+    im = m(icond,iplot); % atomoxetine
+    ifoi = f(icond,iplot);
+    idx=~isnan(artcnt(:,im,icond,1));
+    [r,p]=corr(artcnt(idx,im,icond,1)-artcnt(idx,im,icond,2),fc(idx,im,icond,ifoi,1)-fc(idx,im,icond,ifoi,2));
+    scatter(ss,artcnt(idx,im,icond,1)-artcnt(idx,im,icond,2),fc(idx,im,icond,ifoi,1)-fc(idx,im,icond,ifoi,2),'markerfacecolor','k','markeredgecolor','w');
+    tp_editplots;
+    axis(ss,[-50 50 -0.1 0.1]); %lsline;
+    line([-100 100],[0 0],'linestyle',':','color',[0.5 0.5 0.5])
+    line([0 0],[-0.1 0.1],'linestyle',':','color',[0.5 0.5 0.5])
+    axis square;
+    text(ss,30,-0.05,sprintf('r=%.2f',r),'horizontalalignment','center')
+    text(ss,30,0.05,sprintf('N=%d',sum(idx)),'horizontalalignment','center')
+  end
+end
+
+print(gcf,'-dpdf',sprintf('~/pupmod/plots/artifacts/pupmod_artifacts_artvsfc_corr_blocks.pdf'))
+
+%% CORRELATION CHANGES ACROSS PHARMA SESSIONS
+
+figure; set(gcf,'color','w');
+
+f = [6 7];
+plots = [1 2 5 6; 3 4 7 8];
+
+conds = {'Rest';'Task'};
+freqs = {'Alpha';'Beta'};
+drugs = {'ATX vs PBO';'DPZ vs. PBO'};
+contrast = [1 2; 1 3];
+
+k = 0;
+
+for icond = 1 : 2
+  for idrug = 1 : 2
+    for iff = 1 : 2
+      k = k + 1;
+      ifoi = f(iff);
+      c = contrast(idrug,:);
+      
+      ss= subplot(2,4,k); hold on
+      
+      title(sprintf('%s-%s-\n%s',conds{icond},freqs{f(iff)-5},drugs{idrug}))
+      % atomoxetine
+      %     ifoi = f(icond,iplot);
+      [r,p]=corr(nanmean(artcnt(idx,c(2),icond,:),4)-nanmean(artcnt(idx,c(1),icond,:),4),nanmean(fc(idx,c(2),icond,ifoi,:),5)-nanmean(fc(idx,c(1),icond,ifoi,:),5));
+      scatter(nanmean(artcnt(idx,c(2),icond,:),4)-nanmean(artcnt(idx,c(1),icond,:),4),nanmean(fc(idx,c(2),icond,ifoi,:),5)-nanmean(fc(idx,c(1),icond,ifoi,:),5),'markerfacecolor','k','markeredgecolor','w');
+      tp_editplots;
+      axis([-50 50 -0.1 0.1]); %lsline;
+      line([-150 150],[0 0],'linestyle',':','color',[0.5 0.5 0.5])
+      line([0 0],[-0.1 0.1],'linestyle',':','color',[0.5 0.5 0.5])
+      if r<0; col = 'b'; else; col = 'r'; end
+      axis square; text(ss,80,-0.05,sprintf('r=%.2f',r),'horizontalalignment','center','color',col)
+    end
+  end
+end
+%
+print(gcf,'-dpdf',sprintf('~/pupmod/plots/artifacts/pupmod_artifacts_artvsfc_corr_drugs.pdf'))
+
+%%
+dfa         = squeeze(nanmean(dfa,2));
+dfa_cnt     = squeeze(nanmean(dfa_cnt,2));
+
+hb_all  = squeeze(nanmean(hb_all,2));
+hb_all_cnt  = squeeze(nanmean(hb_all_cnt,2));
+
+%% ALTERED CORRELATIONS ACROSS BLOCKS
+
+idrug = 3;
+for ifoi = 1 : 13
+  ifoi
+  
+  [h,~,~,t] = ttest(squeeze(dat(:,:,:,idrug,1,ifoi,1)),squeeze(dat(:,:,:,1,1,ifoi,1)),'dim',3);
+  
+  alterd_pos_atx(ifoi,1,1) = sum(sum(triu(h.*(sign(t.tstat)>0),1)))/(400*400-400)/2;
+  alterd_neg_atx(ifoi,1,1) = sum(sum(triu(h.*(sign(t.tstat)<0),1)))/(400*400-400)/2;
+  
+  [h,~,~,t] = ttest(squeeze(dat(:,:,:,idrug,1,ifoi,2)),squeeze(dat(:,:,:,1,1,ifoi,2)),'dim',3);
+  
+  alterd_pos_atx(ifoi,2,1) = sum(sum(triu(h.*(sign(t.tstat)>0),1)))/(400*400-400)/2;
+  alterd_neg_atx(ifoi,2,1) = sum(sum(triu(h.*(sign(t.tstat)<0),1)))/(400*400-400)/2;
+  
+  
+  [h,~,~,t] = ttest(squeeze(dat(:,:,:,idrug,2,ifoi,1)),squeeze(dat(:,:,:,1,2,ifoi,1)),'dim',3);
+  
+  alterd_pos_atx(ifoi,1,2) = sum(sum(triu(h.*(sign(t.tstat)>0),1)))/(400*400-400)/2;
+  alterd_neg_atx(ifoi,1,2) = sum(sum(triu(h.*(sign(t.tstat)<0),1)))/(400*400-400)/2;
+  
+  [h,~,~,t] = ttest(squeeze(dat(:,:,:,idrug,2,ifoi,2)),squeeze(dat(:,:,:,1,2,ifoi,2)),'dim',3);
+  
+  alterd_pos_atx(ifoi,2,2) = sum(sum(triu(h.*(sign(t.tstat)>0),1)))/(400*400-400)/2;
+  alterd_neg_atx(ifoi,2,2) = sum(sum(triu(h.*(sign(t.tstat)<0),1)))/(400*400-400)/2;
+  
+  
+end
+
+%%
+figure; set(gcf,'color','w');
+
+subplot(2,2,1); hold on
+plot(alterd_pos_atx(:,1,1),'r','linewidth',2)
+plot(alterd_neg_atx(:,1,1),'b','linewidth',2)
+axis([0 14 0 0.1])
+
+subplot(2,2,2); hold on
+plot(alterd_pos_atx(:,2,1),'r','linewidth',2)
+plot(alterd_neg_atx(:,2,1),'b','linewidth',2)
+axis([0 14 0 0.1])
+
+subplot(2,2,3); hold on
+plot(alterd_pos_atx(:,1,2),'r','linewidth',2)
+plot(alterd_neg_atx(:,1,2),'b','linewidth',2)
+axis([0 14 0 0.1])
+
+subplot(2,2,4); hold on
+plot(alterd_pos_atx(:,2,2),'r','linewidth',2)
+plot(alterd_neg_atx(:,2,2),'b','linewidth',2)
+axis([0 14 0 0.1])

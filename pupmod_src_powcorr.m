@@ -1,6 +1,16 @@
 %% pupmod_src_powcorr
 
 clear all
+% REMEMBER TO CHANGE BACK VERSION OF DATA BELOW!!!!!!!!!!!!!!!!!!!!!!!!!
+% REMEMBER TO CHANGE BACK VERSION OF DATA BELOW!!!!!!!!!!!!!!!!!!!!!!!!!
+% REMEMBER TO CHANGE BACK VERSION OF DATA BELOW!!!!!!!!!!!!!!!!!!!!!!!!!
+% REMEMBER TO CHANGE BACK VERSION OF DATA BELOW!!!!!!!!!!!!!!!!!!!!!!!!!
+% REMEMBER TO CHANGE BACK VERSION OF DATA BELOW!!!!!!!!!!!!!!!!!!!!!!!!!
+% REMEMBER TO CHANGE BACK VERSION OF DATA BELOW!!!!!!!!!!!!!!!!!!!!!!!!!
+% REMEMBER TO CHANGE BACK VERSION OF DATA BELOW!!!!!!!!!!!!!!!!!!!!!!!!!
+% REMEMBER TO CHANGE BACK VERSION OF DATA BELOW!!!!!!!!!!!!!!!!!!!!!!!!!
+% REMEMBER TO CHANGE BACK VERSION OF DATA BELOW!!!!!!!!!!!!!!!!!!!!!!!!!
+% REMEMBER TO CHANGE BACK VERSION OF DATA BELOW!!!!!!!!!!!!!!!!!!!!!!!!!
 
 % --------------------------------------------------------
 % VERSION 1 - VOXEL LEVEL, 400 samples cortex
@@ -82,9 +92,9 @@ for isubj = SUBJLIST
       % Load sensor level data
       % ------------
       try
-        load(sprintf('~/pupmod/proc/sens/pupmod_rest_sens_cleandat_s%d_m%d_b%d_v%d.mat',isubj,m,iblock,1))
+        load(sprintf('~/pupmod/proc/sens/pupmod_rest_sens_cleandat_s%d_m%d_b%d_v%d.mat',isubj,m,iblock,2))
       catch me
-        if ~exist(sprintf('~/pupmod/proc/pupmod_rest_sens_cleandat_s%d_m%d_b%d_v%d.mat',isubj,m,iblock,1))             
+        if ~exist(sprintf('~/pupmod/proc/pupmod_rest_sens_cleandat_s%d_m%d_b%d_v%d.mat',isubj,m,iblock,2))             
           if strcmp(grid,'cortex_lowres')
             powcorr(:,:,iblock,1:length(foi_range)) = nan(400,400,2,length(foi_range));
           elseif strcmp(grid,'aal_6mm')

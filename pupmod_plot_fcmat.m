@@ -33,7 +33,7 @@ end
 
 %% PLOT FC MATRIX FOR DIFFERENT CONDITIONS
 % significant v23: atx 10/11/12 & 18, dpz 13/14
-ifoi = 1;
+ifoi = 9;
 
 
 cmap = cbrewer('div', 'RdBu', 256,'pchip'); cmap = cmap(end:-1:1,:);
@@ -88,15 +88,15 @@ if v == 12 | v == 19 | v==23 | v==1
     end
         print(gcf,'-depsc2',sprintf('~/pupmod/plots/pupmod_powcorr_raw_fcmat_task_f%s_v%d.eps',regexprep(num2str(ifoi),' ',''),v))
 
-    lim = [-0.05 0.05];
+    lim = [-50 50];
     
 
     figure; set(gcf,'color','w');
     
-     subplot(1,3,1); imagesc(fc_task(:,:,2)-fc_task(:,:,1),lim); axis square off
+     subplot(1,3,1); imagesc(100*(fc_task(:,:,2)-fc_task(:,:,1))./fc_rest(:,:,1),lim); axis square off
      colormap(cmap)
      
-     subplot(1,3,2); imagesc(fc_rest(:,:,3)-fc_rest(:,:,1),lim); axis square off
+     subplot(1,3,2); imagesc(100*(fc_rest(:,:,3)-fc_rest(:,:,1))./fc_rest(:,:,1),lim); axis square off
      colormap(cmap)
         print(gcf,'-depsc2',sprintf('~/pupmod/plots/pupmod_powcorr_raw_fcmat_drugcontrast_f%s_v%d.eps',regexprep(num2str(ifoi),' ',''),v))
 

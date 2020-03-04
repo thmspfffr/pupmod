@@ -307,56 +307,45 @@ for isubj = SUBJLIST
   for m = 1:3
     for iblock = 1:2
       
-%       figure_w;
+      figure_w;
       
       im = find(ord(isubj,:)==m);
       
-      load(sprintf('~/pupmod/proc/sens/pupmod_rest_sens_cleandat_s%d_m%d_b%d_v%d_spec.mat',isubj,im,iblock,v))
-      pow_spec_pre(:,isubj,m,iblock,1) = nanmean(out.pwelch_pre,2);
-      pow_spec_post(:,isubj,m,iblock,1) = nanmean(out.pwelch_post,2);
       
+% figure_w;
+      load(sprintf('~/pupmod/proc/sens/pupmod_rest_sens_cleandat_s%d_m%d_b%d_v%d_spec.mat',isubj,im,iblock,v))
+      subplot(2,1,1); plot(dat(1,:))
+%        figure_w;
+% % plot(dat(1,:));
+% p1(:,isubj,m,iblock) = nanmean(out.pwelch_post,2);
+% plot(out.pwelchfreq,nanmean(out.pwelch_pre(:,[find(strncmp(data.grad.label,'MLO*',3)); find(strncmp(data.grad.label,'MRO*',3))]),2),'k:'); hold on
+% title(sprintf('S%dM%dB%d Rest',isubj,m,iblock))
+% plot(out.pwelchfreq,nanmean(out.pwelch_post,2),'k-'); hold on
+% plot(out.pwelchfreq,nanmean(out.pwelch_pre,2),'k:'); hold on
+
+clear out
 
       load(sprintf('~/pupmod/proc/sens/pupmod_task_sens_cleandat_s%d_m%d_b%d_v%d_spec.mat',isubj,im,iblock,v))
-      pow_spec_pre(:,isubj,m,iblock,2) = nanmean(out.pwelch_pre,2);
-      pow_spec_post(:,isubj,m,iblock,2) = nanmean(out.pwelch_post,2);
+      
+      
+%    figure_w;
+% % plot(dat(1,:));
+% plot(out.pwelchfreq,nanmean(out.pwelch_post(:,[find(strncmp(data.grad.label,'MLO*',3)); find(strncmp(data.grad.label,'MRO*',3))]),2),'r-'); hold on
+% plot(out.pwelchfreq,nanmean(out.pwelch_pre(:,[find(strncmp(data.grad.label,'MLO*',3)); find(strncmp(data.grad.label,'MRO*',3))]),2),'r:'); hold on
+clear out
+% title(sprintf('S%dM%dB%d Task',isubj,m,iblock))
+% drawnow
+%    size(dat)
     end
     
-
+%     [~,~,k_rest(isubj,m)]=kstest2(p1(41:end,1),p1(41:end,2));
+%     [~,~,k_task(isubj,m)]=kstest2(p2(41:end,1),p2(41:end,2));
+%     [~,~,k_across(isubj,m)] = kstest2(nanmean(p1(41:end,:),2),nanmean(p2(41:end,:),2));
+%     
   end
 end
     
-  pow_spec_pre = squeeze(nanmean(pow_spec_pre(:,SUBJLIST,:,:,:),4));
-  pow_spec_post = squeeze(nanmean(pow_spec_post(:,SUBJLIST,:,:,:),4));
-  
-  %% PLOT
-  close all
-isubj = 19; 
-
-
-m = 1;
-
-figure_w;
-plot(out.pwelchfreq,pow_spec_pre(:,isubj,m,1),'k-')
-hold on
-% plot(out.pwelchfreq,pow_spec_post(:,isubj,m,1),'k:')
-plot(out.pwelchfreq,pow_spec_pre(:,isubj,m,2),'b-')
-% plot(out.pwelchfreq,pow_spec_post(:,isubj,m,2),'b:')
-
-m = 2;
-
-figure_w;
-plot(out.pwelchfreq,pow_spec_pre(:,isubj,m,1),'k-')
-hold on
-% plot(out.pwelchfreq,pow_sprec_post(:,isubj,m,1),'k:')
-plot(out.pwelchfreq,pow_spec_pre(:,isubj,m,2),'b-')
-% plot(out.pwelchfreq,pow_spec_post(:,isubj,m,2),'b:')
-
-m = 3;
-
-figure_w;
-plot(out.pwelchfreq,pow_spec_pre(:,isubj,m,1),'k-')
-hold on
-% plot(out.pwelchfreq,pow_spec_post(:,isubj,m,1),'k:')
-plot(out.pwelchfreq,pow_spec_pre(:,isubj,m,2),'b-')
-% plot(out.pwelchfreq,pow_spec_post(:,isubj,m,2),'b:')
-
+    
+%     k_rest=k_rest(SUBJLIST,:)
+%     k_task=k_task(SUBJLIST,:)
+%     k_across=k_task(SUBJLIST,:)

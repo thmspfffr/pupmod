@@ -2,6 +2,15 @@
 
 clear all
 
+% REMEMBER TO CHANGE BACK VERSION OF DATA BELOW!!!!!!!!!!!!!!!!!!!!!!!!!
+% REMEMBER TO CHANGE BACK VERSION OF DATA BELOW!!!!!!!!!!!!!!!!!!!!!!!!!
+% REMEMBER TO CHANGE BACK VERSION OF DATA BELOW!!!!!!!!!!!!!!!!!!!!!!!!!
+% REMEMBER TO CHANGE BACK VERSION OF DATA BELOW!!!!!!!!!!!!!!!!!!!!!!!!!
+% REMEMBER TO CHANGE BACK VERSION OF DATA BELOW!!!!!!!!!!!!!!!!!!!!!!!!!
+% REMEMBER TO CHANGE BACK VERSION OF DATA BELOW!!!!!!!!!!!!!!!!!!!!!!!!!
+% REMEMBER TO CHANGE BACK VERSION OF DATA BELOW!!!!!!!!!!!!!!!!!!!!!!!!!
+% REMEMBER TO CHANGE BACK VERSION OF DATA BELOW!!!!!!!!!!!!!!!!!!!!!!!!!
+
 % --------------------------------------------------------
 % VERSION 1 - VOXEL LEVEL, 400 samples cortex
 % --------------------------------------------------------
@@ -17,20 +26,12 @@ SUBJLIST  = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 3
 grid      = 'cortex_lowres';
 foi_range = 2.^(2:.25:6);
 % --------------------------------------------------------
-% VERSION 2 - AAL LEVEL (based on 6mm)
+% VERSION 2 - AAL
 % --------------------------------------------------------
-% v               = 24;
-% SUBJLIST        = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
-% allpara.filt    = 'jh_lcmv';
-% allpara.grid    = 'aal_6mm';
-% foi_range       = 2.^[1:.25:7];
-% para.wavelet    = 'bp_filt';
-% para.scnd_filt  = 0;
-% allpara.reg     = 0.05;
-% allpara.weigh   = 0;
-% allpara.tau     = nan;
-% weighting       = 1;
-% width           = 4;
+% v         = 3;
+% SUBJLIST  = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
+% grid      = 'aal_6mm';
+% foi_range = 2.^(2:.25:6);
 % --------------------------------------------------------
 
 if strcmp(grid,'xcoarse')
@@ -68,7 +69,7 @@ outdir   = '/home/tpfeffer/pupmod/proc/conn/';
 
 for isubj = SUBJLIST
   for m = 1:3
-%     
+% %     
     if ~exist(sprintf([outdir 'pupmod_task_src_powcorr_s%d_m%d_v%d_processing.txt'],isubj,m,v))
       system(['touch ' outdir sprintf('pupmod_task_src_powcorr_s%d_m%d_v%d_processing.txt',isubj,m,v)]);
     else
@@ -82,9 +83,9 @@ for isubj = SUBJLIST
       % Load sensor level data
       % ------------
       try
-        load(sprintf('~/pupmod/proc/sens/pupmod_task_sens_cleandat_s%d_m%d_b%d_v%d.mat',isubj,m,iblock,1))
+        load(sprintf('~/pupmod/proc/sens/pupmod_task_sens_cleandat_s%d_m%d_b%d_v%d.mat',isubj,m,iblock,2))
       catch me
-        if ~exist(sprintf('~/pupmod/proc/pupmod_task_sens_cleandat_s%d_m%d_b%d_v%d.mat',isubj,m,iblock,1))             
+        if ~exist(sprintf('~/pupmod/proc/pupmod_task_sens_cleandat_s%d_m%d_b%d_v%d.mat',isubj,m,iblock,2))             
           if strcmp(grid,'cortex_lowres')
             powcorr(:,:,iblock,1:length(foi_range)) = nan(400,400,1,length(foi_range));
           elseif strcmp(grid,'aal_6mm')
