@@ -14,7 +14,7 @@ ft_defaults
 % SUBJECT10, M3, B1: no triggers
 % sth was weird with subject 24, also subject 10 failed
 
-SUBJLIST  = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 34];
+SUBJLIST  = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
 for isubj = SUBJLIST
   for m = 1:3
     for iblock = 1:2
@@ -109,33 +109,6 @@ for isubj = SUBJLIST
       else
         warning('error')
       end
-        
-        
-        %       if max(trig_idx)==1
-%         if round(mean(find(trig_idx==1))) > 200000
-%           off = round(mean(find(trig_idx==1)));
-%           start = [];
-%           fprintf('S%dM%dB%d: Only offset trigger\n',isubj,m,iblock)
-%         else
-%           start = round(mean(find(trig_idx==1)));
-%           off = [];
-%           fprintf('S%dM%dB%d: Only start trigger\n',isubj,m,iblock)
-%         end
-%       elseif max(trig_idx)==2
-%         start = round(mean(find(trig_idx==1)));
-%         off = round(mean(find(trig_idx==2)));
-%         
-%         fprintf('S%dM%dB%d: Both triggers, diff = %d\n',isubj,m,iblock,round((off-start)./400))
-%         
-%         if round((off-start)./400)~=600
-%           start = find(trig_idx==1,1,'last');
-%           off = round(mean(find(trig_idx==2)));
-%         fprintf('S%dM%dB%d: Both triggers, corrected diff = %d\n',isubj,m,iblock,round((off-start)./400))
-%         end
-%       else 
-%         start = []; off = [];
-%         warning('no triggers')
-%       end
       
       % --------------------------
       % CREATE NEW DATA SET, WITH NANS WHERE ARTIFACTS WERE
@@ -178,7 +151,7 @@ for isubj = SUBJLIST
       data.trial = dat_new;
       data.cfg = [];
       
-      save(sprintf('~/pp/proc/pp_cnt_sens_cleandat_s%d_m%d_b%d_v%d.mat',isubj,m,iblock,v),'data')
+      save(sprintf('~/pupmod/proc/pupmod_cnt_sens_cleandat_s%d_m%d_b%d_v%d.mat',isubj,m,iblock,v),'data')
       
       clear data dat_new data_old dat1 start off bw art trig data artvec  
       
@@ -187,7 +160,7 @@ for isubj = SUBJLIST
 end
     
   
-%% LOAD DATA AND HIGH PASS FILTER (AS SOME WERENT PROPERLY HIGH PASSED)
+%% LOAD DATA 
 
 for isubj = SUBJLIST
   for m = 1:3
@@ -196,94 +169,11 @@ for isubj = SUBJLIST
        fprintf('Processing s%d m%d b%d ...\n', isubj,m,iblock)
 
       try
-        load(sprintf('~/pp/proc/pp_cnt_sens_cleandat_s%d_m%d_b%d_v%d.mat',isubj,m,iblock,v))
+        load(sprintf('~/pupmod/proc/pupmod_cnt_sens_cleandat_s%d_m%d_b%d_v%d.mat',isubj,m,iblock,v))
       catch me
         continue
       end
       
-      
-      % SELECT DATA
-      
-      dat = data.trial';
-      
-      dat(isnan(dat(:,1)),:)=[];
-      
-      [px,f]=pwelch(dat,hanning(4000),0.5,0:0.1:50,400,'power');
-      out.pwelch_pre = px;
-      out.pwelchfreq = f;
-      
-      % -------
-      
-%       TEST FILTER
-%       --------------------------
-      all_idx = find(isnan(data.trial(1,:)));
-      start = 1;
-      while 1
-%         
-        if start == 1
-          idx=find(isnan(data.trial(1,start:end)),1,'first');
-        else
-          idx=all_idx(find(all_idx>start,1,'first'));
-          if isempty(idx)
-            idx=size(data.trial,2);
-          end
-        end
-        if isnan(data.trial(1,idx))
-          tmp_dat = data.trial(:,start:idx-1);
-        else
-          tmp_dat = data.trial(:,start:idx);
-        end
-        
-        if size(tmp_dat,2)<300
-          warning('data short')
-          data.trial(:,start:idx-1) = nan;
-%           out.cnt = out.cnt+1;
-          while isnan(data.trial(1,idx))
-            idx=idx+1;
-            if idx==size(data.trial,2)
-              break
-            end
-          end
-          
-          if idx==size(data.trial,2)
-            break
-          end
-          start=idx;
-          continue
-        end
-        
-        clear mirr_dat
-        
-        mirr_dat=padarray(tmp_dat',800,'symmetric','both');       
-        mirr_dat_filt = ft_preproc_highpassfilter(mirr_dat',400,2,4,'but');
-        tmp_dat = mirr_dat_filt(:,801:size(mirr_dat_filt,2)-800);
-        if isnan(data.trial(1,idx))
-          data.trial(:,start:idx-1)=tmp_dat;
-        else
-          data.trial(:,start:idx)=tmp_dat;
-        end
-        
-        while isnan(data.trial(1,idx))
-          idx=idx+1;
-          if idx==size(data.trial,2)
-            break
-          end
-        end
-        
-        if idx==size(data.trial,2)
-          break
-        end
-        start=idx;
-      end
-      % --------------------------
-      
-      dat = data.trial';
-      dat(isnan(dat(:,1)),:)=[];
-      
-      [px,f]=pwelch(dat,hanning(4000),0.5,0:0.1:50,400,'power');
-      out.pwelch_post = px;
-      out.pwelchfreq = f;
-%       
       if isempty(data.start_of_recording) && ~isempty(data.end_of_recording)
         if (data.end_of_recording-600*data.fsample)<1
           data.start_of_recording = 1;
@@ -309,40 +199,10 @@ for isubj = SUBJLIST
       end
       
       dat = data.trial(:,data.start_of_recording:data.end_of_recording);
-%       dat(isnan(dat(:,1)),:)=[];
       
       save(sprintf('~/pupmod/proc/sens/pupmod_task_sens_cleandat_s%d_m%d_b%d_v%d.mat',isubj,m,iblock,v),'dat');
-      save(sprintf('~/pupmod/proc/sens/pupmod_task_sens_cleandat_s%d_m%d_b%d_v%d_spec.mat',isubj,m,iblock,v),'out');
 
     end
   end
 end
-
-%% TEST STH
-clear mi ma
-isubj = 4; m = 3;
-
-load(sprintf('/home/tpfeffer/pupmod/proc/conn/pupmod_task_src_powcorr_s%d_m%d_v1.mat',isubj,m))
-
-a1=squeeze(powcorr(:,:,1,:));
-a2=squeeze(powcorr(:,:,2,:));
-
-load(sprintf('/home/tpfeffer/pupmod/proc/conn/pupmod_task_src_powcorr_s%d_m%d_v2.mat',isubj,m))
-
-b1=squeeze(powcorr(:,:,1,:));
-b2=squeeze(powcorr(:,:,2,:));
-
-d1 = a1-b1;
-d2 = a2-b2;
-
-for i = 1 : 17
-mi(i,1)=min(reshape(d1(:,:,i),[400*400 1]));
-ma(i,1)=max(reshape(d1(:,:,i),[400*400 1]));
-mi(i,2)=min(reshape(d2(:,:,i),[400*400 1]));
-ma(i,2)=max(reshape(d2(:,:,i),[400*400 1]));
-end
-
-plot(mi); hold on
-plot(ma)
-    
     

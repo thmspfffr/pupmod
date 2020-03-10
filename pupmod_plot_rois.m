@@ -4,10 +4,13 @@
 % DIMENSION 2 (in grid): front (positive) to back (negative)
 % DIMENSION 3 (in grid): top (positive) to bottom (negative)
 
+% fc = pupmod_loadpowcorr(1,SUBJLIST,1);
+% fc_rest = squeeze(fc(:,:,:,1,1,:));
+
 if ~exist('sa_meg_template','var')
   load /home/gnolte/meth/templates/mri.mat;
   load /home/gnolte/meth/templates/sa_template.mat;
-  load /home/tpfeffer/pconn/proc/src/pconn_sa_s4_m1_b1_v11.mat
+  load /home/tpfeffer/pconn/proc/src/pconn_sa_s4_m1_b1_v9.mat
   grid = sa.grid_cortex_lowres;
   addpath /home/gnolte/meg_toolbox/toolbox/
   addpath /home/gnolte/meg_toolbox/fieldtrip_utilities/
@@ -78,4 +81,55 @@ para.fn = sprintf('~/pupmod/plots/rois_%s.png',str)
 
 tp_plot_roi(par,sa_template,para)
 
-% print(gcf,'-dpdf',)
+%% PLOT CORRELATION FROM  SEED TO THE REST
+
+% SOM = [-42 -26 54; 38 -32 48]./10
+SOM = [-20 -86 18; 16 -80 26]./10
+% SOM = [-54 -22 10; 52 -24 12]./10
+
+
+for i= 1 :400
+  
+  d_l(i) = sqrt((grid(i,1)-SOM(1,1))^2 + (grid(i,2)-SOM(1,2))^2 + (grid(i,3)-SOM(1,3))^2);
+  d_r(i) = sqrt((grid(i,1)-SOM(2,1))^2 + (grid(i,2)-SOM(2,2))^2 + (grid(i,3)-SOM(2,3))^2);
+  
+end
+[~,idx_l]=min(d_l);
+[~,idx_r]=min(d_r);
+
+idx = 1 : 400;
+for i = 1 : 400
+  
+  others = squeeze(mean(fc(idx_l,~ismember(idx, i),:,9),2));
+  this = squeeze(fc(idx_l,i,:,9));
+  h(i)=ttest(this,others,'tail','right');
+end
+
+
+ifoi = 9; icond = 1;
+
+cmap      = plasma;
+para      = [];
+para.clim = [0.05 0.10];
+par = squeeze(nanmean((fc_rest(idx_l,:,:,ifoi)),3));
+para.cmap = cmap;
+para.grid = grid;
+para.dd   = 0.75;
+para.fn   = sprintf('~/pupmod/plots/test.png');
+tp_plot_surface(par,para)
+
+%% MEAN CORRELATION
+
+
+
+ifoi = 9; icond = 1;
+
+cmap      = plasma;
+para      = [];
+para.clim = [.35 .43];
+par = squeeze(nanmean(nanmean(fc(:,:,:,ifoi),2),3));
+para.cmap = cmap;
+para.grid = grid;
+para.dd   = 0.75;
+para.fn   = sprintf('~/pupmod/plots/test.png');
+tp_plot_surface(par,para)

@@ -34,10 +34,10 @@ for ifoi = para.nfreq
   % ATOMOXETINE: number of altered correlations (irrespective of sign)
   % --------------------------
   % during rest (condition label = 1)
-  h=ttest(s_fc(:,:,:,2,1),s_fc(:,:,:,1,1),'dim',3,'alpha',para.alpha);
+  h=ttest(atanh(s_fc(:,:,:,2,1)),atanh(s_fc(:,:,:,1,1)),'dim',3,'alpha',para.alpha);
   emp.atx(ifoi,1) = nansum(nansum((h)))./(size(s_fc,1)*size(s_fc,1)-size(s_fc,1));
   % during task (condition label = 1)
-  h=ttest(s_fc(:,:,:,2,2),s_fc(:,:,:,1,2),'dim',3,'alpha',para.alpha);
+  h=ttest(atanh(s_fc(:,:,:,2,2)),atanh(s_fc(:,:,:,1,2)),'dim',3,'alpha',para.alpha);
   emp.atx(ifoi,2) = nansum(nansum((h)))./(size(s_fc,1)*size(s_fc,1)-size(s_fc,1));
   % context dependence
   emp.context_allconn_emp_atx(ifoi) = emp.atx(ifoi,1)-emp.atx(ifoi,2);
@@ -105,7 +105,7 @@ for ifoi = para.nfreq
   % TASK VS REST (during placebo only)
   % --------------------------
   % global changes
-  [t_tvsr,~,~,s] = ttest(s_fc(:,:,:,1,2),s_fc(:,:,:,1,1),'dim',3,'alpha',para.alpha);
+  [t_tvsr,~,~,s] = ttest(atanh(s_fc(:,:,:,1,2)),atanh(s_fc(:,:,:,1,1)),'dim',3,'alpha',para.alpha);
   t_tvsr = t_tvsr.*sign(s.tstat); clear s
   emp.taskvsrest_p(ifoi) = nansum(nansum(t_tvsr>0))./(size(s_fc,1)*size(s_fc,1)-size(s_fc,1));
   emp.taskvsrest_n(ifoi) = nansum(nansum(t_tvsr<0))./(size(s_fc,1)*size(s_fc,1)-size(s_fc,1));

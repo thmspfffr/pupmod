@@ -10,7 +10,7 @@
 
 clear 
 v_in = 1;
-v = 11; 
+v = 1; 
 % alp: standard for all 0.05!!! except verison 13
 nperm = 10000; alp = 0.05;
 nfoi = 17;

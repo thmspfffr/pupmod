@@ -1,22 +1,11 @@
 %% pupmod_align_data
 
-% re-algins data with artifacts (nans for artifactual segments) and
-% high-pass filter data
-
-
-% subj < 25: all good
-% difficulty with subj > 25: i first rejected artifacts, and then removed
-% first 20s of the data. 
-
 clear
 
-v = 2;
+v = 1;
 
 addpath ~/Documents/MATLAB/fieldtrip-20160919/
 ft_defaults
-
-% SUBJECT10, M3, B1: no triggers
-% sth was weird with subject 24, also subject 10 failed
 
 SUBJLIST  = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
 for isubj = SUBJLIST
@@ -161,7 +150,7 @@ for isubj = SUBJLIST
       
       fprintf('Difference in the end: %d\n',size(data.trial,2)-size(data.idx,2))
       
-      save(sprintf('~/pp/proc/pp_sens_cleandat_s%d_m%d_b%d_v%d.mat',isubj,m,iblock,v),'data')
+      save(sprintf('~/pupmod/proc/pupmod_sens_cleandat_s%d_m%d_b%d_v%d.mat',isubj,m,iblock,v),'data')
       
       clear data dat_new data_old dat1 start off bw art trig data artvec  
       
@@ -178,92 +167,11 @@ for isubj = SUBJLIST
        fprintf('Processing s%d m%d b%d ...\n', isubj,m,iblock)
 
       try
-        load(sprintf('~/pp/proc/pp_sens_cleandat_s%d_m%d_b%d_v%d.mat',isubj,m,iblock,v))
+        load(sprintf('~/pupmod/proc/pupmod_sens_cleandat_s%d_m%d_b%d_v%d.mat',isubj,m,iblock,v))
       catch me
         continue
       end
-      
-      % SELECT DATA
-      
-      dat = data.trial';
-      dat(isnan(dat(:,1)),:)=[];
-      
-      [px,f]=pwelch(dat,hanning(4000),0.5,0:0.1:50,400,'power');
-      out.pwelch_pre = px;
-      out.pwelchfreq = f;
-      
-      % ----------------------------------------------
-      % high pass filter data here (incl. mirroring)
-      % ----------------------------------------------
-      all_idx = find(isnan(data.trial(1,:)));
-      start = 1;
-      while 1
-%         
-        if start == 1
-          idx=find(isnan(data.trial(1,start:end)),1,'first');
-        else
-          idx=all_idx(find(all_idx>start,1,'first'));
-          if isempty(idx)
-            idx=size(data.trial,2);
-          end
-        end
-        if isnan(data.trial(1,idx))
-          tmp_dat = data.trial(:,start:idx-1);
-        else
-          tmp_dat = data.trial(:,start:idx);
-        end
-        
-        if size(tmp_dat,2)<300
-          warning('data short')
-          data.trial(:,start:idx-1) = nan;
-%           out.cnt = out.cnt+1;
-          while isnan(data.trial(1,idx))
-            idx=idx+1;
-            if idx==size(data.trial,2)
-              break
-            end
-          end
-          
-          if idx==size(data.trial,2)
-            break
-          end
-          start=idx;
-          continue
-        end
-        
-        clear mirr_dat
-        
-        mirr_dat=padarray(tmp_dat',800,'symmetric','both');       
-        mirr_dat_filt = ft_preproc_highpassfilter(mirr_dat',400,2,4,'but');
-        tmp_dat = mirr_dat_filt(:,801:size(mirr_dat_filt,2)-800);
-        if isnan(data.trial(1,idx))
-          data.trial(:,start:idx-1)=tmp_dat;
-        else
-          data.trial(:,start:idx)=tmp_dat;
-        end
-        
-        while isnan(data.trial(1,idx))
-          idx=idx+1;
-          if idx==size(data.trial,2)
-            break
-          end
-        end
-        
-        if idx==size(data.trial,2)
-          break
-        end
-        start=idx;
-      end
-      % end of filtering
-      % --------------------------
-      
-      dat = data.trial';
-      dat(isnan(dat(:,1)),:)=[];
-      
-      [px,f]=pwelch(dat,hanning(4000),0.5,0:0.1:50,400,'power');
-      out.pwelch_post = px;
-      out.pwelchfreq = f;
-% %       
+
       if isempty(data.start_of_recording) && ~isempty(data.end_of_recording)
         if (data.end_of_recording-600*data.fsample)<1
           data.start_of_recording = 1;
@@ -289,74 +197,12 @@ for isubj = SUBJLIST
       end
       
       dat = data.trial(:,data.start_of_recording:data.end_of_recording);
-%       dat(isnan(dat(:,1)),:)=[];
       
       save(sprintf('~/pupmod/proc/sens/pupmod_rest_sens_cleandat_s%d_m%d_b%d_v%d.mat',isubj,m,iblock,v),'dat');
-      save(sprintf('~/pupmod/proc/sens/pupmod_rest_sens_cleandat_s%d_m%d_b%d_v%d_spec.mat',isubj,m,iblock,v),'out');
+%       save(sprintf('~/pupmod/proc/sens/pupmod_rest_sens_cleandat_s%d_m%d_b%d_v%d_spec.mat',isubj,m,iblock,v),'out');
 
     end
   end
 end
 
-    %%
     
-v=  1;
-    
-ord   = pconn_randomization;
-for isubj = SUBJLIST
-  for m = 1:3
-    for iblock = 1:2
-      
-%       figure_w;
-      
-      im = find(ord(isubj,:)==m);
-      
-      load(sprintf('~/pupmod/proc/sens/pupmod_rest_sens_cleandat_s%d_m%d_b%d_v%d_spec.mat',isubj,im,iblock,v))
-      pow_spec_pre(:,isubj,m,iblock,1) = nanmean(out.pwelch_pre,2);
-      pow_spec_post(:,isubj,m,iblock,1) = nanmean(out.pwelch_post,2);
-      
-
-      load(sprintf('~/pupmod/proc/sens/pupmod_task_sens_cleandat_s%d_m%d_b%d_v%d_spec.mat',isubj,im,iblock,v))
-      pow_spec_pre(:,isubj,m,iblock,2) = nanmean(out.pwelch_pre,2);
-      pow_spec_post(:,isubj,m,iblock,2) = nanmean(out.pwelch_post,2);
-    end
-    
-
-  end
-end
-    
-  pow_spec_pre = squeeze(nanmean(pow_spec_pre(:,SUBJLIST,:,:,:),4));
-  pow_spec_post = squeeze(nanmean(pow_spec_post(:,SUBJLIST,:,:,:),4));
-  
-  %% PLOT
-  close all
-isubj = 19; 
-
-
-m = 1;
-
-figure_w;
-plot(out.pwelchfreq,pow_spec_pre(:,isubj,m,1),'k-')
-hold on
-% plot(out.pwelchfreq,pow_spec_post(:,isubj,m,1),'k:')
-plot(out.pwelchfreq,pow_spec_pre(:,isubj,m,2),'b-')
-% plot(out.pwelchfreq,pow_spec_post(:,isubj,m,2),'b:')
-
-m = 2;
-
-figure_w;
-plot(out.pwelchfreq,pow_spec_pre(:,isubj,m,1),'k-')
-hold on
-% plot(out.pwelchfreq,pow_sprec_post(:,isubj,m,1),'k:')
-plot(out.pwelchfreq,pow_spec_pre(:,isubj,m,2),'b-')
-% plot(out.pwelchfreq,pow_spec_post(:,isubj,m,2),'b:')
-
-m = 3;
-
-figure_w;
-plot(out.pwelchfreq,pow_spec_pre(:,isubj,m,1),'k-')
-hold on
-% plot(out.pwelchfreq,pow_spec_post(:,isubj,m,1),'k:')
-plot(out.pwelchfreq,pow_spec_pre(:,isubj,m,2),'b-')
-% plot(out.pwelchfreq,pow_spec_post(:,isubj,m,2),'b:')
-

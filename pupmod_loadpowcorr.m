@@ -7,7 +7,7 @@ else
   avg = 0;
 end
 
-if v == 1 || v==2 || v == 12 || v == 19 || v ==23
+if v == 1 || v==2 || v == 12 || v == 19 || v ==23 || v == 11
   siz = 400;
   if avg == 0
     fc = zeros(siz,siz,length(SUBJLIST),3,2,17,2,'single');
@@ -59,14 +59,14 @@ for isubj = 1:length(SUBJLIST)
           else
             fc(:,:,isubj,m,1,:,:) = permute(powcorr,[1 2 4 3]); clear powcorr
           end
-          
-          load(sprintf('~/pupmod/proc/conn/pupmod_task_src_powcorr_s%d_m%d_v%d.mat',SUBJLIST(isubj),im,v))
-          
-          if avg == 1
-            fc(:,:,isubj,m,2,:) = tanh(nanmean(atanh(permute(powcorr,[1 2 4 3])),4)); clear powcorr
-          else
-            fc(:,:,isubj,m,2,:,:) = permute(powcorr,[1 2 4 3]); clear powcorr
-          end
+% %           
+%           load(sprintf('~/pupmod/proc/conn/pupmod_task_src_powcorr_s%d_m%d_v%d.mat',SUBJLIST(isubj),im,v))
+% %           
+%           if avg == 1
+%             fc(:,:,isubj,m,2,:) = tanh(nanmean(atanh(permute(powcorr,[1 2 4 3])),4)); clear powcorr
+%           else
+%             fc(:,:,isubj,m,2,:,:) = permute(powcorr,[1 2 4 3]); clear powcorr
+%           end
         %       end
     
   end

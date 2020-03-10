@@ -11,11 +11,10 @@
 clear
 % version: 12 coarse cortex, 1 AAL
 addpath ~/pupmod/matlab
-v = 12;
+v = 1;
 outdir = '~/pupmod/proc/conn/';
-% load(sprintf('~/pupmod/proc/conn/pupmod_src_powcorr_cleaned_v%d.mat',v));
-cleandat = pupmod_loadpowcorr(v,1);
-
+SUBJLIST        = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
+fc = pupmod_loadpowcorr(v,SUBJLIST,1);
 
 if ~exist('sa_meg_template','var')
   load /home/gnolte/meth/templates/mri.mat;
@@ -30,28 +29,28 @@ end
 %% COMPUTE "RELATIVE" DEGREE
 % --------------------------------
 
-fcsize               = size(cleandat,1);
+fcsize               = size(fc,1);
 para                 = [];
 para.alpha           = 0.01;
-para.nfreq           = 13;
+para.nfreq           = 17;
 para.absolute        = 0;
-para.relative_degree = 1;
+para.relative_degree = 0;
 
 % Atomoxetine (icond = 2) during Rest 
-deg_atx = tp_degree(cleandat(:,:,:,[1 2],1,:),para);
-deg_atx_vox = squeeze(nansum(deg_atx)/fcsize);
+deg_atx = tp_degree(fc(:,:,:,[1 2],1,:),para);
+deg_atx_vox = squeeze(nansum(deg_atx.node_degree)/fcsize);
 deg_atx = squeeze(nansum(reshape(deg_atx,[fcsize^2 13 2]))/fcsize^2);
 % Atomoxetine (icond = 3) during Task 
-deg_atx_task = tp_degree(cleandat(:,:,:,[1 2],2,:),para);
+deg_atx_task = tp_degree(fc(:,:,:,[1 2],2,:),para);
 deg_atx_task_vox = squeeze(nansum(deg_atx_task)/fcsize);
 deg_atx_task = squeeze(nansum(reshape(deg_atx_task,[fcsize^2 13 2]))/fcsize^2);
 % ------------------
 % Donepezil (icond = 3) during Rest 
-deg_dpz = tp_degree(cleandat(:,:,:,[1 3],1,:),para);
+deg_dpz = tp_degree(fc(:,:,:,[1 3],1,:),para);
 deg_dpz_vox = squeeze(nansum(deg_dpz)/fcsize);
 deg_dpz = squeeze(nansum(reshape(deg_dpz,[fcsize^2 13 2]))/fcsize^2);
 % Donepezil (icond = 3) during Task 
-deg_dpz_task = tp_degree(cleandat(:,:,:,[1 3],2,:),para);
+deg_dpz_task = tp_degree(fc(:,:,:,[1 3],2,:),para);
 deg_dpz_task_vox = squeeze(nansum(deg_dpz_task)/fcsize);
 deg_dpz_task = squeeze(nansum(reshape(deg_dpz_task,[fcsize^2 13 2]))/fcsize^2);
 % ------------------
@@ -59,44 +58,58 @@ deg_dpz_task = squeeze(nansum(reshape(deg_dpz_task,[fcsize^2 13 2]))/fcsize^2);
 %% PLOT  RESULTS W/O STATISTICS
 % --------------------------------
 
-foi_range = unique(round(2.^[1:0.5:7]));
+foi_range = 2.^(2:.25:6);
+fc_avg = squeeze(nanmean(nanmean(nanmean(cleandat(:,:,:,1,1,:),1),2),3));
 
 figure; set(gcf,'color','w'); hold on
 subplot(4,2,1); hold on
+yyaxis left
+plot(deg_atx.tot_degree(:,1),'color',[0.8 0.8 0.8],'linewidth',2);
+yyaxis right 
+plot(fc_avg,'color',[0.8 0.8 0.8],'linewidth',2);
 
-plot(deg_atx(:,1),'color',[0.8 0.8 0.8],'linewidth',2);
-plot(deg_atx(:,2),'color',[1 0.5 0.2],'linewidth',2);
-set(gca,'xtick',1:2:13,'xticklabel',foi_range(1:2:13))
-xlabel('Carrier frequency [Hz]'); ylabel('Degree [%]')
+% plot(deg_atx.tot_degree(:,2),'color',[1 0.5 0.2],'linewidth',2);
+yyaxis left
+set(gca,'xtick',1:4:17,'xticklabel',foi_range(1:4:17))
+ylabel('Degree [%]')
+axis(gca,[0 18 -5 30]);
+
+yyaxis right
+set(gca,'ytick',[0 0.05 0.1 0.15],'yticklabel',[0 0.05 0.10 0.15])
+axis(gca,[0 18 -0.01 0.15]);
+
+xlabel('Carrier frequency [Hz]'); ylabel('Mean FC')
 tp_editplots
-axis([0 14 -0.02 0.6]);
 
-subplot(4,2,2); hold on
+line([10 10],[0 30])
+line([6 6],[0 0.15])
 
-plot(deg_atx_task(:,1),'color',[0.8 0.8 0.8],'linewidth',2);
-plot(deg_atx_task(:,2),'color',[1 0.5 0.2],'linewidth',2);
-set(gca,'xtick',(1:2:13),'xticklabel',foi_range(1:2:13))
-xlabel('Carrier frequency [Hz]'); ylabel('Degree [%]')
-tp_editplots
-axis([0 14 -0.02 0.6]);
-
-subplot(4,2,3); hold on
-
-plot(deg_dpz(:,1),'color',[0.8 0.8 0.8],'linewidth',2);
-plot(deg_dpz(:,2),'color',[0.2 0.5 1],'linewidth',2);
-set(gca,'xtick',(1:2:13),'xticklabel',foi_range(1:2:13))
-xlabel('Carrier frequency [Hz]'); ylabel('Degree [%]')
-tp_editplots
-axis([0 14 -0.02 0.6]);
-
-subplot(4,2,4); hold on
-
-plot(deg_dpz_task(:,1),'color',[0.8 0.8 0.8],'linewidth',2);
-plot(deg_dpz_task(:,2),'color',[0.2 0.5 1],'linewidth',2);
-set(gca,'xtick',(1:2:13),'xticklabel',foi_range(1:2:13))
-xlabel('Carrier frequency [Hz]'); ylabel('Degree [%]')
-tp_editplots
-axis([0 14 -0.02 0.6]);
+% subplot(4,2,2); hold on
+% 
+% plot(deg_atx_task.tot_degree(:,1),'color',[0.8 0.8 0.8],'linewidth',2);
+% plot(deg_atx_task.tot_degree(:,2),'color',[1 0.5 0.2],'linewidth',2);
+% set(gca,'xtick',(1:2:13),'xticklabel',foi_range(1:2:13))
+% xlabel('Carrier frequency [Hz]'); ylabel('Degree [%]')
+% tp_editplots
+% axis([0 14 -0.02 0.6]);
+% 
+% subplot(4,2,3); hold on
+% 
+% plot(deg_dpz.tot_degree(:,1),'color',[0.8 0.8 0.8],'linewidth',2);
+% plot(deg_dpz.tot_degree(:,2),'color',[0.2 0.5 1],'linewidth',2);
+% set(gca,'xtick',(1:2:13),'xticklabel',foi_range(1:2:13))
+% xlabel('Carrier frequency [Hz]'); ylabel('Degree [%]')
+% tp_editplots
+% axis([0 14 -0.02 0.6]);
+% 
+% subplot(4,2,4); hold on
+% 
+% plot(deg_dpz_tas.tot_degreek(:,1),'color',[0.8 0.8 0.8],'linewidth',2);
+% plot(deg_dpz_task.tot_degree(:,2),'color',[0.2 0.5 1],'linewidth',2);
+% set(gca,'xtick',(1:2:13),'xticklabel',foi_range(1:2:13))
+% xlabel('Carrier frequency [Hz]'); ylabel('Degree [%]')
+% tp_editplots
+% axis([0 14 -0.02 0.6]);
 
 print(gcf,'-dpdf',sprintf('~/pupmod/plots/pupmod_all_src_degree_lineplots_rel%d_v%d.pdf',para.relative_degree,v));
 
@@ -186,7 +199,7 @@ addpath('/home/tpfeffer/Documents/MATLAB/Colormaps/Colormaps (5)/Colormaps/')
 if ~exist('sa_meg_template','var')
   load /home/gnolte/meth/templates/mri.mat;
   load /home/gnolte/meth/templates/sa_template.mat;
-  load /home/tpfeffer/pconn/proc/src/pconn_sa_s4_m1_b1_v11.mat
+  load /home/tpfeffer/pconn/proc/src/pconn_sa_s4_m1_b1_v9.mat
   grid = sa.grid_cortex_lowres;
   addpath /home/gnolte/meg_toolbox/toolbox/
   addpath /home/gnolte/meg_toolbox/fieldtrip_utilities/
@@ -194,20 +207,20 @@ if ~exist('sa_meg_template','var')
   addpath /home/gnolte/meg_toolbox/meg/
 end
 
-ifoi = 6; icond = 2; alpha = 0.05;
+ifoi = 4; icond = 1; %alpha = 0.05;
 
 cmap = plasma;
 
-par = deg_atx_vox(:,ifoi,icond);
+par = deg_atx.node_degree(:,ifoi,icond);
 
-cmap      = [cmap(end-15:-1:50,:); 0.98*ones(1,3); cmap(50:end-15,:)];
+% cmap      = [cmap(end-15:-1:50,:); 0.98*ones(1,3); cmap(50:end-15,:)];
 para      = [];
-para.clim = [-0.5 0.5];
+para.clim = [5 60];
 para.cmap = cmap;
 para.grid = grid;
 para.dd   = 0.75;
 para.fn   = sprintf('~/pupmod/plots/pupmod_plot_degree_f%d_c%d_v%d.png',ifoi,icond,v)
-tp_plot_surface(par,sa_template,para)
+tp_plot_surface(par,para)
 
 %% PLOT DEGREE ON SURFACE (CONTRAST)
 % Not 100% clear how to get proper p-values

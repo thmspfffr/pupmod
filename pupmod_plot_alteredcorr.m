@@ -646,8 +646,6 @@ par2 = spatfiltergauss(par,grid_lh,dd,g2);
 [r,p]=corr(par1,par2);
 fprintf('Corr (ATX): r = %.3f\n', r)
 
-%% PLOT TASK VS REST
-
 %% (3a) PLOT: Altered correlations
 % Plot altered correlations and highlights significant differences
 % --------------
@@ -816,67 +814,6 @@ set(gca,'tickdir','out','xtick',[1 5 9 13 17 21 25],'xticklabel',[2 4 8 16 32 64
 tp_editplots; xlabel('Carrier frequency [Hz]'); %ylabel('Fraction of significantly altered correlations [%]')
 
 print(gcf,'-depsc2',sprintf('~/pupmod/plots/pupmod_alteredcorr_alternative_alphas_dpz_v%d.eps',v))
-
-%% CLEANED SIGNAL 
-v = 23;
-
-load(sprintf(['~/pupmod/proc/conn/pupmod_src_powcorr_cleaned_within_v%d.mat'],v));
-para = [];
-para.nfreq = 1:25;
-para.alpha = 0.05;
-
-emp = pupmod_compute_altered_correlations(cleandat,para);
-
-if ~exist('sa_meg_template','var')
-  load /home/gnolte/meth/templates/mri.mat;
-  load /home/gnolte/meth/templates/sa_template.mat;
-  load /home/tpfeffer/pconn/proc/src/pconn_sa_s4_m1_b1_v9.mat
-  grid = sa.grid_cortex_lowres;
-  addpath /home/gnolte/meg_toolbox/toolbox/
-  addpath /home/gnolte/meg_toolbox/fieldtrip_utilities/
-  addpath /home/gnolte/meg_toolbox/toolbox_nightly/
-  addpath /home/gnolte/meg_toolbox/meg/
-end
-
-para          = [];
-para.nfreq    = [1:size(emp.n_p_atx,1)]; % freqs 1 - 13
-para.alpha    = 0.05; % alpha for adjacency
-para.ver      = v;
-para.nperm    = 20000;
-para.nsubs    = 500;
-para.type     = 'global';
-para.allperms = para.nperm/para.nsubs;
-para.emp      = emp;
-para.cleaned  = 0;
-para.correction_method = 'uncorrected'
-
-% ---------
-% Obtain stats for atomoxetine condition
-para.cond     = 'atx';
-[outp_atx]    = pupmod_src_powcorr_getstatistics_cleaned(para);
-% ---------
-% Obtain stats for donepezil condition
-% para.cond     = 'dpz';
-% [outp_dpz]    = pupmod_src_powcorr_getstatistics_cleaned(para);
-% ---------
-addpath ~/Documents/MATLAB/Colormaps/'Colormaps (5)'/Colormaps/
-
-%% CLEANED SIGNAL IN SOURCE SPACE
-
-ifoi = 25;
-icond = 2;
-
-par = emp.n_p_atx_pervoxel(:,ifoi,icond);
-% par(par<0.4)=0;
-
-para = [];
-para.clim = [0 0.3];
-para.cmap = plasma;
-para.grid = grid;
-para.dd = 1;
-para.fn = sprintf('~/pupmod/plots/test.png',i);
-tp_plot_surface(par,para)
-
 
 
 %% PLOT FC IN YEO ATLAS SPACE
@@ -1059,24 +996,4 @@ tp_colorbar()
 
 print(gcf,'-depsc2',sprintf('~/pupmod/plots/pupmod_powcorr_yeoatlas_across_fatx%s_fdpz%s_v%d.eps',regexprep(num2str(foi_atx),' ',''),regexprep(num2str(foi_dpz),' ',''),v))
 
-
-%% FILTER TEST
-
-a=rand(1000,1);
-a_filt = ft_preproc_highpassfilter(a',400,2,4,'but');
-
-a_cut = a(401:800);
-a_cut_filt = ft_preproc_highpassfilter(a_cut',400,2,4,'but');
-
-a_cut_mirr(400:-1:1) = a_cut(1:400);
-a_cut_mirr(401:800) = a_cut;
-a_cut_mirr(801:1200) = a_cut(400:-1:1);
-
-a_cut_mirr_filt = ft_preproc_highpassfilter(a_cut_mirr,400,2,4,'but');
-
-
-figure_w;
-plot(a_filt(401:800)); hold on
-% plot(a_cut_filt);
-plot(a_cut_mirr_filt(401:800));
 
