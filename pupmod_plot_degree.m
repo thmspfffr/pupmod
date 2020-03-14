@@ -11,7 +11,7 @@
 clear
 % version: 12 coarse cortex, 1 AAL
 addpath ~/pupmod/matlab
-v = 1;
+v = 3;
 outdir = '~/pupmod/proc/conn/';
 SUBJLIST        = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
 fc = pupmod_loadpowcorr(v,SUBJLIST,1);
@@ -59,12 +59,12 @@ deg_dpz_task = squeeze(nansum(reshape(deg_dpz_task,[fcsize^2 13 2]))/fcsize^2);
 % --------------------------------
 
 foi_range = 2.^(2:.25:6);
-fc_avg = squeeze(nanmean(nanmean(nanmean(cleandat(:,:,:,1,1,:),1),2),3));
+fc_avg = squeeze(nanmean(nanmean(nanmean(nanmean(fc(:,:,:,1:2,1,:),1),2),3),4));
 
 figure; set(gcf,'color','w'); hold on
 subplot(4,2,1); hold on
 yyaxis left
-plot(deg_atx.tot_degree(:,1),'color',[0.8 0.8 0.8],'linewidth',2);
+plot(deg_atx.tot_degree(:,1),'color',[0 0 0],'linewidth',2);
 yyaxis right 
 plot(fc_avg,'color',[0.8 0.8 0.8],'linewidth',2);
 
@@ -76,12 +76,12 @@ axis(gca,[0 18 -5 30]);
 
 yyaxis right
 set(gca,'ytick',[0 0.05 0.1 0.15],'yticklabel',[0 0.05 0.10 0.15])
-axis(gca,[0 18 -0.01 0.15]);
+axis(gca,[0 18 -0.01 0.06]);
 
 xlabel('Carrier frequency [Hz]'); ylabel('Mean FC')
 tp_editplots
 
-line([10 10],[0 30])
+line([9 9],[0 30])
 line([6 6],[0 0.15])
 
 % subplot(4,2,2); hold on
@@ -116,7 +116,7 @@ print(gcf,'-dpdf',sprintf('~/pupmod/plots/pupmod_all_src_degree_lineplots_rel%d_
 %% LOAD AND GENERATE PERMUTATION DISTRIBUTION
 % Details defined in par structure
 
-v = 12;
+v = 3;
 clear atx dpz outp
 
 par           = [];
@@ -207,19 +207,22 @@ if ~exist('sa_meg_template','var')
   addpath /home/gnolte/meg_toolbox/meg/
 end
 
-ifoi = 4; icond = 1; %alpha = 0.05;
+ifoi = 9; icond = [1 2]; %alpha = 0.05;
+fc_avg = squeeze(nanmean(nanmean(nanmean(fc(:,:,:,1:2,1,:),1),3),4));
 
 cmap = plasma;
 
-par = deg_atx.node_degree(:,ifoi,icond);
+par = nanmean(deg_atx.node_degree(:,ifoi,icond),3);
+% par = nanmean(fc_avg(:,ifoi),3);
 
 % cmap      = [cmap(end-15:-1:50,:); 0.98*ones(1,3); cmap(50:end-15,:)];
 para      = [];
-para.clim = [5 60];
+para.clim = [5 65];
+% para.clim = [0.03 0.08];
 para.cmap = cmap;
 para.grid = grid;
 para.dd   = 0.75;
-para.fn   = sprintf('~/pupmod/plots/pupmod_plot_degree_f%d_c%d_v%d.png',ifoi,icond,v)
+para.fn   = sprintf('~/pupmod/plots/pupmod_plot_degree_f%d_c%s_v%d.png',ifoi,num2str(icond),v)
 tp_plot_surface(par,para)
 
 %% PLOT DEGREE ON SURFACE (CONTRAST)

@@ -24,7 +24,7 @@ for isubj = SUBJLIST
     else
       continue
     end
-%     
+% %     
     for iblock = 1:2
       
       clear dat sa

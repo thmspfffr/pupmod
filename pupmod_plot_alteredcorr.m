@@ -19,33 +19,33 @@ clear
 % version of cleaned data: 
 % v1: cortex 400 vertices, v2: 400 vertices (cortex)
 % -------------
-v = 1;
+v = 3;
 % -------------
 %%
 SUBJLIST        = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
 
-cleandat = pupmod_loadpowcorr(v,SUBJLIST,1);
+fc = pupmod_loadpowcorr(v,SUBJLIST,1);
 
 para = [];
 para.nfreq = 1:17;
 para.alpha = 0.05;
 
-emp = pupmod_compute_altered_correlations(cleandat,para);
+emp = pupmod_compute_altered_correlations(fc,para);
 
 %% GET STATISTICS 
 
 if ~exist(sprintf('~/pupmod/proc/pupmod_src_powcorr_alteredcorr_v%d.mat',v))
   % Settings:
   para = [];
-  para.nfreq = [1:size(emp.n_p_atx,1)]; % freqs 1 - 13
+  para.nfreq = [1:size(emp.n_p_atx,1)]; % freqs 1 - 17
   para.alpha = 0.05; % alpha for adjacency
   para.ver = v;
-  para.nperm = 10000;
-  para.nsubs = 250;
+  para.nperm = 20000;
+  para.nsubs = 200;
   para.type = 'global';
   para.cond = 'atx';
   para.correction_method = 'single_threshold';
-  para.allperms = para.nperm/para.nsubs;
+  para.allperms = [1:49 51];
   para.emp = emp;
   
   outp_atx = pupmod_src_powcorr_getstatistics(para);
@@ -63,13 +63,13 @@ nfreq = 17;
 freq_start = 1;
 
 if v == 1
-  lims = [0 0.25 0.5 0.75];
-  lims_lab = num2cell([0 25 50 75]);
-  lims_ctx = [-1 -0.5 0; 0 0.5 1];
+  lims = [0 0.28];
+  lims_lab = num2cell([0 .25]);
+  lims_ctx = [-0.25 0; 0 0.25];
 else
-  lims = [0 0.25 0.5];
-  lims_lab = num2cell([0 25 50]);
-  lims_ctx = [-0.5 0 0.5; -0.5 0 0.5];
+  lims = [0 0.28];
+  lims_lab = num2cell([0 .25]);
+  lims_ctx = [-0.25 0; 0 0.25];
 end
 
 markersize = 4;
@@ -84,7 +84,7 @@ subplot(4,3,1); hold on
 plot(freq_start:nfreq,emp.n_p_atx(freq_start:nfreq,1),'r-','linewidth',2)
 plot(freq_start:nfreq,emp.n_n_atx(freq_start:nfreq,1),'b-','linewidth',2)
 set(gca,'tickdir','out','xtick',[1 5 9 13 17],'xticklabel',num2cell([4 8 16 32 64]))
-set(gca,'tickdir','out','ytick',lims,'yticklabel',lims_lab)
+set(gca,'tickdir','out','ytick',cell2mat(lims_lab),'yticklabel',lims_lab)
 ylabel('Altered corr. [%]')
 title('Rest')
 axis([0 nfreq lims(1)-0.05 lims(end)])
@@ -104,7 +104,7 @@ subplot(4,3,2); hold on
 plot(freq_start:nfreq,emp.n_p_dpz(freq_start:nfreq,1),'r-','linewidth',2)
 plot(freq_start:nfreq,emp.n_n_dpz(freq_start:nfreq,1),'b-','linewidth',2)
 set(gca,'tickdir','out','xtick',[1 5 9 13 17],'xticklabel',num2cell([4 8 16 32 64]))
-set(gca,'tickdir','out','ytick',lims,'yticklabel',lims_lab)
+set(gca,'tickdir','out','ytick',cell2mat(lims_lab),'yticklabel',lims_lab)
 axis([0 size(emp.n_p_atx,1) lims(1)-0.05 lims(end)])
 plot(find(outp_atx.p_res2_p<alpha1),emp.n_p_dpz(find(outp_atx.p_res2_p<alpha1),1),'ko','markersize',markersize,'markerfacecolor','k')
 plot(find(outp_atx.p_res2_n<alpha1),emp.n_n_dpz(find(outp_atx.p_res2_n<alpha1),1),'ko','markersize',markersize,'markerfacecolor','k')
@@ -120,7 +120,7 @@ subplot(4,3,4); hold on
 plot(freq_start:nfreq,emp.n_p_atx(freq_start:nfreq,2),'r-','linewidth',2)
 plot(freq_start:nfreq,emp.n_n_atx(freq_start:nfreq,2),'b-','linewidth',2)
 set(gca,'tickdir','out','xtick',[1 5 9 13 17],'xticklabel',num2cell([4 8 16 32 64]))
-set(gca,'tickdir','out','ytick',lims,'yticklabel',lims_lab)
+set(gca,'tickdir','out','ytick',cell2mat(lims_lab),'yticklabel',lims_lab)
 ylabel('Altered corr. [%]')
 title('Task')
 axis([0 size(emp.n_p_atx,1) lims(1)-0.05 lims(end)])
@@ -138,7 +138,7 @@ subplot(4,3,5); hold on
 plot(freq_start:nfreq,emp.n_p_dpz(freq_start:nfreq,2),'r-','linewidth',2)
 plot(freq_start:nfreq,emp.n_n_dpz(freq_start:nfreq,2),'b-','linewidth',2)
 set(gca,'tickdir','out','xtick',[1 5 9 13 17],'xticklabel',num2cell([4 8 16 32 64]))
-set(gca,'tickdir','out','ytick',lims,'yticklabel',lims_lab)
+set(gca,'tickdir','out','ytick',cell2mat(lims_lab),'yticklabel',lims_lab)
 axis([0 size(emp.n_p_atx,1) lims(1)-0.05 lims(end)])
 plot(find(outp_atx.p_cnt2_p<alpha1),emp.n_p_dpz(find(outp_atx.p_cnt2_p<alpha1),2),'ko','markersize',markersize,'markerfacecolor','k')
 plot(find(outp_atx.p_cnt2_n<alpha1),emp.n_n_dpz(find(outp_atx.p_cnt2_n<alpha1),2),'ko','markersize',markersize,'markerfacecolor','k')
@@ -154,7 +154,7 @@ subplot(4,3,7); hold on
 plot(freq_start:nfreq,emp.n_n_context_atx(freq_start:nfreq),'b-','linewidth',2)
 plot(freq_start:nfreq,emp.n_p_context_atx(freq_start:nfreq),'r-','linewidth',2)
 axis([freq_start-1 nfreq lims_ctx(1,1) lims_ctx(1,end)])
-set(gca,'tickdir','out','ytick',[-0.5 0 0.5],'yticklabel',num2cell([-50 0 50]))
+set(gca,'tickdir','out','ytick',[-0.25 0 0.25],'yticklabel',num2cell([-25 0 25]))
 set(gca,'tickdir','out','xtick',[1 5 9 13 17],'xticklabel',num2cell([4 8 16 32 64]))
 xlabel('Carrier frequency [Hz]'); ylabel('Difference')
 plot(find(outp_atx.p_context_atx_p<alpha1),emp.n_p_context_atx(find(outp_atx.p_context_atx_p<alpha1)),'ko','markersize',markersize,'markerfacecolor','k')
@@ -165,13 +165,13 @@ plot(find(outp_atx.p_context_atx_p<alpha3),emp.n_p_context_atx(find(outp_atx.p_c
 plot(find(outp_atx.p_context_atx_n<alpha3),emp.n_n_context_atx(find(outp_atx.p_context_atx_n<alpha3)),'ko','markersize',markersize,'markerfacecolor','m')
 tp_editplots
 pos(5,:)=get(gca,'Position')
-axis([freq_start-1 nfreq -0.5 .5])
+axis([freq_start-1 nfreq -0.25 .25])
 
 subplot(4,3,8); hold on
 plot(freq_start:nfreq,emp.n_n_context_dpz(freq_start:nfreq),'b-','linewidth',2)
 plot(freq_start:nfreq,emp.n_p_context_dpz(freq_start:nfreq),'r-','linewidth',2)
 axis([freq_start-1 nfreq lims_ctx(2,1) lims_ctx(2,end)])
-set(gca,'tickdir','out','ytick',[-0.5 0 0.5],'yticklabel',num2cell([-50 0 50]))
+set(gca,'tickdir','out','ytick',[-0.25 0 0.25],'yticklabel',num2cell([-25 0 25]))
 set(gca,'tickdir','out','xtick',[1 5 9 13 17],'xticklabel',num2cell([4 8 16 32 64]))
 xlabel('Carrier frequency [Hz]'); 
 plot(find(outp_atx.p_context_dpz_p<alpha1),emp.n_p_context_dpz(find(outp_atx.p_context_dpz_p<alpha1)),'ko','markersize',markersize,'markerfacecolor','k')
@@ -182,7 +182,7 @@ plot(find(outp_atx.p_context_dpz_p<alpha3),emp.n_p_context_dpz(find(outp_atx.p_c
 plot(find(outp_atx.p_context_dpz_n<alpha3),emp.n_n_context_dpz(find(outp_atx.p_context_dpz_n<alpha3)),'ko','markersize',markersize,'markerfacecolor','m')
 tp_editplots
 pos(6,:)=get(gca,'Position')
-axis([freq_start-1 nfreq -0.5 .5])
+axis([freq_start-1 nfreq -0.25 .25])
 
 print(gcf,'-dpdf',sprintf('~/pupmod/plots/pupmod_plot_alteredcorr_lineplots_allfreqs_stats_v%d.pdf',v));
 
@@ -203,8 +203,8 @@ para          = [];
 para.nfreq    = [1:size(emp.n_p_atx,1)]; % freqs 1 - 13
 para.alpha    = 0.05; % alpha for adjacency
 para.ver      = v;
-para.nperm    = 10000;
-para.nsubs    = 250;
+para.nperm    = 1000;
+para.nsubs    = 25;
 para.type     = 'local';
 para.allperms = para.nperm/para.nsubs;
 para.emp      = emp;
@@ -265,7 +265,7 @@ end
 
 %% MAP CONTEXT DEPENDENCE - ATOMOXETINE
 
-for ifoi = 1 : 25
+for ifoi = 1 : 17
 
   cmap = autumn;
   cmap(:,1) = 0; cmap(:,3) = 1;
@@ -286,7 +286,7 @@ end
 
 %% MAP CONTEXT DEPENDENCE - DONEPEZIL
 
-for ifoi = 1 : 25
+for ifoi = 1 : 17
 
   cmap = autumn;
 %   cmap(:,1) = 0; cmap(:,3) = 1;
@@ -322,10 +322,10 @@ end
 % ---------
 % Obtain stats for atomoxetine condition
 para.cond     = 'atx';
-data1(:,:,:,:,:,1) = nanmean(cleandat(:,:,:,:,:,10:11:12),6);
-data1(:,:,:,:,:,2) = nanmean(cleandat(:,:,:,:,:,18),6);
+data1(:,:,:,:,:,1) = nanmean(fc(:,:,:,:,:,10:11:12),6);
+data1(:,:,:,:,:,2) = nanmean(fc(:,:,:,:,:,18),6);
 % dpz effect
-data1(:,:,:,:,:,3) =  nanmean(cleandat(:,:,:,:,:,13:14),6);
+data1(:,:,:,:,:,3) =  nanmean(fc(:,:,:,:,:,13:14),6);
 
 para          = [];
 para.alpha    = 0.05; % alpha for adjacency
@@ -829,7 +829,7 @@ para.nfreq = 1:21;
 para.alpha = 0.05;
 
 for i = 1 : 7
-emp{i} = pupmod_compute_altered_correlations(cleandat(lab==i,lab==i,:,:,:,:),para);
+emp{i} = pupmod_compute_altered_correlations(fc(lab==i,lab==i,:,:,:,:),para);
 end
 
 %%
@@ -939,7 +939,7 @@ for i = 1 : 7
     idx1=find(lab==i);
     idx2=find(lab==j);
     
-     fc_tmp = cleandat(idx1,idx2,:,:,:,:);
+     fc_tmp = fc(idx1,idx2,:,:,:,:);
       
      emp{i}{j} = pupmod_compute_altered_correlations(fc_tmp,para);
 

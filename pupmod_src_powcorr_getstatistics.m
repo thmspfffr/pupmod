@@ -51,7 +51,7 @@ function [outp] = pupmod_src_powcorr_getstatistics(para)
 % Number of altered correlations across all voxels
 
 ALPHA = 0.05;
-allperms = para.nperm/para.nsubs;
+% allperms = para.nperm/para.nsubs;
 
 if ~isfield(para,'alpha'); alpha = 0.05; end
 if ~isfield(para,'cleaned'); para.cleaned = 0; end
@@ -59,9 +59,9 @@ if ~isfield(para,'alp'); alp = 0.05; fprintf('Alpha: 0.05 (default)\n'); end
 if ~isfield(para,'nfreq'); para.nfreq = 13; fprintf('Freqs: all (default)\n');end
 if ~isfield(para,'correction_method'); para.correction_method = 'ranks'; fprintf('Correction: ranks (default)\n'); end
 if ~isfield(para,'type'); para.type = 'global'; fprintf('Type: global (default)\n'); end
-if strcmp(para.type,'local') && strcmp(para.correction_method,'single_threshold')
-  error('Correction method based on single thresholds is not implemented on a voxel-level! Use ''ranks'' instead.')
-end
+% if strcmp(para.type,'local') && strcmp(para.correction_method,'single_threshold')
+%   error('Correction method based on single thresholds is not implemented on a voxel-level! Use ''ranks'' instead.')
+% end
 SUBJLIST  = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
 
 if ~isfield(para,'emp')
@@ -79,11 +79,11 @@ clear cleandat s_fc
 % --------------------------
 % LOAD PERMUTATION DISTRIBUTION
 % --------------------------
-
+para.nperm = length(para.allperms)*para.nsubs;
 if strcmp(para.type, 'global')
-  for iperm = 1 : allperms
+  for iperm = para.allperms
     
-    fprintf('Load permutation distributions: %d / %d ...\n',iperm,allperms)
+    fprintf('Load permutation distributions: %d / %d ...\n',iperm,para.allperms)
     
     load(sprintf('~/pupmod/proc/conn/pupmod_src_powcorr_permtest_iperm%d_nperm%d_v%d.mat',iperm,para.nperm,para.ver),'par')
     
@@ -156,11 +156,14 @@ if strcmp(para.type, 'global')
       
       [~,tmp] = sort(perm_n_p_atx(:,ifreq,2),'ascend');
       R_cnt1_p(tmp,ifreq) = 1:numel(perm_n_p_atx(:,ifreq,2));
-  
-%       [~,R_context1_p(:,ifreq)] = sort(context_allconn_atx_p(:,ifreq),'ascend');
-%       [~,R_context1_n(:,ifreq)] = sort(context_allconn_atx_n(:,ifreq),'ascend');
       
-      % ATOMOXETINE
+      [~,tmp] = sort(context_allconn_atx_p(:,ifreq),'ascend');
+      R_context1_p(tmp,ifreq) = 1:numel(context_allconn_atx_p(:,ifreq));
+      
+      [~,tmp] = sort(context_allconn_atx_n(:,ifreq),'ascend');
+      R_context1_n(tmp,ifreq) = 1:numel(context_allconn_atx_n(:,ifreq));
+      
+      % DONEPEZIL
       [~,tmp] = sort(perm_n_n_dpz(:,ifreq,1),'ascend');
       R_res2_n(tmp,ifreq) = 1:numel(perm_n_n_dpz(:,ifreq,1));
       
@@ -172,12 +175,19 @@ if strcmp(para.type, 'global')
       
       [~,tmp] = sort(perm_n_p_dpz(:,ifreq,2),'ascend');
       R_cnt2_p(tmp,ifreq) = 1:numel(perm_n_p_dpz(:,ifreq,2));
-
-%       [~,R_context2_p(:,ifreq)] = sort(context_allconn_dpz_p(:,ifreq),'ascend');
-%       [~,R_context2_n(:,ifreq)] = sort(context_allconn_dpz_n(:,ifreq),'ascend');
+        
+      [~,tmp] = sort(context_allconn_atx_p(:,ifreq),'ascend');
+      R_context2_p(tmp,ifreq) = 1:numel(context_allconn_atx_p(:,ifreq));
+      
+      [~,tmp] = sort(context_allconn_dpz_n(:,ifreq),'ascend');
+      R_context2_n(tmp,ifreq) = 1:numel(context_allconn_dpz_n(:,ifreq));
+      
       % TASK VS REST
-%       [~,R_tvr_p(:,ifreq)] = sort(perm_taskvsrest_n_p(:,ifreq,1),'ascend');
-%       [~,R_tvr_n(:,ifreq)] = sort(perm_taskvsrest_n_n(:,ifreq,1),'ascend');
+      [~,tmp] = sort(perm_taskvsrest_n_p(:,ifreq),'ascend');
+      R_tvr_p(tmp,ifreq) = 1:numel(perm_taskvsrest_n_p(:,ifreq));
+      [~,tmp] = sort(perm_taskvsrest_n_n(:,ifreq),'ascend');
+      R_tvr_n(tmp,ifreq) = 1:numel(perm_taskvsrest_n_n(:,ifreq));
+    
     end
     
     Rmax_res1_n = max(cat(2,R_res1_n,R_res1_p),[],2);

@@ -9,12 +9,12 @@
 % last update: 26-10-2018
 
 clear 
-v_in = 1;
-v = 1; 
+% v_in = 2;
+v = 3; 
 % alp: standard for all 0.05!!! except verison 13
-nperm = 10000; alp = 0.05;
+nperm = 20000; alp = 0.05;
 nfoi = 17;
-par.subs = 250;
+par.subs = 200;
 par.allperms = nperm/par.subs;
 
 addpath /home/gnolte/meg_toolbox/toolbox/
@@ -30,12 +30,7 @@ SUBJLIST  = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 3
 
 addpath ~/pconn/matlab/
 
-if v == 1  || 2
-  cleandat = single(pupmod_loadpowcorr(v_in,SUBJLIST,1));
-elseif v == 11 || 22
-  cleandat = single(pupmod_loadpowcorr(v_in,SUBJLIST,1));
-  cleandat = pupmod_normalize_fc(cleandat);
-end
+cleandat = single(pupmod_loadpowcorr(v,SUBJLIST,1));
 
 nvox = size(cleandat,1)*size(cleandat,1)-size(cleandat,1);
 

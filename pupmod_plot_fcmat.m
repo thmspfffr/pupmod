@@ -6,7 +6,7 @@
 
 clear
 
-v = 1;
+v = 3;
 
 addpath /home/gnolte/meg_toolbox/toolbox/
 addpath /home/gnolte/meg_toolbox/fieldtrip_utilities/
@@ -22,14 +22,6 @@ SUBJLIST  = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 3
 
 fc = pupmod_loadpowcorr(v,SUBJLIST,1);
 
-if v == 20
-  tmp = tp_create_grid('vtpm');
-  clim = [-0.025 0.025];
-  idx = 1:46;
-  iismember(idx,[21 22 23 44 45 46]);
-  reg = tmp.tissuelabel_4mm(idx);
-end
-
 
 %% PLOT FC MATRIX FOR DIFFERENT CONDITIONS
 % significant v23: atx 10/11/12 & 18, dpz 13/14
@@ -38,7 +30,7 @@ ifoi = 9;
 
 cmap = cbrewer('div', 'RdBu', 256,'pchip'); cmap = cmap(end:-1:1,:);
 
-if v == 12 | v == 19 | v==23 | v==1
+if v == 3
 %   for ifoi = FOI
 
     figure; set(gcf,'color','w')
@@ -58,7 +50,7 @@ if v == 12 | v == 19 | v==23 | v==1
       fc_rest_tmp = [fc1 fc2; fc3 fc4];
       fc_rest(:,:,i) = triu(fc_rest_tmp,1);
       
-      subplot(1,3,i); imagesc(fc_rest(:,:,i),[0.05 0.15]); axis square off
+      subplot(1,3,i); imagesc(fc_rest(:,:,i),[0.02 0.1]); axis square off
       colormap(plasma)
       
      
@@ -82,24 +74,25 @@ if v == 12 | v == 19 | v==23 | v==1
       fc_task_tmp = [fc1 fc2; fc3 fc4];
       fc_task(:,:,i) = triu(fc_task_tmp,1);
       
-      subplot(1,3,i); imagesc(fc_task(:,:,i),[0.05 0.15]); axis square off
+      subplot(1,3,i); imagesc(fc_task(:,:,i),[0.02 0.1]); axis square off
       colormap(plasma)  
     
     end
         print(gcf,'-depsc2',sprintf('~/pupmod/plots/pupmod_powcorr_raw_fcmat_task_f%s_v%d.eps',regexprep(num2str(ifoi),' ',''),v))
 
-    lim = [-50 50];
+    lim = [-0.02 0.02];
     
 
     figure; set(gcf,'color','w');
     
-     subplot(1,3,1); imagesc(100*(fc_task(:,:,2)-fc_task(:,:,1))./fc_rest(:,:,1),lim); axis square off
+     subplot(1,3,1); imagesc(fc_task(:,:,2)-fc_task(:,:,1),lim); axis square off
      colormap(cmap)
      
-     subplot(1,3,2); imagesc(100*(fc_rest(:,:,3)-fc_rest(:,:,1))./fc_rest(:,:,1),lim); axis square off
+     subplot(1,3,2); imagesc(fc_rest(:,:,3)-fc_rest(:,:,1),lim); axis square off
      colormap(cmap)
         print(gcf,'-depsc2',sprintf('~/pupmod/plots/pupmod_powcorr_raw_fcmat_drugcontrast_f%s_v%d.eps',regexprep(num2str(ifoi),' ',''),v))
 
+        figure_w
     subplot(1,3,1); imagesc(fc_rest(:,:,2)-fc_rest(:,:,1),lim); axis square off
      colormap(cmap)
      
