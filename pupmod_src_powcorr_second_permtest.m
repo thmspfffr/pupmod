@@ -9,12 +9,12 @@
 
 clear 
 
-v     = 1; 
+v     = 3; 
 nperm = 10000; 
 alp   = 0.05;
 nfoi  = 17;
 
-par.subs     = 250;
+par.subs     = 200;
 par.allperms = nperm/par.subs;
 
 outdir = '/home/tpfeffer/pupmod/proc/conn/';
@@ -32,10 +32,10 @@ nvox = size(fc,1)*size(fc,1)-size(fc,1);
 
 % atx effect #1 (9.5-16 Hz), where p<0.05
 fc(:,:,:,:,:,18) = tanh(nanmean(atanh(fc(:,:,:,:,:,[6 7 8 9])),6));
-% atx effect #1 (9.5-16 Hz), where p<0.05
-fc(:,:,:,:,:,19) = tanh(nanmean(atanh(fc(:,:,:,:,:,[13 14])),6));
-% dpz effect
-fc(:,:,:,:,:,20) = tanh(nanmean(atanh(fc(:,:,:,:,:,[8 9 10])),6));
+% dpz effect #1 (9.5-16 Hz), where p<0.05
+fc(:,:,:,:,:,19) = tanh(nanmean(atanh(fc(:,:,:,:,:,[6 7 8 9 10])),6));
+% task vs rest effect #1 (9.5-16 Hz), where p<0.05
+fc(:,:,:,:,:,20) = tanh(nanmean(atanh(fc(:,:,:,:,:,[4 5 6])),6));
 
 tmp = clock;
 

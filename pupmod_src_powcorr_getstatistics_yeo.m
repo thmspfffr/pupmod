@@ -59,9 +59,9 @@ if ~isfield(para,'alp'); alp = 0.05; fprintf('Alpha: 0.05 (default)\n'); end
 if ~isfield(para,'nfreq'); para.nfreq = 13; fprintf('Freqs: all (default)\n');end
 if ~isfield(para,'correction_method'); para.correction_method = 'ranks'; fprintf('Correction: ranks (default)\n'); end
 if ~isfield(para,'type'); para.type = 'global'; fprintf('Type: global (default)\n'); end
-if strcmp(para.type,'local') && strcmp(para.correction_method,'single_threshold')
-  error('Correction method based on single thresholds is not implemented on a voxel-level! Use ''ranks'' instead.')
-end
+% if strcmp(para.type,'local') && strcmp(para.correction_method,'single_threshold')
+%   error('Correction method based on single thresholds is not implemented on a voxel-level! Use ''ranks'' instead.')
+% end
 SUBJLIST  = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
 if ~isfield(para,'emp')
   fprintf('Loading data...\n')
@@ -267,8 +267,8 @@ clear cleandat s_fc
     idx_R_res1_n   = max(abs(perm_n_n_atx(:,:,1)),[],2);
     idx_R_cnt1_p   = max(abs(perm_n_p_atx(:,:,2)),[],2);
     idx_R_cnt1_n   = max(abs(perm_n_n_atx(:,:,2)),[],2);
-    idx_R_res1_all = max(abs(perm_n_all_atx(:,:,1)),[],2);
-    idx_R_cnt1_all = max(abs(perm_n_all_atx(:,:,2)),[],2);
+%     idx_R_res1_all = max(abs(perm_n_all_atx(:,:,1)),[],2);
+%     idx_R_cnt1_all = max(abs(perm_n_all_atx(:,:,2)),[],2);
     idx_R_context1_p = max(abs(context_allconn_atx_p),[],2);
     idx_R_context1_n = max(abs(context_allconn_atx_n),[],2);
     % DONEPEZIL
@@ -277,8 +277,8 @@ clear cleandat s_fc
     idx_R_res2_n = max(abs(perm_n_n_dpz(:,:,1)),[],2);
     idx_R_cnt2_p = max(abs(perm_n_p_dpz(:,:,2)),[],2);
     idx_R_cnt2_n = max(abs(perm_n_n_dpz(:,:,2)),[],2);
-    idx_R_res2_all = max(abs(perm_n_all_dpz(:,:,1)),[],2);
-    idx_R_cnt2_all = max(abs(perm_n_all_dpz(:,:,2)),[],2);
+%     idx_R_res2_all = max(abs(perm_n_all_dpz(:,:,1)),[],2);
+%     idx_R_cnt2_all = max(abs(perm_n_all_dpz(:,:,2)),[],2);
     idx_R_context2_p = max(abs(context_allconn_dpz_p),[],2);
     idx_R_context2_n = max(abs(context_allconn_dpz_n),[],2);
     % TASK VS REST
@@ -287,30 +287,30 @@ clear cleandat s_fc
 %     idx_R_taskvsrest_n        = max(abs(taskvsrest_n_perm),[],2);
     
     
-    idx_R_doubledissociation  = max(perm_doubledissociation,[],2);
+%     idx_R_doubledissociation  = max(perm_doubledissociation,[],2);
     
     for ifreq = para.nfreq
       % ATOMOXETINE
       % ------------------
-      outp(iyeo).p_res1_p(ifreq) = 1-sum(abs(emp(iyeo).n_p_atx(ifreq,1))>abs(idx_R_res1_p))/nperm;
-      outp(iyeo).p_res1_n(ifreq) = 1-sum(abs(emp(iyeo).n_n_atx(ifreq,1))>abs(idx_R_res1_n))/nperm;
-      outp(iyeo).p_cnt1_p(ifreq) = 1-sum(abs(emp(iyeo).n_p_atx(ifreq,2))>abs(idx_R_cnt1_p))/nperm;
-      outp(iyeo).p_cnt1_n(ifreq) = 1-sum(abs(emp(iyeo).n_n_atx(ifreq,2))>abs(idx_R_cnt1_n))/nperm;
-      outp(iyeo).p_cnt_atx_all(ifreq) = 1-sum(abs(emp(iyeo).atx(ifreq,2))>abs(idx_R_cnt1_all))/nperm;
-      outp(iyeo).p_res_atx_all(ifreq) = 1-sum(abs(emp(iyeo).atx(ifreq,1))>abs(idx_R_res1_all))/nperm;
-      outp(iyeo).p_context_atx_p(ifreq) = 1-sum(abs(emp(iyeo).n_p_context_atx(ifreq,1))>abs(idx_R_context1_p))/nperm;
-      outp(iyeo).p_context_atx_n(ifreq) = 1-sum(abs(emp(iyeo).n_n_context_atx(ifreq,1))>abs(idx_R_context1_n))/nperm;
+      outp(iyeo).p_res1_p(ifreq) = 1-sum(abs(emp{iyeo}.n_p_atx(ifreq,1))>abs(idx_R_res1_p))/para.nperm;
+      outp(iyeo).p_res1_n(ifreq) = 1-sum(abs(emp{iyeo}.n_n_atx(ifreq,1))>abs(idx_R_res1_n))/para.nperm;
+      outp(iyeo).p_cnt1_p(ifreq) = 1-sum(abs(emp{iyeo}.n_p_atx(ifreq,2))>abs(idx_R_cnt1_p))/para.nperm;
+      outp(iyeo).p_cnt1_n(ifreq) = 1-sum(abs(emp{iyeo}.n_n_atx(ifreq,2))>abs(idx_R_cnt1_n))/para.nperm;
+%       outp(iyeo).p_cnt_atx_all(ifreq) = 1-sum(abs(emp(iyeo).atx(ifreq,2))>abs(idx_R_cnt1_all))/nperm;
+%       outp(iyeo).p_res_atx_all(ifreq) = 1-sum(abs(emp(iyeo).atx(ifreq,1))>abs(idx_R_res1_all))/nperm;
+%       outp(iyeo).p_context_atx_p(ifreq) = 1-sum(abs(emp{iyeo}.n_p_context_atx(ifreq,1))>abs(idx_R_context1_p))/para.nperm;
+%       outp(iyeo).p_context_atx_n(ifreq) = 1-sum(abs(emp{iyeo}.n_n_context_atx(ifreq,1))>abs(idx_R_context1_n))/para.nperm;
       
       % DONEPEZIL
       % ------------------
-      outp(iyeo).p_res2_p(ifreq) = 1-sum(abs(emp(iyeo).n_p_dpz(ifreq,1))>abs(idx_R_res2_p))/nperm;
-      outp(iyeo).p_res2_n(ifreq) = 1-sum(abs(emp(iyeo).n_n_dpz(ifreq,1))>abs(idx_R_res2_n))/nperm;
-      outp(iyeo).p_cnt2_p(ifreq) = 1-sum(abs(emp(iyeo).n_p_dpz(ifreq,2))>abs(idx_R_cnt2_p))/nperm;
-      outp(iyeo).p_cnt2_n(ifreq) = 1-sum(abs(emp(iyeo).n_n_dpz(ifreq,2))>abs(idx_R_cnt2_n))/nperm;
-      outp(iyeo).p_cnt_dpz_all(ifreq) = 1-sum(abs(emp(iyeo).dpz(ifreq,2))>idx_R_cnt2_all)/nperm;
-      outp(iyeo).p_res_dpz_all(ifreq) = 1-sum(abs(emp(iyeo).dpz(ifreq,1))>idx_R_res2_all)/nperm;
-      outp(iyeo).p_context_dpz_p(ifreq) = 1-sum(abs(emp(iyeo).n_p_context_dpz(ifreq,1))>abs(idx_R_context2_p))/nperm;
-      outp(iyeo).p_context_dpz_n(ifreq) = 1-sum(abs(emp(iyeo).n_n_context_dpz(ifreq,1))>abs(idx_R_context2_n))/nperm;
+      outp(iyeo).p_res2_p(ifreq) = 1-sum(abs(emp{iyeo}.n_p_dpz(ifreq,1))>abs(idx_R_res2_p))/para.nperm;
+      outp(iyeo).p_res2_n(ifreq) = 1-sum(abs(emp{iyeo}.n_n_dpz(ifreq,1))>abs(idx_R_res2_n))/para.nperm;
+      outp(iyeo).p_cnt2_p(ifreq) = 1-sum(abs(emp{iyeo}.n_p_dpz(ifreq,2))>abs(idx_R_cnt2_p))/para.nperm;
+      outp(iyeo).p_cnt2_n(ifreq) = 1-sum(abs(emp{iyeo}.n_n_dpz(ifreq,2))>abs(idx_R_cnt2_n))/para.nperm;
+%       outp(iyeo).p_cnt_dpz_all(ifreq) = 1-sum(abs(emp(iyeo).dpz(ifreq,2))>idx_R_cnt2_all)/nperm;
+%       outp(iyeo).p_res_dpz_all(ifreq) = 1-sum(abs(emp(iyeo).dpz(ifreq,1))>idx_R_res2_all)/nperm;
+%       outp(iyeo).p_context_dpz_p(ifreq) = 1-sum(abs(emp{iyeo}.n_p_context_dpz(ifreq,1))>abs(idx_R_context2_p))/para.nperm;
+%       outp(iyeo).p_context_dpz_n(ifreq) = 1-sum(abs(emp{iyeo}.n_n_context_dpz(ifreq,1))>abs(idx_R_context2_n))/para.nperm;
       % TASK VS REST
       % ------------------
 %       outp(iyeo).pval_taskvsrest_p_corr(ifreq) = 1-sum(abs(emp(iyeo).taskvsrest_p(ifreq))>idx_R_taskvsrest_p(:,ifreq))/nperm;

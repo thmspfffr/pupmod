@@ -6,7 +6,7 @@ clear
 outdir = '~/pupmod/proc/conn/';
 
 % Version 23: 400 vertices, cortical surface
-v =23;
+v =3;
 
 % Include all 28 paricipants
 SUBJLIST  = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
@@ -18,19 +18,19 @@ for m = 1 : 3
         
     im = find(ord(isubj,:)==m);
     
-    load(sprintf([outdir 'pupmod_src_power_variance_s%d_m%d_v%d.mat'],isubj,m,v));
+    load(sprintf([outdir 'pupmod_src_variance_s%d_m%d_v%d.mat'],isubj,m,v));
     
-    var_all_rest(:,isubj,m,:,:) = outp.var; 
-    pow_all_rest(:,isubj,m,:,:) = outp.pow; 
+    var_all_rest(:,isubj,m,:,:) = variance; 
+%     pow_all_rest(:,isubj,m,:,:) = outp.pow; 
     
-    clear outp
+    clear variance
     
-    load(sprintf([outdir 'pupmod_src_power_variance_task_s%d_m%d_v%d.mat'],isubj,m,v));
+    load(sprintf([outdir 'pupmod_task_src_variance_s%d_m%d_v%d.mat'],isubj,m,v));
     
-    var_all_task(:,isubj,m,:,:) = outp.var; 
-    pow_all_task(:,isubj,m,:,:) = outp.pow; 
+    var_all_task(:,isubj,m,:,:) = variance; 
+%     pow_all_task(:,isubj,m,:,:) = variance; 
     
-    clear outp
+    clear variance
 
   end
 end

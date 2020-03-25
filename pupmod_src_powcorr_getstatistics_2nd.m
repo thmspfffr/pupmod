@@ -59,17 +59,17 @@ if ~isfield(para,'alp'); alp = 0.05; fprintf('Alpha: 0.05 (default)\n'); end
 if ~isfield(para,'nfreq'); error('Specify frequencies of interest (indices)');end
 if ~isfield(para,'correction_method'); para.correction_method = 'ranks'; fprintf('Correction: ranks (default)\n'); end
 if ~isfield(para,'type'); para.type = 'global'; fprintf('Type: global (default)\n'); end
-if strcmp(para.type,'local') && strcmp(para.correction_method,'single_threshold')
-  error('Correction method based on single thresholds is not implemented on a voxel-level! Use ''ranks'' instead.')
-end
+% if strcmp(para.type,'local') && strcmp(para.correction_method,'single_threshold')
+%   error('Correction method based on single thresholds is not implemented on a voxel-level! Use ''ranks'' instead.')
+% end
 SUBJLIST  = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
-if ~isfield(para,'empirical')
+if ~isfield(para,'emp')
   fprintf('Loading data...\n')
 %   cleandat = pupmod_loadpowcorr(para.ver,SUBJLIST,1);
   emp = pupmod_compute_altered_correlations(cleandat,para);
   para.fcsize = size(cleandat,1);
 else
-  emp = para.empirical;
+  emp = para.emp;
   para.fcsize = size(emp.n_p_atx_pervoxel,1);
 end
 
@@ -314,103 +314,73 @@ elseif strcmp(para.type,'local')
     
     fprintf('Concatenating permutation distribution: perm%d ...\n',iperm)
     
-    load(sprintf(['~/pupmod/proc/conn/pupmod_src_powcorr_second_permtest_iperm%d_nperm%d_v%d.mat'],iperm,para.nperm,para.ver),'par')
+    load(sprintf('~/pupmod/proc/conn/pupmod_src_powcorr_second_permtest_iperm%d_nperm%d_v%d.mat',iperm,para.nperm,para.ver),'par')
     
-    if strcmp(para.cond,'atx') && strcmp(para.type,'local')
-      % --------------
-      % ATOMOXETINE: local effects
-      % --------------
-      % rest (indicated by *res1* ending)
-      perm_n_p_atx_pervoxel((iperm-1)*par.subs+1:(iperm)*par.subs,:,:,1) = permute(par.tperm_res1_pervoxel_p,[2 1 3]);
-      perm_n_n_atx_pervoxel((iperm-1)*par.subs+1:(iperm)*par.subs,:,:,1) = permute(par.tperm_res1_pervoxel_n,[2 1 3]);
-      % task (indicated by *cnt1* ending)
-      perm_n_p_atx_pervoxel((iperm-1)*par.subs+1:(iperm)*par.subs,:,:,2) = permute(par.tperm_cnt1_pervoxel_p,[2 1 3]);
-      perm_n_n_atx_pervoxel((iperm-1)*par.subs+1:(iperm)*par.subs,:,:,2) = permute(par.tperm_cnt1_pervoxel_n,[2 1 3]);
-            %       context-dependence: TO BE IMPLEMENTED
-      perm_n_p_context_atx_pervoxel((iperm-1)*par.subs+1:(iperm)*par.subs,:,:,1) = permute(par.tperm_context_diff_atx_p_pervoxel,[2 1 3]);
-      perm_n_n_context_atx_pervoxel((iperm-1)*par.subs+1:(iperm)*par.subs,:,:,1) = permute(par.tperm_context_diff_atx_n_pervoxel,[2 1 3]);
-      
-    elseif strcmp(para.cond,'dpz') && strcmp(para.type,'local')
-      % --------------
-      % DONEPEZIL: local effects
-      % --------------
-      % rest (indicated by *res2* ending)
-      perm_n_p_dpz_pervoxel((iperm-1)*par.subs+1:(iperm)*par.subs,:,:,1)   = permute(par.tperm_res2_pervoxel_p,[2 1 3]);
-      perm_n_n_dpz_pervoxel((iperm-1)*par.subs+1:(iperm)*par.subs,:,:,1)   = permute(par.tperm_res2_pervoxel_n,[2 1 3]);
-      % task (indicated by *cnt2* ending)
-      perm_n_p_dpz_pervoxel((iperm-1)*par.subs+1:(iperm)*par.subs,:,:,2)   = permute(par.tperm_cnt2_pervoxel_p,[2 1 3]);
-      perm_n_n_dpz_pervoxel((iperm-1)*par.subs+1:(iperm)*par.subs,:,:,2)   = permute(par.tperm_cnt2_pervoxel_n,[2 1 3]);
-      % context-dependence
-      perm_n_p_context_dpz_pervoxel((iperm-1)*par.subs+1:(iperm)*par.subs,:,:,1) = permute(par.tperm_context_diff_dpz_p_pervoxel,[2 1 3]);
-      perm_n_n_context_dpz_pervoxel((iperm-1)*par.subs+1:(iperm)*par.subs,:,:,1) = permute(par.tperm_context_diff_dpz_n_pervoxel,[2 1 3]);
-      
-    elseif strcmp(para.cond,'taskvsrest') && strcmp(para.type,'local')
-      % local effects
-      perm_taskvsrest_n_p_pervoxel((iperm-1)*par.subs+1:(iperm)*par.subs,:,:) = permute(par.tperm_taskvsrest_pervox_p,[2 1 3]);
-      perm_taskvsrest_n_n_pervoxel((iperm-1)*par.subs+1:(iperm)*par.subs,:,:) = permute(par.tperm_taskvsrest_pervox_n,[2 1 3]);
-    end
+    % --------------
+    % ATOMOXETINE: local effects
+    % --------------
+    % rest (indicated by *res1* ending)
+    perm_n_p_atx_pervoxel((iperm-1)*par.subs+1:(iperm)*par.subs,:,:,1) = permute(par.tperm_res1_pervoxel_p,[2 1 3]);
+    perm_n_n_atx_pervoxel((iperm-1)*par.subs+1:(iperm)*par.subs,:,:,1) = permute(par.tperm_res1_pervoxel_n,[2 1 3]);
+    % task (indicated by *cnt1* ending)
+    perm_n_p_atx_pervoxel((iperm-1)*par.subs+1:(iperm)*par.subs,:,:,2) = permute(par.tperm_cnt1_pervoxel_p,[2 1 3]);
+    perm_n_n_atx_pervoxel((iperm-1)*par.subs+1:(iperm)*par.subs,:,:,2) = permute(par.tperm_cnt1_pervoxel_n,[2 1 3]);
+    perm_n_p_context_atx_pervoxel((iperm-1)*par.subs+1:(iperm)*par.subs,:,:,1) = permute(par.tperm_context_diff_atx_p_pervoxel,[2 1 3]);
+    perm_n_n_context_atx_pervoxel((iperm-1)*par.subs+1:(iperm)*par.subs,:,:,1) = permute(par.tperm_context_diff_atx_n_pervoxel,[2 1 3]);
+    % --------------
+    % DONEPEZIL: local effects
+    % --------------
+    % rest (indicated by *res2* ending)
+    perm_n_p_dpz_pervoxel((iperm-1)*par.subs+1:(iperm)*par.subs,:,:,1)   = permute(par.tperm_res2_pervoxel_p,[2 1 3]);
+    perm_n_n_dpz_pervoxel((iperm-1)*par.subs+1:(iperm)*par.subs,:,:,1)   = permute(par.tperm_res2_pervoxel_n,[2 1 3]);
+    % task (indicated by *cnt2* ending)
+    perm_n_p_dpz_pervoxel((iperm-1)*par.subs+1:(iperm)*par.subs,:,:,2)   = permute(par.tperm_cnt2_pervoxel_p,[2 1 3]);
+    perm_n_n_dpz_pervoxel((iperm-1)*par.subs+1:(iperm)*par.subs,:,:,2)   = permute(par.tperm_cnt2_pervoxel_n,[2 1 3]);
+    % context-dependence
+    perm_n_p_context_dpz_pervoxel((iperm-1)*par.subs+1:(iperm)*par.subs,:,:,1) = permute(par.tperm_context_diff_dpz_p_pervoxel,[2 1 3]);
+    perm_n_n_context_dpz_pervoxel((iperm-1)*par.subs+1:(iperm)*par.subs,:,:,1) = permute(par.tperm_context_diff_dpz_n_pervoxel,[2 1 3]);
+    % --------------
+    % Task vs Rest: local effects
+    % --------------
+    perm_taskvsrest_n_p_pervoxel((iperm-1)*par.subs+1:(iperm)*par.subs,:,:) = permute(par.tperm_taskvsrest_pervox_p,[2 1 3]);
+    perm_taskvsrest_n_n_pervoxel((iperm-1)*par.subs+1:(iperm)*par.subs,:,:) = permute(par.tperm_taskvsrest_pervox_n,[2 1 3]);
     
   end
-  % LOCAL EFFECTS
-  % ------------------
-  % ATOMOXETINE
-  if strcmp(para.cond,'atx') && strcmp(para.type,'local')
-    
-    clear d_max_p d_max_n
-    
+  
+  if strcmp(para.correction_method, 'ranks')
+    error('not implemented')
+  
+  elseif strcmp(para.correction_method, 'single_threshold')
     for ifreq = para.nfreq
       
-      d_max_p  = squeeze(max(perm_n_p_atx_pervoxel(:,:,ifreq,:),[],2));
-      d_max_n  = squeeze(max(perm_n_n_atx_pervoxel(:,:,ifreq,:),[],2));
-      d_max_ctx_p = squeeze(max(perm_n_p_context_atx_pervoxel(:,:,ifreq),[],2));
-      d_max_ctx_n = squeeze(max(perm_n_n_context_atx_pervoxel(:,:,ifreq),[],2));
+      d_max_p_atx     = squeeze(max(perm_n_p_atx_pervoxel(:,:,ifreq,:),[],2));
+      d_max_n_atx     = squeeze(max(perm_n_n_atx_pervoxel(:,:,ifreq,:),[],2));
+      d_max_ctx_p_atx = squeeze(max(perm_n_p_context_atx_pervoxel(:,:,ifreq),[],2));
+      d_max_ctx_n_atx = squeeze(max(perm_n_n_context_atx_pervoxel(:,:,ifreq),[],2));
+      
+      d_max_p_dpz     = squeeze(max(perm_n_p_dpz_pervoxel(:,:,ifreq,:),[],2));
+      d_max_n_dpz     = squeeze(max(perm_n_n_dpz_pervoxel(:,:,ifreq,:),[],2));
+      d_max_ctx_p_dpz = squeeze(max(perm_n_p_context_dpz_pervoxel(:,:,ifreq),[],2));
+      d_max_ctx_n_dpz = squeeze(max(perm_n_n_context_dpz_pervoxel(:,:,ifreq),[],2));
+      
+      d_max_p_tvr  = squeeze(max(perm_taskvsrest_n_p_pervoxel(:,:,ifreq,:),[],2));
+      d_max_n_tvr  = squeeze(max(perm_taskvsrest_n_n_pervoxel(:,:,ifreq,:),[],2));
       
       for ivox = 1 : para.fcsize
-        outp.pval_p_atx(ivox,:,ifreq)   = 1-sum(squeeze(para.emp.n_p_atx_pervoxel(ivox,ifreq,:))' > d_max_p)./para.nperm;
-        outp.pval_n_atx(ivox,:,ifreq)   = 1-sum(squeeze(para.emp.n_n_atx_pervoxel(ivox,ifreq,:))' > d_max_n)./para.nperm;
-        outp.pval_p_atx_ctx(ivox,ifreq) = 1-sum(squeeze(para.emp.n_p_context_atx_pervoxel(ivox,ifreq))' > d_max_ctx_p)./para.nperm;
-        outp.pval_n_atx_ctx(ivox,ifreq) = 1-sum(squeeze(para.emp.n_n_context_atx_pervoxel(ivox,ifreq))' > d_max_ctx_n)./para.nperm;
+        outp.pval_vox_p_atx(ivox,:,ifreq)   = 1-sum(squeeze(emp.n_p_atx_pervoxel(ivox,ifreq,:))' > d_max_p_atx)./para.nperm;
+        outp.pval_vox_n_atx(ivox,:,ifreq)   = 1-sum(squeeze(emp.n_n_atx_pervoxel(ivox,ifreq,:))' > d_max_n_atx)./para.nperm;
+        outp.pval_vox_p_atx_ctx(ivox,ifreq) = 1-sum(squeeze(emp.n_p_context_atx_pervoxel(ivox,ifreq))' > d_max_ctx_p_atx)./para.nperm;
+        outp.pval_vox_n_atx_ctx(ivox,ifreq) = 1-sum(squeeze(emp.n_n_context_atx_pervoxel(ivox,ifreq))' > d_max_ctx_n_atx)./para.nperm;
       
+        outp.pval_vox_p_dpz(ivox,:,ifreq)   = 1-sum(squeeze(emp.n_p_dpz_pervoxel(ivox,ifreq,:))' > d_max_p_dpz)./para.nperm;
+        outp.pval_vox_n_dpz(ivox,:,ifreq)   = 1-sum(squeeze(emp.n_n_dpz_pervoxel(ivox,ifreq,:))' > d_max_n_dpz)./para.nperm;
+        outp.pval_vox_p_dpz_ctx(ivox,ifreq) = 1-sum(squeeze(emp.n_p_context_dpz_pervoxel(ivox,ifreq))' > d_max_ctx_p_dpz)./para.nperm;
+        outp.pval_vox_n_dpz_ctx(ivox,ifreq) = 1-sum(squeeze(emp.n_n_context_dpz_pervoxel(ivox,ifreq))' > d_max_ctx_n_dpz)./para.nperm;
+      
+        outp.pval_vox_p_tvr(ivox,:,ifreq)   = 1-sum(squeeze(emp.taskvsrest_p_pervoxel(ivox,ifreq,:))' > d_max_p_tvr)./para.nperm;
+        outp.pval_vox_n_tvr(ivox,:,ifreq)   = 1-sum(squeeze(emp.taskvsrest_n_pervoxel(ivox,ifreq,:))' > d_max_n_tvr)./para.nperm;
       end
-    end
-    
-    % DONEPEZIL
-  elseif strcmp(para.cond,'dpz') && strcmp(para.type,'local')
-    
-    clear d_max_p d_max_n
-    
-    for ifreq = para.nfreq
       
-      d_max_p  = squeeze(max(perm_n_p_dpz_pervoxel(:,:,ifreq,:),[],2));
-      d_max_n  = squeeze(max(perm_n_n_dpz_pervoxel(:,:,ifreq,:),[],2));
-      d_max_ctx_p = squeeze(max(perm_n_p_context_dpz_pervoxel(:,:,ifreq),[],2));
-      d_max_ctx_n = squeeze(max(perm_n_n_context_dpz_pervoxel(:,:,ifreq),[],2));
-      
-      for ivox = 1 : para.fcsize
-        outp.pval_p_dpz(ivox,:,ifreq) = 1-sum(squeeze(para.emp.n_p_dpz_pervoxel(ivox,ifreq,:))' > d_max_p)./para.nperm;
-        outp.pval_n_dpz(ivox,:,ifreq) = 1-sum(squeeze(para.emp.n_n_dpz_pervoxel(ivox,ifreq,:))' > d_max_n)./para.nperm;
-        outp.pval_p_dpz_ctx(ivox,ifreq) = 1-sum(squeeze(para.emp.n_p_context_dpz_pervoxel(ivox,ifreq))' > d_max_ctx_p)./para.nperm;
-        outp.pval_n_dpz_ctx(ivox,ifreq) = 1-sum(squeeze(para.emp.n_n_context_dpz_pervoxel(ivox,ifreq))' > d_max_ctx_n)./para.nperm;
-      
-      end
-    end
-    
-    % TASK VS REST
-  elseif strcmp(para.cond,'taskvsrest') && strcmp(para.type,'local')
-    
-    clear d_max_p d_max_n
-    
-    for ifreq = para.nfreq
-      
-      d_max_p  = squeeze(max(perm_taskvsrest_n_p_pervoxel(:,:,ifreq,:),[],2));
-      d_max_n  = squeeze(max(perm_taskvsrest_n_n_pervoxel(:,:,ifreq,:),[],2));
-      
-      for ivox = 1 : para.fcsize
-        outp.pval_p_tvr(ivox,:,ifreq) = 1-sum(squeeze(para.emp.taskvsrest_p_pervoxel(ivox,ifreq,:))' > d_max_p)./para.nperm;
-        outp.pval_n_tvr(ivox,:,ifreq) = 1-sum(squeeze(para.emp.taskvsrest_n_pervoxel(ivox,ifreq,:))' > d_max_n)./para.nperm;
-      end
-    end
-    
+    end  
   end
-
 end

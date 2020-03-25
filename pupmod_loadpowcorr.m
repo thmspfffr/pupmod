@@ -7,17 +7,21 @@ else
   avg = 0;
 end
 
-if v == 1 || v==2 || v == 12 || v == 19 || v ==23 || v == 11 || v == 3 || v == 4
+if v == 1 || v==2 || v == 3 || v == 4 
   siz = 400;
   if avg == 0
     fc = zeros(siz,siz,length(SUBJLIST),3,2,17,2,'single');
   else
     fc = zeros(siz,siz,length(SUBJLIST),3,2,17,'single');
   end
-elseif v == 25
+elseif v == 33
   siz = 90;
-  freqs = [10 11 12 13];
-  fc = zeros(siz,siz,length(SUBJLIST),3,2,length(freqs),2,'single');
+  freqs = [4 5 6 7 8 9 10];
+  if avg == 0
+    fc = zeros(siz,siz,length(SUBJLIST),3,2,length(freqs),2,'single');
+  else
+    fc = zeros(siz,siz,length(SUBJLIST),3,2,length(freqs),1,'single');
+  end
 else
   error('Invalid version')
 end
@@ -36,39 +40,39 @@ clear r_fc
 for isubj = 1:length(SUBJLIST)
   fprintf('Loading subject #%d ... \n',isubj)
   
-    for m =  1 : 3
-      im = find(ord(SUBJLIST(isubj),:)==m);
-
-          load(sprintf('~/pupmod/proc/conn/pupmod_src_powcorr_s%d_m%d_v%d.mat',SUBJLIST(isubj),im,v))
-          
-          if avg == 1
-            fc(:,:,isubj,m,1,:) = tanh(nanmean(atanh(permute(powcorr.*1.73,[1 2 4 3])),4)); clear powcorr
-          else
-            fc(:,:,isubj,m,1,:,:) = permute(powcorr.*1.73,[1 2 4 3]); clear powcorr
-          end
-%           
-          load(sprintf('~/pupmod/proc/conn/pupmod_task_src_powcorr_s%d_m%d_v%d.mat',SUBJLIST(isubj),im,v))
-%           
-          if avg == 1
-            fc(:,:,isubj,m,2,:) = tanh(nanmean(atanh(permute(powcorr.*1.73,[1 2 4 3])),4)); clear powcorr
-          else
-            fc(:,:,isubj,m,2,:,:) = permute(powcorr.*1.73,[1 2 4 3]); clear powcorr
-          end
+  for m =  1 :3
+    im = find(ord(SUBJLIST(isubj),:)==m);
+    
+    load(sprintf('~/pupmod/proc/conn/pupmod_src_powcorr_s%d_m%d_v%d.mat',SUBJLIST(isubj),im,v))
+    
+    if avg == 1
+      fc(:,:,isubj,m,1,:) = tanh(nanmean(atanh(permute(powcorr.*1.73,[1 2 4 3])),4)); clear powcorr
+    else
+      fc(:,:,isubj,m,1,:,:) = permute(powcorr.*1.73,[1 2 4 3]); clear powcorr
+    end
+    %
+    load(sprintf('~/pupmod/proc/conn/pupmod_task_src_powcorr_s%d_m%d_v%d.mat',SUBJLIST(isubj),im,v))
+    %
+    if avg == 1
+      fc(:,:,isubj,m,2,:) = tanh(nanmean(atanh(permute(powcorr.*1.73,[1 2 4 3])),4)); clear powcorr
+    else
+      fc(:,:,isubj,m,2,:,:) = permute(powcorr.*1.73,[1 2 4 3]); clear powcorr
+    end
     
   end
 end
 
 
 
-        
+
 %           load(sprintf('~/pp/proc/conn/pp_src_powcorr_s%d_m%d_b%d_f%d_v%d.mat',isubj,im,iblock,ifoi,v))
 %           fc(:,:,isubj,m,1,ifoi,iblock) = powcorr; clear powcorr
-% 
+%
 %           load(sprintf('~/pp/proc/conn/pp_task_src_powcorr_s%d_m%d_b%d_f%d_v%d.mat',isubj,im,iblock,ifoi,v))
 %           fc(:,:,isubj,m,2,ifoi,iblock) = powcorr; clear powcorr
-          
+
 %           load(sprintf('~/pp/proc/conn/pp_src_powcorr_test_s%d_m%d_v%d.mat',SUBJLIST(isubj),im,v))
 %           fc(:,:,isubj,m,1,:,:) = single(permute(powcorr(:,:,:,freqs),[1 2 4 3])); clear powcorr
-% 
+%
 %           load(sprintf('~/pp/proc/conn/pp_task_src_powcorr_test_s%d_m%d_v%d.mat',SUBJLIST(isubj),im,v))
 %           fc(:,:,isubj,m,2,:,:) = single(permute(powcorr(:,:,:,freqs),[1 2 4 3])); clear powcorr

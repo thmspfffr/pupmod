@@ -27,7 +27,7 @@ fc = pupmod_loadpowcorr(v,SUBJLIST,1);
 % significant v23: atx 10/11/12 & 18, dpz 13/14
 ifoi = 9;
 
-
+set(0,'defaultfigurerenderer','painters')
 cmap = cbrewer('div', 'RdBu', 256,'pchip'); cmap = cmap(end:-1:1,:);
 
 if v == 3
@@ -50,7 +50,7 @@ if v == 3
       fc_rest_tmp = [fc1 fc2; fc3 fc4];
       fc_rest(:,:,i) = triu(fc_rest_tmp,1);
       
-      subplot(1,3,i); imagesc(fc_rest(:,:,i),[0.02 0.1]); axis square off
+      subplot(1,3,i); imagesc(fc_rest(:,:,i),[0.03 0.09]); axis square off
       colormap(plasma)
       
      
@@ -74,31 +74,34 @@ if v == 3
       fc_task_tmp = [fc1 fc2; fc3 fc4];
       fc_task(:,:,i) = triu(fc_task_tmp,1);
       
-      subplot(1,3,i); imagesc(fc_task(:,:,i),[0.02 0.1]); axis square off
+      subplot(1,3,i); imagesc(fc_task(:,:,i),[0.03 0.09]); axis square off
       colormap(plasma)  
     
     end
-        print(gcf,'-depsc2',sprintf('~/pupmod/plots/pupmod_powcorr_raw_fcmat_task_f%s_v%d.eps',regexprep(num2str(ifoi),' ',''),v))
+    print(gcf,'-depsc2',sprintf('~/pupmod/plots/pupmod_powcorr_raw_fcmat_task_f%s_v%d.eps',regexprep(num2str(ifoi),' ',''),v))
 
     lim = [-0.02 0.02];
     
-
-    figure; set(gcf,'color','w');
+   
+    figure_w;
     
      subplot(1,3,1); imagesc(fc_task(:,:,2)-fc_task(:,:,1),lim); axis square off
      colormap(cmap)
-     
+     print(gcf,'-depsc2',sprintf('~/pupmod/plots/pupmod_powcorr_raw_fcmat_drugcontrast_atx_f%s_v%d.eps',regexprep(num2str(ifoi),' ',''),v))
+
+     figure_w;
      subplot(1,3,2); imagesc(fc_rest(:,:,3)-fc_rest(:,:,1),lim); axis square off
      colormap(cmap)
-        print(gcf,'-depsc2',sprintf('~/pupmod/plots/pupmod_powcorr_raw_fcmat_drugcontrast_f%s_v%d.eps',regexprep(num2str(ifoi),' ',''),v))
+     print(gcf,'-depsc2',sprintf('~/pupmod/plots/pupmod_powcorr_raw_fcmat_drugcontrast_dpz_f%s_v%d.eps',regexprep(num2str(ifoi),' ',''),v))
 
         figure_w
     subplot(1,3,1); imagesc(fc_rest(:,:,2)-fc_rest(:,:,1),lim); axis square off
      colormap(cmap)
-     
+        print(gcf,'-depsc2',sprintf('~/pupmod/plots/pupmod_powcorr_raw_fcmat_drugcontrast_othercond_atx_f%s_v%d.eps',regexprep(num2str(ifoi),' ',''),v))
+  figure_w
      subplot(1,3,2); imagesc(fc_task(:,:,3)-fc_task(:,:,1),lim); axis square off
      colormap(cmap)
-      print(gcf,'-depsc2',sprintf('~/pupmod/plots/pupmod_powcorr_raw_fcmat_drugcontrast_othercond_f%s_v%d.eps',regexprep(num2str(ifoi),' ',''),v))
+        print(gcf,'-depsc2',sprintf('~/pupmod/plots/pupmod_powcorr_raw_fcmat_drugcontrast_othercond_dpz_f%s_v%d.eps',regexprep(num2str(ifoi),' ',''),v))
 
 end
 

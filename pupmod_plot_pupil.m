@@ -690,43 +690,4 @@ print(gcf,'-dpdf',sprintf('~/pupmod/plots/pupmod_pupil_bar_v%d.pdf',v))
 
 %%
 
-
-
-FOI = 6:7
-
-if v == 12
-  for ifoi = FOI
-
-    figure; set(gcf,'color','w')
-    cond = [1 2 3];
-    [~,front_to_back] = sort(grid(:,2),'descend');
-    left  = find(grid(:,1)<0);
-    right = find(grid(:,1)>0);
-    for i = 1 : 3
-      fc = nanmean(nanmean(cleandat(:,:,:,cond(i),1,ifoi,:),7),3);
-
-      fc1 = fc(front_to_back(left),front_to_back(left));
-      fc2 = fc(front_to_back(left),front_to_back(right));
-      fc3 = fc(front_to_back(right),front_to_back(left));
-      fc4 = fc(front_to_back(right),front_to_back(right));
-
-      fc_rest = [fc1 fc2; fc3 fc4];
-
-      fc = nanmean(nanmean(cleandat(:,:,:,cond(i),2,ifoi,:),7),3);
-
-      fc1 = fc(front_to_back(left),front_to_back(left));
-      fc2 = fc(front_to_back(left),front_to_back(right));
-      fc3 = fc(front_to_back(right),front_to_back(left));
-      fc4 = fc(front_to_back(right),front_to_back(right));
-
-      fc_task = [fc1 fc2; fc3 fc4];
-
-      fc = tril(fc_rest,-1)+triu(fc_task,1);
-      subplot(1,3,i); imagesc(fc,[0.02 0.1]); axis square off
-      colormap(inferno)
-
-    end
-    print(gcf,'-dpdf',sprintf('~/pupmod/plots/pupmod_powcorr_raw_fcmat_f%d_v%d.pdf',ifoi,v))
-  end
-
-end
+    
