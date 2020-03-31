@@ -3,7 +3,7 @@
 
 mask = logical(triu(ones(400,400),1));
 fc = pupmod_loadpowcorr(23,SUBJLIST,0);
-% fc = pupmod_loadpowcorr(25,SUBJLIST,1);
+% fc = mod_loadpowcorr(25,SUBJLIST,1);
 
 % ATX Drug effects
 %%

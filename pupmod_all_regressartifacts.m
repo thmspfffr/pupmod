@@ -8,14 +8,14 @@ clear
 % vv =33 ; % heart/blinks
 % vv =23 ; % blinks/heart/muscles
 
-v = 23; vv = 33;
+v = 3; vv = 3;
 
 outdir = '~/pupmod/proc/conn/';
 SUBJLIST        = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
 
 load(['/home/tpfeffer/pconn_cnt/proc/' sprintf('pupmod_all_powcorr_peripheral.mat')])
 
-indiv_subj = 0;
+indiv_subj = 1;
 
 %% load data
 
@@ -35,9 +35,9 @@ if indiv_subj == 1
       continue
     end
     
-  	res_dat = zeros(size(fc,1),size(fc,1),size(fc,4),2,25,2);
+  	res_dat = zeros(size(fc,1),size(fc,1),size(fc,4),2,17,2);
 
-    for ifoi = 1:25
+    for ifoi = 1:17
    ifoi
       siz = size(squeeze(fc(1,1,isubj==SUBJLIST,:,:,ifoi,:)));
       
@@ -49,7 +49,7 @@ if indiv_subj == 1
       art2 = (art2-nanmean(art2))/nanstd(art2);
       art3 = (art3-nanmean(art3))/nanstd(art3);
       
-      if vv == 23
+      if vv == 3
         nuisance_var = [art1 art2 art3];
       elseif vv == 33
         nuisance_var = [art1 art2];
@@ -90,7 +90,7 @@ else
   
   fc = pupmod_loadpowcorr(v,SUBJLIST,1);
 
-  for ifoi = 1:25
+  for ifoi = 1:17
     ifoi
     fn = sprintf('pupmod_all_regressartifacts_acrosssubj_f%d_v%d',ifoi,vv);
     if tp_parallel(fn,'~/pupmod/proc/conn/',1,0)
@@ -145,15 +145,15 @@ end
 error('!')
 
 %%
-  v = 33;
+  v = 3;
 
-if ~exist(sprintf(['~/pupmod/proc/conn/pupmod_src_powcorr_cleaned_within_v%d.mat'],v))
+% if ~exist(sprintf(['~/pupmod/proc/conn/pupmod_src_powcorr_cleaned_within_v%d.mat'],v))
   SUBJLIST  = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
-  cleandat = zeros(400,400,34,3,2,25,2,'single');
+  cleandat = zeros(400,400,34,3,2,17,2,'single');
   
   
   for isubj =SUBJLIST
-    
+    isubj
     fn = sprintf('~/pupmod/proc/conn/pupmod_all_regressartifacts_withinsubj_s%d_v%d.mat',isubj,v);
     load(fn)
     cleandat(:,:,isubj,:,:,:,:) = single(res_dat);
@@ -161,28 +161,28 @@ if ~exist(sprintf(['~/pupmod/proc/conn/pupmod_src_powcorr_cleaned_within_v%d.mat
   end
   cleandat = nanmean(cleandat(:,:,SUBJLIST,:,:,:,:),7);
   save(sprintf(['~/pupmod/proc/conn/pupmod_src_powcorr_cleaned_within_v%d.mat'],v),'cleandat','-v7.3');
-end
-
-if ~exist(sprintf(['~/pupmod/proc/conn/pupmod_src_powcorr_cleaned_across_v%d.mat'],v))
-  
-  v = 33;
-  SUBJLIST  = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];  
-  cleandat = zeros(400,400,28,3,2,25,'single');
- 
-  for ifoi  =1:25
-    
-    fn = sprintf('~/pupmod/proc/conn/pupmod_all_regressartifacts_acrosssubj_f%d_v%d.mat',ifoi,v);
-    load(fn)
-    cleandat(:,:,:,:,:,ifoi) = single(res_dat);
-    
-  end
-  save(sprintf(['~/pupmod/proc/conn/pupmod_src_powcorr_cleaned_across_v%d.mat'],v),'cleandat','-v7.3');
-end
+% end
+% 
+% if ~exist(sprintf(['~/pupmod/proc/conn/pupmod_src_powcorr_cleaned_across_v%d.mat'],v))
+%   
+%   v = 33;
+%   SUBJLIST  = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];  
+%   cleandat = zeros(400,400,28,3,2,25,'single');
+%  
+%   for ifoi  =1:17
+%     
+%     fn = sprintf('~/pupmod/proc/conn/pupmod_all_regressartifacts_acrosssubj_f%d_v%d.mat',ifoi,v);
+%     load(fn)
+%     cleandat(:,:,:,:,:,ifoi) = single(res_dat);
+%     
+%   end
+%   save(sprintf(['~/pupmod/proc/conn/pupmod_src_powcorr_cleaned_across_v%d.mat'],v),'cleandat','-v7.3');
+% end
 
 %%
 mask    = logical(triu(ones(400,400),1));
 
-for ifoi = 1 :25
+for ifoi = 1 :17
   ifoi
   [h,~,~,s]=ttest(squeeze(cleandat(:,:,:,2,2,ifoi)),squeeze(cleandat(:,:,:,1,2,ifoi)),'dim',3);
   pos_atx(ifoi,2) = 100*sum((h(mask)>0)&(s.tstat(mask)>0))/sum(mask(:));

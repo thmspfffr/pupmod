@@ -164,6 +164,7 @@ for isubj = SUBJLIST
         
       catch me
         try
+          isubj
           load(sprintf('~/pconn/proc/pconn_hrv_fromica_s%d_m%d_b%d.mat',isubj,im,ibl),'par')
           hb_all(isubj,m,ibl) = par;
         catch me
@@ -181,6 +182,7 @@ for isubj = SUBJLIST
         
       catch me
         try
+          isubj
           load(sprintf('~/pconn_cnt/proc/pconn_cnt_hrv_fromica_s%d_m%d_b%d.mat',isubj,im,ibl),'par')
           hb_cnt(isubj,m,ibl) = par;
         catch me

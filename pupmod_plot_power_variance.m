@@ -21,14 +21,12 @@ for m = 1 : 3
     load(sprintf([outdir 'pupmod_src_variance_s%d_m%d_v%d.mat'],isubj,m,v));
     
     var_all_rest(:,isubj,m,:,:) = variance; 
-%     pow_all_rest(:,isubj,m,:,:) = outp.pow; 
     
     clear variance
     
     load(sprintf([outdir 'pupmod_task_src_variance_s%d_m%d_v%d.mat'],isubj,m,v));
     
     var_all_task(:,isubj,m,:,:) = variance; 
-%     pow_all_task(:,isubj,m,:,:) = variance; 
     
     clear variance
 
@@ -36,14 +34,12 @@ for m = 1 : 3
 end
 
 % average across recording blocks
-var_all_rest = nanmean(var_all_rest(:,SUBJLIST,:,5:21,:),5);
-var_all_task = nanmean(var_all_task(:,SUBJLIST,:,5:21,:),5);
-pow_all_rest = nanmean(pow_all_rest(:,SUBJLIST,:,5:21,:),5);
-pow_all_task = nanmean(pow_all_task(:,SUBJLIST,:,5:21,:),5);
+var_all_rest = squeeze(nanmean(var_all_rest(:,SUBJLIST,:,:,:),4));
+var_all_task = squeeze(nanmean(var_all_task(:,SUBJLIST,:,:,:),4));
 
-%% EMPIRICAL
-
-foi_range = [2 3 4 6 8 11 16 23 32 45 64 91 128];
+%% PERMUTATION TEST
+% Run permutation test, without correction for multiple comparisons
+% (across frequencies). N(perm.)=10.000
 
 for ifoi = 1 : 17
   
@@ -151,149 +147,70 @@ foi_range       = 2.^[2:.25:6];
 
 markersize = 5;
 figure; set(gcf,'color','w')
-
-subplot(4,2,1); hold on
+% -----------
+% ATOMOXETINE DURING REST
+% -----------
+subplot(4,3,1); hold on
 plot(n_atx_pos_rest,'linewidth',2,'color',[1 0.5 0.2])
 plot(n_atx_neg_rest,'linewidth',2,'color',[0.2 0.5 1])
 
 plot(find(p_atx_pos_rest<0.05),n_atx_pos_rest(find(p_atx_pos_rest<0.05)),'ko','markersize',markersize,'markerfacecolor','k')
 plot(find(p_atx_neg_rest<0.05),n_atx_neg_rest(find(p_atx_neg_rest<0.05)),'ko','markersize',markersize,'markerfacecolor','k')
 
-axis([0 17 -2 30]);
+axis([0 17 -2 25]);
 set(gca,'tickdir','out','xtick',[1 5 9 13 17 ],'xticklabel',[4 8 16 32 64])
-% xlabel('Frequency [Hz]');
-ylabel(sprintf('Fraction of nodes \n with altered variance [%%]'))
-% title('Atomoxetine vs. placebo')
-tp_editplots
+set(gca,'tickdir','out','ytick',[0 25],'yticklabel',num2cell([0 25]))
 
-subplot(4,2,3); hold on
+ylabel(sprintf('Fraction of nodes \n with altered variance [%%]'))
+tp_editplots
+% -----------
+% ATOMOXETINE DURING TASK
+% -----------
+subplot(4,3,4); hold on
 plot(n_atx_pos_task,'linewidth',2,'color',[1 0.5 0.2])
 plot(n_atx_neg_task,'linewidth',2,'color',[0.2 0.5 1])
 
 plot(find(p_atx_pos_task<0.05),n_atx_pos_task(find(p_atx_pos_task<0.05)),'ko','markersize',markersize,'markerfacecolor','k')
 plot(find(p_atx_neg_task<0.05),n_atx_neg_task(find(p_atx_neg_task<0.05)),'ko','markersize',markersize,'markerfacecolor','k')
 
-% plot(prctile(n_atx_task_perm,95),'linewidth',1,'color',[1 0.1 0.1],'linestyle',':')
-axis([0 17 -2 30]);
+axis([0 17 -2 25]);
 set(gca,'tickdir','out','xtick',[1 5 9 13 17],'xticklabel',[4 8 16 32 64])
-xlabel('Carrier frequency [Hz]'); ylabel(sprintf('Fraction of nodes \n with altered variance [%%]'))
-% title('Atomoxetine vs. placebo')
-tp_editplots
+set(gca,'tickdir','out','ytick',[0 25],'yticklabel',num2cell([0 25]))
 
-subplot(4,2,2); hold on
+xlabel('Carrier frequency [Hz]'); ylabel(sprintf('Fraction of nodes \n with altered variance [%%]'))
+tp_editplots
+% -----------
+% DONEPEZIL DURING REST
+% -----------
+subplot(4,3,2); hold on
 plot(n_dpz_pos_rest,'linewidth',2,'color',[1 0.5 0.2])
 plot(n_dpz_neg_rest,'linewidth',2,'color',[0.2 0.5 1])
 
 plot(find(p_dpz_pos_rest<0.05),n_dpz_pos_rest(find(p_dpz_pos_rest<0.05)),'ko','markersize',markersize,'markerfacecolor','k')
 plot(find(p_dpz_neg_rest<0.05),n_dpz_neg_rest(find(p_dpz_neg_rest<0.05)),'ko','markersize',markersize,'markerfacecolor','k')
 
-axis([0 17 -2 30]);
+axis([0 17 -2 25]);
 set(gca,'tickdir','out','xtick',[1 5 9 13 17],'xticklabel',[4 8 16 32 64])
-% xlabel('Frequency [Hz]'); %ylabel(sprintf('Fraction of nodes \n with altered variance [%%]'))
-% title('Donepezil vs. placebo')
+set(gca,'tickdir','out','ytick',[0 25],'yticklabel',num2cell([0 25]))
+
 tp_editplots
 
-subplot(4,2,4); hold on
+% -----------
+% DONEPEZIL DURING TASK
+% -----------
+subplot(4,3,5); hold on
 plot(n_dpz_pos_task,'linewidth',2,'color',[1 0.5 0.2])
 plot(n_dpz_neg_task,'linewidth',2,'color',[0.2 0.5 1])
 plot(find(p_dpz_pos_task<0.05),n_dpz_pos_task(find(p_dpz_pos_task<0.05)),'ko','markersize',markersize,'markerfacecolor','k')
 plot(find(p_dpz_neg_task<0.05),n_dpz_neg_task(find(p_dpz_neg_task<0.05)),'ko','markersize',markersize,'markerfacecolor','k')
 
-% plot(prctile(n_dpz_task_perm,95),'linewidth',1,'color',[0.1 0.1 1],'linestyle',':')
-axis([0 17 -2 30]);
+axis([0 17 -2 25]);
 set(gca,'tickdir','out','xtick',[1 5 9 13 17],'xticklabel',[4 8 16 32 64])
-set(gca,'tickdir','out','ytick',[0 10 20 30],'yticklabel',num2cell([0 10 20 30]))
-xlabel('Carrier frequency [Hz]'); %ylabel(sprintf('Fraction of nodes \n with altered variance [%%]'))
-% title('Atomoxetine vs. placebo')
+set(gca,'tickdir','out','ytick',[0 25],'yticklabel',num2cell([0 25]))
+xlabel('Carrier frequency [Hz]'); 
 tp_editplots
 
 print(gcf,'-depsc2',sprintf('~/pupmod/plots/pupmod_src_variance_v%d.eps',v))
-%% POWER 
-
-
-for ifoi = 1 : 25
-  
-  [h,~,~,s]=ttest(pow_all_rest(:,:,2,ifoi),pow_all_rest(:,:,1,ifoi),'dim',2);
-  n_pow_atx_pos_rest(ifoi) = 100*sum((h>0)&(s.tstat>0))./ length(h);
-  n_pow_atx_neg_rest(ifoi) = 100*sum((h>0)&(s.tstat<0))./ length(h);
-  
-  [h,~,~,s]=ttest(pow_all_rest(:,:,3,ifoi),pow_all_rest(:,:,1,ifoi),'dim',2);
-  n_pow_dpz_pos_rest(ifoi) = 100*sum((h>0)&(s.tstat>0))./ length(h);
-  n_pow_dpz_neg_rest(ifoi) = 100*sum((h>0)&(s.tstat<0))./ length(h);
-  
-  [h,~,~,s]=ttest(pow_all_task(:,:,2,ifoi),pow_all_task(:,:,1,ifoi),'dim',2);
-  n_pow_atx_pos_task(ifoi) = 100*sum((h>0)&(s.tstat>0))./ length(h);
-  n_pow_atx_neg_task(ifoi) = 100*sum((h>0)&(s.tstat<0))./ length(h);
-  
-  [h,~,~,s]=ttest(pow_all_task(:,:,3,ifoi),pow_all_task(:,:,1,ifoi),'dim',2);
-  n_pow_dpz_pos_task(ifoi) = 100*sum((h>0)&(s.tstat>0))./ length(h);
-  n_pow_dpz_neg_task(ifoi) = 100*sum((h>0)&(s.tstat<0))./ length(h);
-  
-end
-
-%%
-markersize = 5;
-figure; set(gcf,'color','w')
-
-subplot(4,2,1); hold on
-plot(n_pow_atx_pos_rest,'linewidth',2,'color',[1 0.5 0.2])
-plot(n_pow_atx_neg_rest,'linewidth',2,'color',[0.2 0.5 1])
-
-% plot(find(p_atx_pos_rest<0.05),n_atx_pos_rest(find(p_atx_pos_rest<0.05)),'ko','markersize',markersize,'markerfacecolor','k')
-% plot(find(p_atx_neg_rest<0.05),n_atx_neg_rest(find(p_atx_neg_rest<0.05)),'ko','markersize',markersize,'markerfacecolor','k')
-
-axis([0 21 -2 60]);
-set(gca,'tickdir','out','xtick',[1 5 9 13 17 21 25],'xticklabel',[2 4 8 16 32 64 128])
-% xlabel('Frequency [Hz]');
-ylabel(sprintf('Fraction of nodes \n with altered variance [%%]'))
-% title('Atomoxetine vs. placebo')
-tp_editplots
-
-subplot(4,2,3); hold on
-plot(n_pow_atx_pos_task,'linewidth',2,'color',[1 0.5 0.2])
-plot(n_pow_atx_neg_task,'linewidth',2,'color',[0.2 0.5 1])
-
-% plot(find(p_atx_pos_task<0.05),n_atx_pos_task(find(p_atx_pos_task<0.05)),'ko','markersize',markersize,'markerfacecolor','k')
-% plot(find(p_atx_neg_task<0.05),n_atx_neg_task(find(p_atx_neg_task<0.05)),'ko','markersize',markersize,'markerfacecolor','k')
-
-% plot(prctile(n_atx_task_perm,95),'linewidth',1,'color',[1 0.1 0.1],'linestyle',':')
-axis([0 21 -2 60]);
-set(gca,'tickdir','out','xtick',[1 5 9 13 17 21 25],'xticklabel',[2 4 8 16 32 64 128])
-xlabel('Carrier frequency [Hz]'); ylabel(sprintf('Fraction of nodes \n with altered variance [%%]'))
-% title('Atomoxetine vs. placebo')
-tp_editplots
-
-subplot(4,2,2); hold on
-plot(n_pow_dpz_pos_rest,'linewidth',2,'color',[1 0.5 0.2])
-plot(n_pow_dpz_neg_rest,'linewidth',2,'color',[0.2 0.5 1])
-
-% plot(find(p_dpz_pos_rest<0.05),n_dpz_pos_rest(find(p_dpz_pos_rest<0.05)),'ko','markersize',markersize,'markerfacecolor','k')
-% plot(find(p_dpz_neg_rest<0.05),n_dpz_neg_rest(find(p_dpz_neg_rest<0.05)),'ko','markersize',markersize,'markerfacecolor','k')
-
-axis([0 21 -2 60]);
-set(gca,'tickdir','out','xtick',[1 5 9 13 17 21 25],'xticklabel',[2 4 8 16 32 64 128])
-% xlabel('Frequency [Hz]'); %ylabel(sprintf('Fraction of nodes \n with altered variance [%%]'))
-% title('Donepezil vs. placebo')
-tp_editplots
-
-subplot(4,2,4); hold on
-plot(n_pow_dpz_pos_task,'linewidth',2,'color',[1 0.5 0.2])
-plot(n_pow_dpz_neg_task,'linewidth',2,'color',[0.2 0.5 1])
-% plot(find(p_dpz_pos_task<0.05),n_dpz_pos_task(find(p_dpz_pos_task<0.05)),'ko','markersize',markersize,'markerfacecolor','k')
-% plot(find(p_dpz_neg_task<0.05),n_dpz_neg_task(find(p_dpz_neg_task<0.05)),'ko','markersize',markersize,'markerfacecolor','k')
-
-% plot(prctile(n_dpz_task_perm,95),'linewidth',1,'color',[0.1 0.1 1],'linestyle',':')
-axis([0 21 -2 60]);
-set(gca,'tickdir','out','xtick',[1 5 9 13 17 21 25],'xticklabel',[2 4 8 16 32 64 128])
-set(gca,'tickdir','out','ytick',[0 10 20 30],'yticklabel',num2cell([0 10 20 30]))
-xlabel('Carrier frequency [Hz]'); %ylabel(sprintf('Fraction of nodes \n with altered variance [%%]'))
-% title('Atomoxetine vs. placebo')
-tp_editplots
-
-print(gcf,'-depsc2',sprintf('~/pupmod/plots/pupmod_src_power_v%d.eps',v))
-
-
-
 
 
 

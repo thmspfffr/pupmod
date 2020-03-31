@@ -9,12 +9,13 @@
 % last update: 26-10-2018
 
 clear 
-v = 23; 
+v = 3; 
 % alp: standard for all 0.05!!! except verison 13
 nperm = 10000; alp = 0.05;
-nfoi = 25;
-par.subs = 500;
+nfoi = 17;
+par.subs = 200;
 par.allperms = nperm/par.subs;
+within = 1;
 
 addpath /home/gnolte/meg_toolbox/toolbox/
 addpath /home/gnolte/meg_toolbox/fieldtrip_utilities/
