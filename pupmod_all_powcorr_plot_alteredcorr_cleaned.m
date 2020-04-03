@@ -21,7 +21,7 @@ clear
 % version of cleaned data: 
 % v1: AAL, v2: 400 vertices (cortex)
 % -------------
-v = 12;
+v = 3;
 % -------------
 
 % load  data
@@ -29,21 +29,21 @@ cd ~/pupmod/matlab/
 
 % para.avg = 0;
 
-fc = pupmod_loadpowcorr(v,1);
+fc = pupmod_loadpowcorr(v,SUBJLIST,1);
 
-% load(sprintf('~/pupmod/proc/conn/pupmod_src_powcorr_cleaned_v%d.mat',v));
+load(sprintf('~/pupmod/proc/conn/pupmod_src_powcorr_cleaned_within_v%d.mat',v));
 %%
 para = [];
-para.nfreq = 1:13;
+para.nfreq = 1:17;
 para.alpha = 0.05;
 para.avg = 0;
 % fc = nanmean(fc,7);
-if para.avg == 1
-emp = pupmod_compute_altered_correlations(fc,para);
-else
-  iblock = 1;
-  emp = pupmod_compute_altered_correlations(fc(:,:,:,:,:,:,iblock),para);
-end
+% if para.avg == 1
+emp = pupmod_compute_altered_correlations(cleandat,para);
+% else
+%   iblock = 1;
+%   emp = pupmod_compute_altered_correlations(fc(:,:,:,:,:,:,iblock),para);
+% end
 
 %% (1) PLOT: No stats
 % ------------------
@@ -125,44 +125,46 @@ tp_editplots
 print(gcf,'-dpdf',sprintf('~/pupmod/plots/pupmod_all_src_powcorr_drugeffects_nostats_lineplots_b%d.pdf',iblock));
 
 %%
-if ~exist(sprintf('~/pupmod/proc/pupmod_src_powcorr_alteredcorr_v%d.mat',v))
+% if ~exist(sprintf('~/pupmod/proc/pupmod_src_powcorr_alteredcorr_v%d.mat',v))
   % Settings:
   para = [];
-  para.nfreq = [1:13]; % freqs 1 - 13
+  para.nfreq = [1:17]; % freqs 1 - 13
   para.alpha = 0.05; % alpha for adjacency
   para.ver = v;
   para.nperm = 10000;
-  para.nsubs = 100;
+  para.nsubs = 200;
   para.type = 'global';
   para.cond = 'atx';
+ para.correction_method = 'single_threshold';
+ para.emp = emp;
   para.allperms = para.nperm/para.nsubs;
 
-  [outp_atx] = pupmod_src_powcorr_getstatistics(para);
-  para.cond = 'dpz';
-  [outp_dpz] = pupmod_src_powcorr_getstatistics(para);
+  [outp_atx] = pupmod_src_powcorr_getstatistics_cleaned(para);
+%   para.cond = 'dpz';
+%   [outp_dpz] = pupmod_src_powcorr_getstatistics_cleaned(para);
   
-  save(sprintf('~/pupmod/proc/pupmod_src_powcorr_alteredcorr_v%d.mat',v),'outp_atx','outp_dpz','emp_atx','emp_dpz')
+%   save(sprintf('~/pupmod/proc/pupmod_src_powcorr_alteredcorr_v%d.mat',v),'outp_atx','outp_dpz','emp_atx','emp_dpz')
 
-  for iperm = 1 : para.allperms
+%   for iperm = 1 : para.allperms
+%   
+%     fprintf('Load permutation distributions: %d / %d ...\n',iperm,para.allperms)
+%   
+%     load(sprintf('~/pupmod/proc/pupmod_src_powcorr_permtest_iperm%d_nperm%d_v%d.mat',iperm,para.nperm,para.ver),'par')
+%     
+%     atx(:,(iperm-1)*para.nsubs+1:(iperm)*para.nsubs) = par.tperm_cnt1_pervoxel_p(:,:,6);
+%     p_atx_vox = 1-sum(abs(emp.n_p_atx_pervoxel(:,6,2))>abs(atx),2)/para.nperm;
+%     
+%     dpz(:,(iperm-1)*para.nsubs+1:(iperm)*para.nsubs) = par.tperm_res2_pervoxel_p(:,:,7);
+%     p_dpz_vox = 1-sum(abs(emp.n_n_dpz_pervoxel(:,7,1))>abs(dpz),2)/para.nperm;
+%     
+%   end
   
-    fprintf('Load permutation distributions: %d / %d ...\n',iperm,para.allperms)
-  
-    load(sprintf('~/pupmod/proc/pupmod_src_powcorr_permtest_iperm%d_nperm%d_v%d.mat',iperm,para.nperm,para.ver),'par')
-    
-    atx(:,(iperm-1)*para.nsubs+1:(iperm)*para.nsubs) = par.tperm_cnt1_pervoxel_p(:,:,6);
-    p_atx_vox = 1-sum(abs(emp.n_p_atx_pervoxel(:,6,2))>abs(atx),2)/para.nperm;
-    
-    dpz(:,(iperm-1)*para.nsubs+1:(iperm)*para.nsubs) = par.tperm_res2_pervoxel_p(:,:,7);
-    p_dpz_vox = 1-sum(abs(emp.n_n_dpz_pervoxel(:,7,1))>abs(dpz),2)/para.nperm;
-    
-  end
-  
 
 
 
-else
-  load(sprintf('~/pupmod/proc/pupmod_src_powcorr_alteredcorr_v%d.mat',v))
-end
+% else
+%   load(sprintf('~/pupmod/proc/pupmod_src_powcorr_alteredcorr_v%d.mat',v))
+% end
 %% (2) PLOT: P-Values (corrected) 
 figure;  set(gcf,'color','white')
 

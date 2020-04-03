@@ -6,10 +6,10 @@
 % data is collected in: pupmod_all_powcorr_plot_alteredcorr
 % data is plotted in: pupmod_all_powcorr_plot_alteredcorr.m
 
-% last update: 26-10-2018
+% last update: 03-04-2020
 
 clear 
-% v_in = 2;
+
 v = 3; 
 % alp: standard for all 0.05!!! except verison 13
 nperm = 20000; alp = 0.05;
@@ -17,18 +17,10 @@ nfoi = 17;
 par.subs = 200;
 par.allperms = nperm/par.subs;
 
-addpath /home/gnolte/meg_toolbox/toolbox/
-addpath /home/gnolte/meg_toolbox/fieldtrip_utilities/
-addpath /home/gnolte/meg_toolbox/toolbox_nightly/
-addpath /home/gnolte/meg_toolbox/meg/
-% addpath /home/tpfeffer/Documents/MATLAB/fieldtrip-20130925/
-
 outdir   = '/home/tpfeffer/pupmod/proc/conn/';
-addpath /home/tpfeffer/pconn/matlab/
+addpath /home/tpfeffer/pupmod/matlab/
 
 SUBJLIST  = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
-
-addpath ~/pconn/matlab/
 
 cleandat = single(pupmod_loadpowcorr(v,SUBJLIST,1));
 

@@ -218,46 +218,46 @@ addpath ~/Documents/MATLAB/Colormaps/'Colormaps (5)'/Colormaps/
 %% PLOT RESULTS FOR ATX (TASK) AND DPZ (REST)
 
 close all
-for ifoi = 6:9
+ifoi = 6:9
   icond = 2;
-
-  cmap  = autumn;
+cmap = cbrewer('seq', 'YlOrRd', 256);
+%   cmap  = autumn;
   par   = nanmean(emp.n_p_atx_pervoxel(:,ifoi,icond),2);
 
-  par(mean(outp.pval_vox_p_atx(:,icond,ifoi),3)>=0.05) = 0;
+%   par(mean(outp.pval_vox_p_atx(:,icond,ifoi),3)>=0.05) = 0;
 
   cmap      = [cmap; 0.98*ones(1,3); cmap];
   para      = [];
-  para.clim = [-0.4 0.4];
+  para.clim = [-0.25 0.25];
   para.cmap = cmap;
   para.grid = grid;
   para.dd   = 0.75;
   para.fn   = sprintf('~/pupmod/plots/pupmod_plot_alteredcorr_atx_f%s_c%d_v%d.png',regexprep(num2str(ifoi),' ',''),icond,v);
   tp_plot_surface(par,para)
   
-end
+
 %% MAP DONEPEZIL EFFECT
 
-for ifoi =  6:10
-  
+ifoi =  6:10
+  cmap = cbrewer('seq', 'PuBu', 256);
   icond     = 1;
-  cmap      = autumn;
-  cmap(:,1) = 0; 
-  cmap(:,3) = 1;
+%   cmap      = autumn;
+%   cmap(:,1) = 0; 
+%   cmap(:,3) = 1;
 
   par = nanmean(emp.n_n_dpz_pervoxel(:,ifoi,icond),2);
 
-  par(outp.pval_vox_n_dpz(:,icond,ifoi)>=0.05) = 0;
+%   par(outp.pval_vox_n_dpz(:,icond,ifoi)>=0.05) = 0;
 % par(par<prctile(par,95))=0
   cmap      = [cmap(:,:); 0.98*ones(1,3); cmap(:,:)];
   para      = [];
-  para.clim = [-0.4 0.4];
+  para.clim = [-0.25 0.25];
   para.cmap = cmap;
   para.grid = grid;
   para.dd   = 0.75;
   para.fn   = sprintf('~/pupmod/plots/pupmod_plot_alteredcorr_dpz_f%s_c%d_v%d.png',regexprep(num2str(ifoi),' ',''),icond,v);
   tp_plot_surface(par,para);
-end
+
 
 
 %% LOAD SECOND LEVEL STATS (POOLED ACROSS SIGNIFICANT FREQS)
@@ -340,16 +340,16 @@ tp_plot_surface(par,para)
 
 %% TASK VS REST MAP
 
-ifoi =3; icond = 1;
+ifoi =6; icond = 1;
 
 par = nanmean(emp.taskvsrest_n_pervoxel(:,ifoi),2);
-par(outp.pval_vox_n_tvr(:,icond,ifoi)>=0.01) = 0;
+% par(outp.pval_vox_n_tvr(:,icond,ifoi)>=0.01) = 0;
 
 cmap = autumn; cmap(:,1) = 0; cmap(:,3) = 1;
 
 cmap = [cmap; 0.98*ones(1,3); cmap];
 para = [];
-para.clim = [-0.5 0.5];
+para.clim = [-0.6 0.6];
 para.cmap = cmap;
 para.grid = grid;
 para.dd = 0.75;
