@@ -128,18 +128,35 @@ save(sprintf([outdir 'pupmod_src_variance_permutation_v%d.mat'],v),'perm');
 
 load(sprintf([outdir 'pupmod_src_variance_permutation_v%d.mat'],v));
 
-for ifoi = 1:17
-  
-  p_atx_pos_rest(ifoi) = 1-(sum(abs(n_atx_pos_rest(:,ifoi))>abs(perm.n_atx_pos_rest(:,ifoi)))./nperm);
-  p_atx_neg_rest(ifoi) = 1-(sum(abs(n_atx_neg_rest(:,ifoi))>abs(perm.n_atx_neg_rest(:,ifoi)))./nperm);
-  p_atx_pos_task(ifoi) = 1-(sum(abs(n_atx_pos_task(:,ifoi))>abs(perm.n_atx_pos_task(:,ifoi)))./nperm);
-  p_atx_neg_task(ifoi) = 1-(sum(abs(n_atx_neg_task(:,ifoi))>abs(perm.n_atx_neg_task(:,ifoi)))./nperm);
-  
-  p_dpz_pos_rest(ifoi) = 1-(sum(abs(n_dpz_pos_rest(:,ifoi))>abs(perm.n_dpz_pos_rest(:,ifoi)))./nperm);
-  p_dpz_neg_rest(ifoi) = 1-(sum(abs(n_dpz_neg_rest(:,ifoi))>abs(perm.n_dpz_neg_rest(:,ifoi)))./nperm);
-  p_dpz_pos_task(ifoi) = 1-(sum(abs(n_dpz_pos_task(:,ifoi))>abs(perm.n_dpz_pos_task(:,ifoi)))./nperm);
-  p_dpz_neg_task(ifoi) = 1-(sum(abs(n_dpz_neg_task(:,ifoi))>abs(perm.n_dpz_neg_task(:,ifoi)))./nperm);
-  
+
+% ATOMOXETINE
+% ------------------
+idx_R_res1_p      = max(abs(perm.n_atx_pos_rest),[],2);
+idx_R_res1_n      = max(abs(perm.n_atx_neg_rest),[],2);
+idx_R_cnt1_p      = max(abs(perm.n_atx_pos_task),[],2);
+idx_R_cnt1_n      = max(abs(perm.n_atx_neg_task),[],2);
+
+% DONEPEZIL
+% ------------------
+idx_R_res2_p      = max(abs(perm.n_dpz_pos_rest),[],2);
+idx_R_res2_n      = max(abs(perm.n_dpz_neg_rest),[],2);
+idx_R_cnt2_p      = max(abs(perm.n_dpz_pos_task),[],2);
+idx_R_cnt2_n      = max(abs(perm.n_dpz_neg_task),[],2);
+
+for ifreq = 1:17
+  % ATOMOXETINE
+  % ------------------
+  p_atx_pos_rest(ifreq) = 1-sum(abs(n_atx_pos_rest(ifreq))>abs(idx_R_res1_p))/nperm;
+  p_atx_neg_rest(ifreq) = 1-sum(abs(n_atx_neg_rest(ifreq))>abs(idx_R_res1_n))/nperm;
+  p_atx_pos_task(ifreq) = 1-sum(abs(n_atx_pos_task(ifreq))>abs(idx_R_cnt1_p))/nperm;
+  p_atx_neg_task(ifreq) = 1-sum(abs(n_atx_neg_task(ifreq))>abs(idx_R_cnt1_n))/nperm;  
+  % DONEPEZIL
+  % ------------------
+  p_dpz_pos_rest(ifreq) = 1-sum(abs(n_dpz_pos_rest(ifreq))>abs(idx_R_res2_p))/nperm;
+  p_dpz_neg_rest(ifreq) = 1-sum(abs(n_dpz_neg_rest(ifreq))>abs(idx_R_res2_n))/nperm;
+  p_dpz_pos_task(ifreq) = 1-sum(abs(n_dpz_pos_task(ifreq))>abs(idx_R_cnt2_p))/nperm;
+  p_dpz_neg_task(ifreq) = 1-sum(abs(n_dpz_neg_task(ifreq))>abs(idx_R_cnt2_n))/nperm;  
+
 end
 
 %%

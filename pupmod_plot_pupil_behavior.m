@@ -202,11 +202,11 @@ subplot(3,3,4:5); hold on
 
 % col_rand = (rand-0.5)/2;
 
-par_pooled = squeeze(nanmean(permute(behav,[2 1 3]),3))';
-
+par_pooled = squeeze(nanmean(permute(behav_cnt,[2 1 3]),3));
+par_pooled = par_pooled(~any(isnan(par_pooled),2),:);
 % r=rand(28,1)-0.5;
 
-for isubj=1:28
+for isubj=1:size(par_pooled,1)
   col_rand = (rand-0.5)/5;
 
   plot(r(isubj),par_pooled(isubj,2,1),'.','markersize',10,'color',[0.7+col_rand 0.7+col_rand 0.7+col_rand])
@@ -228,6 +228,35 @@ plot(4,nanmean(par_pooled(:,3)),'.','markersize',20,'color','k')
 
 line([0 2],[nanmean(par_pooled(:,2)) nanmean(par_pooled(:,1))],'color','k')
 line([2 4],[nanmean(par_pooled(:,1)) nanmean(par_pooled(:,3))],'color','k')
+
+
+par_pooled = squeeze(nanmean(permute(behav,[2 1 3]),3))';
+par_pooled = par_pooled(~any(isnan(par_pooled),2),:);
+% r=rand(28,1)-0.5;
+
+for isubj=1:size(par_pooled,1)
+  col_rand = (rand-0.5)/5;
+
+  plot(r(isubj)+6,par_pooled(isubj,2,1),'.','markersize',10,'color',[0.7+col_rand 0.7+col_rand 0.7+col_rand])
+  plot(r(isubj)+8,par_pooled(isubj,1,1),'.','markersize',10,'color',[0.7+col_rand 0.7+col_rand 0.7+col_rand])
+  plot(r(isubj)+10,par_pooled(isubj,3,1),'.','markersize',10,'color',[0.7+col_rand 0.7+col_rand 0.7+col_rand])
+
+  
+  line([r(isubj)+6 r(isubj)+8],[par_pooled(isubj,2,1) par_pooled(isubj,1,1)],'color',[0.7+col_rand 0.7+col_rand 0.7+col_rand])
+  line([r(isubj)+8 r(isubj)+10],[par_pooled(isubj,1,1) par_pooled(isubj,3,1)],'color',[0.7+col_rand 0.7+col_rand 0.7+col_rand])
+ 
+%   plot(r(isubj)+6,par(isubj,1,2),'.','markersize',10,'color',cols(isubj,:))
+%   plot(r(isubj)+8,par(isubj,2,2),'.','markersize',10,'color',cols(isubj,:))
+%   line([r(isubj)+6 r(isubj)+8],[par(isubj,1,2) par(isubj,2,2)],'color',cols(isubj,:))
+end
+
+plot(6,nanmean(par_pooled(:,2)),'.','markersize',20,'color','k')
+plot(8,nanmean(par_pooled(:,1)),'.','markersize',20,'color','k')
+plot(10,nanmean(par_pooled(:,3)),'.','markersize',20,'color','k')
+
+line([6 8],[nanmean(par_pooled(:,2)) nanmean(par_pooled(:,1))],'color','k')
+line([ 10],[nanmean(par_pooled(:,1)) nanmean(par_pooled(:,3))],'color','k')
+
 
 
 axis([-02 25 0 150]); tp_editplots; %lsline
