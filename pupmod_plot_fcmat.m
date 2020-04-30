@@ -50,7 +50,7 @@ if v == 3
       fc_rest_tmp = [fc1 fc2; fc3 fc4];
       fc_rest(:,:,i) = triu(fc_rest_tmp,1);
       
-      subplot(1,3,i); imagesc(fc_rest(:,:,i),[0.03 0.09]); axis square off
+      subplot(1,3,i); imagesc(fc_rest(:,:,i),[0.03 0.10]); axis square off
       colormap(plasma)
       
      
@@ -74,7 +74,7 @@ if v == 3
       fc_task_tmp = [fc1 fc2; fc3 fc4];
       fc_task(:,:,i) = triu(fc_task_tmp,1);
       
-      subplot(1,3,i); imagesc(fc_task(:,:,i),[0.03 0.09]); axis square off
+      subplot(1,3,i); imagesc(fc_task(:,:,i),[0.03 0.10]); axis square off
       colormap(plasma)  
     
     end
@@ -104,6 +104,93 @@ if v == 3
         print(gcf,'-depsc2',sprintf('~/pupmod/plots/pupmod_powcorr_raw_fcmat_drugcontrast_othercond_dpz_f%s_v%d.eps',regexprep(num2str(ifoi),' ',''),v))
 
 end
+
+
+
+
+%% NEW PLOTS (30-04-2020)
+
+
+% PLOT FC MATRIX FOR DIFFERENT CONDITIONS
+% significant v23: atx 10/11/12 & 18, dpz 13/14
+ifoi = 9;
+
+set(0,'defaultfigurerenderer','painters')
+cmap = cbrewer('div', 'RdBu', 256,'pchip'); cmap = cmap(end:-1:1,:);
+
+figure; set(gcf,'color','w')
+cond = [1 2 3];
+[~,front_to_back] = sort(grid(:,2),'descend');
+left  = find(grid(:,1)<0);
+right = find(grid(:,1)>0);
+for i = 1 : 3
+  
+  fc_tmp = nanmean(nanmean(nanmean(fc(:,:,:,cond(i),1,ifoi,:),6),7),3);
+  
+  fc1 = fc_tmp(front_to_back(left),front_to_back(left));
+  fc2 = fc_tmp(front_to_back(left),front_to_back(right));
+  fc3 = fc_tmp(front_to_back(right),front_to_back(left));
+  fc4 = fc_tmp(front_to_back(right),front_to_back(right));
+  
+  fc_rest_tmp = [fc1 fc2; fc3 fc4];
+  fc_rest_tmp = triu(fc_rest_tmp,1);
+  fc_rest(:,:,i) = rot90(flipud(fc_rest_tmp),-1);
+  
+  figure_w;
+  imagesc(fc_rest(:,:,i),[0.03 0.10]); axis square off
+  colormap(plasma)
+  
+  print(gcf,'-depsc2',sprintf('~/pupmod/plots/pupmod_powcorr_raw_fcmat_rest_f%s_c%d_v%d.eps',regexprep(num2str(ifoi),' ',''),cond(i),v))
+  
+  
+  fc_tmp = nanmean(nanmean(nanmean(fc(:,:,:,cond(i),2,ifoi,:),6),7),3);
+  %
+  fc1 = fc_tmp(front_to_back(left),front_to_back(left));
+  fc2 = fc_tmp(front_to_back(left),front_to_back(right));
+  fc3 = fc_tmp(front_to_back(right),front_to_back(left));
+  fc4 = fc_tmp(front_to_back(right),front_to_back(right));
+  
+  fc_task_tmp = [fc1 fc2; fc3 fc4];
+  fc_task_tmp = triu(fc_task_tmp,1);
+  fc_task(:,:,i) = fc_task_tmp;
+  
+  figure_w;
+  imagesc(fc_task(:,:,i) ,[0.03 0.10]); axis square off
+  colormap(plasma)
+  
+  print(gcf,'-depsc2',sprintf('~/pupmod/plots/pupmod_powcorr_raw_fcmat_task_f%s_c%d_v%d.eps',regexprep(num2str(ifoi),' ',''),cond(i),v))
+  
+  
+end
+
+cmap = cbrewer('div', 'RdBu', 256,'pchip'); cmap = cmap(end:-1:1,:);
+
+figure_w;
+imagesc(fc_rest(:,:,2)-fc_rest(:,:,1),[-0.02 0.02]); axis square off
+colormap(cmap)
+
+print(gcf,'-depsc2',sprintf('~/pupmod/plots/pupmod_powcorr_raw_fcmat_diff_atx_rest_f%s_c%d_v%d.eps',regexprep(num2str(ifoi),' ',''),cond(i),v))
+
+figure_w;
+imagesc(fc_rest(:,:,3)-fc_rest(:,:,1),[-0.02 0.02]); axis square off
+colormap(cmap)
+
+print(gcf,'-depsc2',sprintf('~/pupmod/plots/pupmod_powcorr_raw_fcmat_diff_dpz_rest_f%s_c%d_v%d.eps',regexprep(num2str(ifoi),' ',''),cond(i),v))
+
+figure_w;
+imagesc(fc_task(:,:,2)-fc_task(:,:,1),[-0.02 0.02]); axis square off
+
+colormap(cmap)
+
+print(gcf,'-depsc2',sprintf('~/pupmod/plots/pupmod_powcorr_raw_fcmat_diff_atx_task_f%s_c%d_v%d.eps',regexprep(num2str(ifoi),' ',''),cond(i),v))
+
+figure_w;
+imagesc(fc_task(:,:,3)-fc_task(:,:,1),[-0.02 0.02]); axis square off
+colormap(cmap)
+
+print(gcf,'-depsc2',sprintf('~/pupmod/plots/pupmod_powcorr_raw_fcmat_diff_dpz_task_f%s_c%d_v%d.eps',regexprep(num2str(ifoi),' ',''),cond(i),v))
+
+    
 
 %% DRUG CONTRASTS FOR EACH BLOCK
 cmap = cbrewer('div', 'RdBu', 256,'pchip'); cmap = cmap(end:-1:1,:);

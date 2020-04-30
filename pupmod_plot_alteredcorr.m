@@ -304,9 +304,60 @@ ifoi =  6:10
   para.dd   = 0.75;
   para.fn   = sprintf('~/pupmod/plots/pupmod_plot_alteredcorr_dpz_f%s_c%d_v%d.png',regexprep(num2str(ifoi),' ',''),icond,v);
   tp_plot_surface(par,para);
+  
+  
+%% (5) PLOT RAW DIFFERENCES (PER VOXEL)
 
+if ~exist('sa_meg_template','var')
+  load /home/gnolte/meth/templates/mri.mat;
+  load /home/gnolte/meth/templates/sa_template.mat;
+  load /home/tpfeffer/pconn/proc/src/pconn_sa_s4_m1_b1_v9.mat
+  grid = sa.grid_cortex_lowres;
+  addpath /home/gnolte/meg_toolbox/toolbox/
+  addpath /home/gnolte/meg_toolbox/fieldtrip_utilities/
+  addpath /home/gnolte/meg_toolbox/toolbox_nightly/
+  addpath /home/gnolte/meg_toolbox/meg/
+end
 
+close all
+ifoi = 9
+icond = 2;
+cmap = cbrewer('div', 'RdBu', 256,'pchip'); cmap = cmap(end:-1:1,:);
+par   = squeeze(nanmean(nanmean(fc(:,:,:,2,icond,ifoi),1),3))-squeeze(nanmean(nanmean(fc(:,:,:,1,icond,ifoi),1),3));
 
+para      = [];
+para.clim = [-0.01 0.01];
+para.cmap = cmap;
+para.grid = grid;
+para.dd   = 0.75;
+para.fn   = sprintf('~/pupmod/plots/pupmod_plot_fcdiff_atx_f%s_c%d_v%d.png',regexprep(num2str(ifoi),' ',''),icond,v);
+tp_plot_surface(par,para)
+
+ifoi =  9
+icond     = 1;
+
+par   = squeeze(nanmean(nanmean(fc(:,:,:,3,icond,ifoi),1),3))-squeeze(nanmean(nanmean(fc(:,:,:,1,icond,ifoi),1),3));
+
+  para      = [];
+  para.clim = [-0.01 0.01];
+  para.cmap = cmap;
+  para.grid = grid;
+  para.dd   = 0.75;
+  para.fn   = sprintf('~/pupmod/plots/pupmod_plot_fcdiff_dpz_f%s_c%d_v%d.png',regexprep(num2str(ifoi),' ',''),icond,v);
+  tp_plot_surface(par,para);
+  
+ifoi =  6
+icond     = 1;
+
+par   = squeeze(nanmean(nanmean(fc(:,:,:,1,2,ifoi),1),3))-squeeze(nanmean(nanmean(fc(:,:,:,1,1,ifoi),1),3));
+
+  para      = [];
+  para.clim = [-0.02 0.02];
+  para.cmap = cmap;
+  para.grid = grid;
+  para.dd   = 0.75;
+  para.fn   = sprintf('~/pupmod/plots/pupmod_plot_fcdiff_tvr_f%s_c%d_v%d.png',regexprep(num2str(ifoi),' ',''),icond,v);
+  tp_plot_surface(par,para);
 %% LOAD SECOND LEVEL STATS (POOLED ACROSS SIGNIFICANT FREQS)
 % -----------------------------------------
 % load second level permutation test results
