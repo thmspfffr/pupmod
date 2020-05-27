@@ -1,12 +1,11 @@
-% %% pupmod_src_powcorr_plot
-% COMPUTES THE NUMBER OF ALTERED CORRELATIONS AS A FUNCTION OF
-% CARRIER FREQUENCY.
+% %% pupmod_all_dimensionality
+% COMPUTES DIMENSIONALITY OF FC MATRICES.
 
 % Last changed: 13-11-2018
 
 clear
 
-v = 23;
+v = 3;
 
 addpath /home/gnolte/meg_toolbox/toolbox/
 addpath /home/gnolte/meg_toolbox/fieldtrip_utilities/
