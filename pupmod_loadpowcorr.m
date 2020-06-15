@@ -61,18 +61,3 @@ for isubj = 1:length(SUBJLIST)
     
   end
 end
-
-
-
-
-%           load(sprintf('~/pp/proc/conn/pp_src_powcorr_s%d_m%d_b%d_f%d_v%d.mat',isubj,im,iblock,ifoi,v))
-%           fc(:,:,isubj,m,1,ifoi,iblock) = powcorr; clear powcorr
-%
-%           load(sprintf('~/pp/proc/conn/pp_task_src_powcorr_s%d_m%d_b%d_f%d_v%d.mat',isubj,im,iblock,ifoi,v))
-%           fc(:,:,isubj,m,2,ifoi,iblock) = powcorr; clear powcorr
-
-%           load(sprintf('~/pp/proc/conn/pp_src_powcorr_test_s%d_m%d_v%d.mat',SUBJLIST(isubj),im,v))
-%           fc(:,:,isubj,m,1,:,:) = single(permute(powcorr(:,:,:,freqs),[1 2 4 3])); clear powcorr
-%
-%           load(sprintf('~/pp/proc/conn/pp_task_src_powcorr_test_s%d_m%d_v%d.mat',SUBJLIST(isubj),im,v))
-%           fc(:,:,isubj,m,2,:,:) = single(permute(powcorr(:,:,:,freqs),[1 2 4 3])); clear powcorr

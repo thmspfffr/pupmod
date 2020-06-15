@@ -145,14 +145,15 @@ end
 %%
 foi_range       = 2.^[2:.25:6];
 
-markersize = 5;
+markersize = 2;
 figure; set(gcf,'color','w')
 % -----------
 % ATOMOXETINE DURING REST
 % -----------
-subplot(4,3,1); hold on
-plot(n_atx_pos_rest,'linewidth',2,'color',[1 0.5 0.2])
-plot(n_atx_neg_rest,'linewidth',2,'color',[0.2 0.5 1])
+subplot(5,4,1); hold on
+
+plot(n_atx_pos_rest,'k-','linewidth',0.75)
+plot(n_atx_neg_rest,':','linewidth',0.75,'color',[.44 .44 .44])
 
 plot(find(p_atx_pos_rest<0.05),n_atx_pos_rest(find(p_atx_pos_rest<0.05)),'ko','markersize',markersize,'markerfacecolor','k')
 plot(find(p_atx_neg_rest<0.05),n_atx_neg_rest(find(p_atx_neg_rest<0.05)),'ko','markersize',markersize,'markerfacecolor','k')
@@ -166,9 +167,9 @@ tp_editplots
 % -----------
 % ATOMOXETINE DURING TASK
 % -----------
-subplot(4,3,4); hold on
-plot(n_atx_pos_task,'linewidth',2,'color',[1 0.5 0.2])
-plot(n_atx_neg_task,'linewidth',2,'color',[0.2 0.5 1])
+subplot(5,4,5); hold on
+plot(n_atx_pos_task,'k-','linewidth',0.75)
+plot(n_atx_neg_task,':','linewidth',0.75,'color',[.44 .44 .44])
 
 plot(find(p_atx_pos_task<0.05),n_atx_pos_task(find(p_atx_pos_task<0.05)),'ko','markersize',markersize,'markerfacecolor','k')
 plot(find(p_atx_neg_task<0.05),n_atx_neg_task(find(p_atx_neg_task<0.05)),'ko','markersize',markersize,'markerfacecolor','k')
@@ -182,9 +183,9 @@ tp_editplots
 % -----------
 % DONEPEZIL DURING REST
 % -----------
-subplot(4,3,2); hold on
-plot(n_dpz_pos_rest,'linewidth',2,'color',[1 0.5 0.2])
-plot(n_dpz_neg_rest,'linewidth',2,'color',[0.2 0.5 1])
+subplot(5,4,2); hold on
+plot(n_dpz_pos_rest,'k-','linewidth',0.75)
+plot(n_dpz_neg_rest,':','linewidth',0.75,'color',[.44 .44 .44])
 
 plot(find(p_dpz_pos_rest<0.05),n_dpz_pos_rest(find(p_dpz_pos_rest<0.05)),'ko','markersize',markersize,'markerfacecolor','k')
 plot(find(p_dpz_neg_rest<0.05),n_dpz_neg_rest(find(p_dpz_neg_rest<0.05)),'ko','markersize',markersize,'markerfacecolor','k')
@@ -198,9 +199,9 @@ tp_editplots
 % -----------
 % DONEPEZIL DURING TASK
 % -----------
-subplot(4,3,5); hold on
-plot(n_dpz_pos_task,'linewidth',2,'color',[1 0.5 0.2])
-plot(n_dpz_neg_task,'linewidth',2,'color',[0.2 0.5 1])
+subplot(5,4,6); hold on
+plot(n_dpz_pos_task,'k-','linewidth',0.75)
+plot(n_dpz_neg_task,':','linewidth',0.75,'color',[.44 .44 .44])
 plot(find(p_dpz_pos_task<0.05),n_dpz_pos_task(find(p_dpz_pos_task<0.05)),'ko','markersize',markersize,'markerfacecolor','k')
 plot(find(p_dpz_neg_task<0.05),n_dpz_neg_task(find(p_dpz_neg_task<0.05)),'ko','markersize',markersize,'markerfacecolor','k')
 

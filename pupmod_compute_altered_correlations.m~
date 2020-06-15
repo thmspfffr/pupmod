@@ -4,6 +4,8 @@ function emp = pupmod_compute_altered_correlations(cleandat,para)
 % Input: combined FC data (NxNx28x3x2x17), with N = 400 or 76
 % para.alpha: alpha-level for initial t-test (default: 0.05)
 % para.freq: frequencies of interest (default: 1-17 - all)
+% Output: structure ('emp'), containing...
+% - emp.n_p_atx: 
 
 if ~isfield(para,'alpha')
   para.alpha = 0.05;

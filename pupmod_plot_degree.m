@@ -38,21 +38,21 @@ para.relative_degree = 0;
 
 % Atomoxetine (icond = 2) during Rest 
 deg_atx = tp_degree(fc(:,:,:,[1 2],1,:),para);
-deg_atx_vox = squeeze(nansum(deg_atx.node_degree)/fcsize);
-deg_atx = squeeze(nansum(reshape(deg_atx,[fcsize^2 13 2]))/fcsize^2);
+% deg_atx_vox = squeeze(nansum(deg_atx.node_degree)/fcsize);
+% deg_atx = squeeze(nansum(reshape(deg_atx,[fcsize^2 para.nfreq 2]))/fcsize^2);
 % Atomoxetine (icond = 3) during Task 
 deg_atx_task = tp_degree(fc(:,:,:,[1 2],2,:),para);
-deg_atx_task_vox = squeeze(nansum(deg_atx_task)/fcsize);
-deg_atx_task = squeeze(nansum(reshape(deg_atx_task,[fcsize^2 13 2]))/fcsize^2);
+% deg_atx_task_vox = squeeze(nansum(deg_atx_task)/fcsize);
+% deg_atx_task = squeeze(nansum(reshape(deg_atx_task,[fcsize^2 para.nfreq 2]))/fcsize^2);
 % ------------------
 % Donepezil (icond = 3) during Rest 
 deg_dpz = tp_degree(fc(:,:,:,[1 3],1,:),para);
-deg_dpz_vox = squeeze(nansum(deg_dpz)/fcsize);
-deg_dpz = squeeze(nansum(reshape(deg_dpz,[fcsize^2 13 2]))/fcsize^2);
+% deg_dpz_vox = squeeze(nansum(deg_dpz)/fcsize);
+% deg_dpz = squeeze(nansum(reshape(deg_dpz,[fcsize^2 para.nfreq 2]))/fcsize^2);
 % Donepezil (icond = 3) during Task 
 deg_dpz_task = tp_degree(fc(:,:,:,[1 3],2,:),para);
-deg_dpz_task_vox = squeeze(nansum(deg_dpz_task)/fcsize);
-deg_dpz_task = squeeze(nansum(reshape(deg_dpz_task,[fcsize^2 13 2]))/fcsize^2);
+% deg_dpz_task_vox = squeeze(nansum(deg_dpz_task)/fcsize);
+% deg_dpz_task = squeeze(nansum(reshape(deg_dpz_task,[fcsize^2 para.nfreq 2]))/fcsize^2);
 % ------------------
 
 %% PLOT  RESULTS W/O STATISTICS

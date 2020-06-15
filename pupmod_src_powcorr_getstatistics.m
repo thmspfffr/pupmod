@@ -16,7 +16,6 @@ function [outp] = pupmod_src_powcorr_getstatistics(para)
 % para.alpha = global alpha level (default = 0.05)
 % para.alp   = alpha level to get number of altered corr. (default =  0.05)
 % para.correction_method = 'ranks' or 'single_threshold'
-% para.cleaned = 0/1: "raw" data (0) vs. regressed (1)
 % para.empirical = empirical data (altered corr)
 % ------------------
 % GLOBAL STATISTICS - across all voxels (para.type = 'global')
@@ -51,11 +50,6 @@ function [outp] = pupmod_src_powcorr_getstatistics(para)
 % Number of altered correlations across all voxels
 
 allperms = para.nperm/para.nsubs;
-
-if ~isfield(para,'cleaned'); para.cleaned = 0; end
-if ~isfield(para,'nfreq'); para.nfreq = 17; fprintf('Freqs: all (default)\n');end
-if ~isfield(para,'correction_method'); para.correction_method = 'ranks'; fprintf('Correction: ranks (default)\n'); end
-if ~isfield(para,'type'); para.type = 'global'; fprintf('Type: global (default)\n'); end
 
 SUBJLIST  = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
 
@@ -122,8 +116,10 @@ if strcmp(para.type, 'global')
     
     % double dissociation
     % --------------
-    perm_doubledissociation((iperm-1)*par.subs+1:(iperm)*par.subs,:) = par.tperm_doubledissociation;
+    perm_doubledissociation((iperm-1)*par.subs+1:(iperm)*par.subs,:) = context_allconn_atx_p((iperm-1)*par.subs+1:(iperm)*par.subs,:,1)-context_allconn_dpz_n((iperm-1)*par.subs+1:(iperm)*par.subs,:,1);
   end
+  
+  emp.doubledissociation_emp = emp.n_p_context_atx-emp.n_n_context_dpz;
   %%
   fprintf('Obtaining corrected p-values ...\n')
   
@@ -293,6 +289,10 @@ if strcmp(para.type, 'global')
     idx_R_taskvsrest_p = max(abs(perm_taskvsrest_n_p),[],2);
     idx_R_taskvsrest_n = max(abs(perm_taskvsrest_n_n),[],2);
     
+    % DOUBLE DISSOCIATION
+    % ------------------ 
+    idx_R_doublediss = max(abs(perm_doubledissociation),[],2);
+    
     for ifreq = para.nfreq
       % ATOMOXETINE
       % ------------------
@@ -319,8 +319,13 @@ if strcmp(para.type, 'global')
       % ------------------
       outp.pval_taskvsrest_p_corr(ifreq) = 1-sum(abs(emp.taskvsrest_p(ifreq))>idx_R_taskvsrest_p)/para.nperm;
       outp.pval_taskvsrest_n_corr(ifreq) = 1-sum(abs(emp.taskvsrest_n(ifreq))>idx_R_taskvsrest_n)/para.nperm;
-    end
+      
+      % DOUBLE DISSOCIATION
+      % ------------------ 
+      outp.pval_doublediss(ifreq) = 1-sum(abs(emp.doubledissociation_emp(ifreq))>idx_R_doublediss)/para.nperm;
+      
     
+    end
   end
   
   %% --------------------------
