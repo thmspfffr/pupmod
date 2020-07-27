@@ -1,45 +1,47 @@
-%% NOISE STIMULATION
+
+% s=trisurf(sa.vc_indi.tri,sa.vc_indi.vc(:,1),sa.vc_indi.vc(:,2),sa.vc_indi.vc(:,3),0.5*ones([size(sa.vc_indi.vc(:,1),1) 1]))
+% hold on
+% h=light; material([0.4 0.6 0.2]); lighting GOURAUD
+% shading interp;
+
+% rotate(s,[0 0 1],270)
+
+% plot3(sa.locs_3D_indi(:,1),sa.locs_3D_indi(:,2),sa.locs_3D_indi(:,3),'.')
+
+% 
+% x = sa.grid_fine_indi(:,1);
+% y = sa.grid_fine_indi(:,2);
+% z = sa.grid_fine_indi(:,3);
+% 
+% xv = linspace(min(x),max(x),100);
+% yv = linspace(min(y),max(y),100);
+% 
+% [X,Y]=meshgrid(xv,yv);
+% 
+% Z = griddata(x,y,z,X,Y);
+
+close all
+s=trisurf(sa.segmentation{3}.tri,sa.segmentation{3}.vc(:,1),sa.segmentation{3}.vc(:,2),sa.segmentation{3}.vc(:,3),0.5*ones([size(sa.segmentation{3}.vc(:,1),1) 1]))
+ hold on
+h=light; material([0.5 0.5 0.5]); lighting GOURAUD
+shading interp;
+alpha(0.3); axis off
+
+s=trisurf(sa.cortex10K.tri,sa.cortex10K.vc(:,1),sa.cortex10K.vc(:,2),sa.cortex10K.vc(:,3),0.5*ones([size(sa.cortex10K.vc(:,1),1) 1]))
+h=light; material([0.5 0.5 0.5]); lighting GOURAUD
+
+shading interp;
+
+
+a = sa.locs_3D_indi*sa.trafo.u_indi2template+sa.trafo.r_indi2template
+plot3(a(:,1),a(:,2),a(:,3),'.','color',[0.6 0.6 0.6],'markersize',12)
 
 
 
 
-data = rand(1000,17,28,2);
-
-sign_idx = logical(randi(2,[1000 1])-1); 
-
-data(sign_idx,8:12,1:28,2)=data(sign_idx,8:12,1:28,2)+(rand(sum(sign_idx),5,28)-0.475);
-
-[h,p,~,s]=ttest(mean(data(:,:,:,2),1),mean(data(:,:,:,1),1),'dim',3);
-
-% altered_p = sum(h>0 & s.tstat > 0)/100;
-% altered_n = sum(h>0 & s.tstat < 0)/100;
-
-
-[h,p,~,s]=ttest(mean(data(:,:,:,2),2),mean(data(:,:,:,1),2),'dim',3);
-
-fprintf('Identified: %d\n', sum(h))
-fprintf('Real: %d\n', sum(sign_idx))
-
-
-%%
 
 
 
-
-data = rand(1000,17,28,2);
-
-sign_idx = logical(randi(2,[1000 1])-1); 
-
-[h,p,~,s]=ttest(mean(data(:,:,:,2),1),mean(data(:,:,:,1),1),'dim',3);
-
-% altered_p = sum(h>0 & s.tstat > 0)/100;
-% altered_n = sum(h>0 & s.tstat < 0)/100;
-
-
-[h,p,~,s]=ttest(mean(data(:,p<0.05,:,2),2),mean(data(:,p<0.05,:,1),2),'dim',3);
-
-fprintf('Identified: %d\n', sum(h))
-% fprintf('Real: %d\n', sum(sign_idx))
 
 
 
