@@ -7,7 +7,7 @@ else
   avg = 0;
 end
 
-if v == 1 || v==2 || v == 3 || v == 4 
+if v == 1 || v==2 || v == 3 || v == 4 | v == 333
   siz = 400;
   if avg == 0
     fc = zeros(siz,siz,length(SUBJLIST),3,2,17,2,'single');

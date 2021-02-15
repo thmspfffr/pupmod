@@ -111,7 +111,7 @@ line([6 6],[0 0.15])
 % tp_editplots
 % axis([0 14 -0.02 0.6]);
 
-print(gcf,'-dpdf',sprintf('~/pupmod/plots/pupmod_all_src_degree_lineplots_rel%d_v%d.pdf',para.relative_degree,v));
+print(gcf,'-dpdf',sprintf('~/pupmod/plots/pupmod_all_src_degree_lineplots_rel%d_v%d.pdf',0,v));
 
 %% LOAD AND GENERATE PERMUTATION DISTRIBUTION
 % Details defined in par structure
@@ -207,9 +207,9 @@ if ~exist('sa_meg_template','var')
   addpath /home/gnolte/meg_toolbox/meg/
 end
 
-ifoi = 9; icond = [1 2]; %alpha = 0.05;
-fc_avg = squeeze(nanmean(nanmean(nanmean(fc(:,:,:,1:2,1,:),1),3),4));
-
+ifoi = 9; icond = 1; %alpha = 0.05;
+% fc_avg = squeeze(nanmean(nanmean(nanmean(fc(:,:,:,1,icond,ifoi),1),3),4));
+% 
 cmap = plasma;
 
 par = nanmean(deg_atx.node_degree(:,ifoi,icond),3);

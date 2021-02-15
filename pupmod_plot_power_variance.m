@@ -64,9 +64,10 @@ for ifoi = 1 : 17
   n_dpz_neg_task(ifoi) = 100*sum((h>0)&(s.tstat<0))./ length(h);
   
 end
+nperm = 10000;
 
 % PERMUTATION
-nperm = 10000;
+if ~exist(sprintf([outdir 'pupmod_src_variance_permutation_v%d.mat'],v))
 all_idx1 = randi(2,[size(SUBJLIST,2),nperm]);
 
 dat_cnt1 = var_all_task(:,:,[1 2],:);
@@ -124,10 +125,9 @@ for iperm = 1 : nperm
   end
 end
 
-save(sprintf([outdir 'pupmod_src_variance_permutation_v%d.mat'],v),'perm');
-
-load(sprintf([outdir 'pupmod_src_variance_permutation_v%d.mat'],v));
-
+else
+  load(sprintf([outdir 'pupmod_src_variance_permutation_v%d.mat'],v));
+end
 
 % ATOMOXETINE
 % ------------------

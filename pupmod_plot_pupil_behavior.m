@@ -71,6 +71,8 @@ paramsPhys.pupilVari([1 3 12],:) = [];
 paramsPhys.pupilMean(isnan(paramsPhys.pupilMean(:,1)),:)=[];
 paramsPhys.pupilVari(isnan(paramsPhys.pupilVari(:,1)),:)=[];
 
+load ~/pupmod/paramFits_set1.mat
+
 pup_matching = paramsPhys.pupilMean;
 
 addpath ~/Documents/MATLAB/cbrewer/cbrewer/
@@ -298,5 +300,73 @@ axis([-02 25 0 150]); tp_editplots; %lsline
 print(gcf,'-dpdf',sprintf('~/pupmod/plots/pupmod_plot_pupil_behavior_resttaskseparately.pdf'))
 
 
-%%
+%% PLOT CHANGES IN PUPIL DIAMETER VS CHANGES IN PARAMETERS
 
+
+figure_w
+
+% leak
+subplot(2,2,1); hold on
+
+diff_leak = squeeze(paramFits.atx.paramFits(6,:,1))-squeeze(paramFits.pla.paramFits(6,:,1));
+diff_pup  = pup_matching(:,2)-pup_matching(:,1);
+diff_leak(isnan(pup_matching(:,1)))=[];
+diff_pup(isnan(pup_matching(:,1)))=[];
+
+scatter(diff_leak(:),diff_pup(:),35,'markeredgecolor','w','markerfacecolor','k'); 
+[r,p]=corr(diff_leak(:),diff_pup(:)); tp_editplots
+% axis([-1.2 1.2 -1.2 1.2]); 
+xlabel('\DeltaLeak'); ylabel('Baseline pupil (Placebo)')
+lsline; tp_editplots
+text(-0.8,1,sprintf('r = %.3f | p = %.3f',r,p),'fontsize',6)
+axis square
+
+% beta
+subplot(2,2,2); hold on
+
+diff_leak = squeeze(paramFits.atx.paramFits(6,:,2))-squeeze(paramFits.pla.paramFits(6,:,2));
+diff_pup  = pup_matching(:,2)-pup_matching(:,1);
+diff_leak(isnan(pup_matching(:,1)))=[];
+diff_pup(isnan(pup_matching(:,1)))=[];
+
+scatter(diff_leak(:),diff_pup(:),35,'markeredgecolor','w','markerfacecolor','k'); 
+[r,p]=corr(diff_leak(:),diff_pup(:)); tp_editplots
+% axis([-1 2 -1.2 1.2]); 
+xlabel('\DeltaBeta'); ylabel('Baseline pupil (Placebo)')
+lsline; tp_editplots
+text(-0.6,1,sprintf('r = %.3f | p = %.3f',r,p),'fontsize',6)
+axis square
+
+% WSLS
+subplot(2,2,3); hold on
+
+diff_leak = squeeze(paramFits.atx.paramFits(6,:,3))-squeeze(paramFits.pla.paramFits(6,:,3));
+diff_pup  = pup_matching(:,2)-pup_matching(:,1);
+diff_leak(isnan(pup_matching(:,1)))=[];
+diff_pup(isnan(pup_matching(:,1)))=[];
+
+scatter(diff_leak(:),diff_pup(:),35,'markeredgecolor','w','markerfacecolor','k'); 
+[r,p]=corr(diff_leak(:),diff_pup(:)); tp_editplots
+% axis([-0.6 0.6 -1.2 1.2]); 
+xlabel('\DeltaWSLS'); ylabel('Baseline pupil (Placebo)')
+lsline; tp_editplots
+text(-0.4,1,sprintf('r = %.3f | p = %.3f',r,p),'fontsize',6)
+axis square
+
+% Bias
+subplot(2,2,4); hold on
+
+diff_leak = squeeze(paramFits.atx.paramFits(6,:,4))-squeeze(paramFits.pla.paramFits(6,:,4));
+diff_pup  = pup_matching(:,2)-pup_matching(:,1);
+diff_leak(isnan(pup_matching(:,1)))=[];
+diff_pup(isnan(pup_matching(:,1)))=[];
+
+scatter(diff_leak(:),diff_pup(:),35,'markeredgecolor','w','markerfacecolor','k'); 
+[r,p]=corr(diff_leak(:),diff_pup(:)); tp_editplots
+% axis([-0.1 0.2 -1.2 1.2]); 
+xlabel('\DeltaBias'); ylabel('Baseline pupil (Placebo)')
+lsline; tp_editplots
+text(0,1,sprintf('r = %.3f | p = %.3f',r,p),'fontsize',6)
+axis square
+
+print(gcf,'-dpdf',sprintf('~/pupmod/plots/pupmod_pupil_vs_parameterfits.pdf'))

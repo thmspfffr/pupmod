@@ -8,7 +8,7 @@ function emp = pupmod_compute_altered_correlations(cleandat,para)
 if ~isfield(para,'alpha')
   para.alpha = 0.05;
 end
-if ~isfield(para,'freq')
+if ~isfield(para,'nfreq')
   para.nfreq = 1:17;
 end
 

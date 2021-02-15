@@ -8,7 +8,7 @@
 clear
 % version: 12 coarse cortex, 1 AAL
 
-v = 23;
+v = 3;
 outdir = '~/pupmod/proc/conn/';
 
 SUBJLIST  = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
@@ -19,7 +19,7 @@ fcsize = size(cleandat,1);
 mask    = logical(triu(ones(400,400),1));
 para = [];
 para.alpha = 0.01;
-para.nfreq = 25;
+para.nfreq = 17;
 para.absolute = 0;
 para.relative_degree = 0;
 para.clustering = 1;
@@ -46,15 +46,15 @@ title('Atx - Rest')
 
 % area(deg_atx(:,1),'facecolor',[0.8 0.8 0.8],'edgecolor',[1 1 1]);
 plot(outp_atx_rest.tot_degree(:,1),'k')
-plot(outp_atx_rest.tot_degree(:,2),'k','linestyle',':');
+% plot(outp_atx_task.tot_degree(:,1),'k','linestyle',':');
 % area(deg_atx_task(:,1),'facecolor',[0.9 0.9 0.9],'edgecolor',[1 1 1]);
 % plot(deg_atx_task(:,1),'color',[0 0 0],'linestyle',':')
 % k = area(deg_atx(:,2),'facecolor',[1 0.5 0.2],'edgecolor',[0.8 0.8 0.8]);
 % alpha(k,0.6)
-set(gca,'tickdir','out','xtick',[1 5 9 13 17 21 25],'xticklabel',[2 4 8 16 32 64 128])
+set(gca,'tickdir','out','xtick',[1 5 9 13 17],'xticklabel',[4 8 16 32 64])
 xlabel('Carrier frequency [Hz]'); ylabel('Degree [%]')
 tp_editplots
-axis([0 length(foi_range) 0 0.3]);
+axis([0 length(foi_range) 0 30]);
 
 subplot(3,2,2); hold on
 title('Atx - Task')
@@ -62,10 +62,10 @@ plot(outp_atx_task.tot_degree(:,1),'k')
 plot(outp_atx_task.tot_degree(:,2),'k','linestyle',':');
 % k = area(deg_atx_task(:,2),'facecolor',[1 0.5 0.2],'edgecolor',[0.8 0.8 0.8]);
 % alpha(k,0.6)
-set(gca,'tickdir','out','xtick',[1 5 9 13 17 21 25],'xticklabel',[2 4 8 16 32 64 128])
+set(gca,'tickdir','out','xtick',[1 5 9 13 17],'xticklabel',[4 8 16 32 64])
 xlabel('Carrier frequency [Hz]'); ylabel('Degree [%]')
 tp_editplots
-axis([0 length(foi_range) 0 0.3]);
+axis([0 length(foi_range) 0 30]);
 
 subplot(3,2,3); hold on
 title('Dpz - Rest')
@@ -74,10 +74,10 @@ plot(outp_dpz_rest.tot_degree(:,2),'k','linestyle',':');
 % area(deg_dpz(:,1),'facecolor',[0.8 0.8 0.8],'edgecolor',[1 1 1]);
 % k = area(deg_dpz(:,2),'facecolor',[0.2 0.5 1],'edgecolor',[0.8 0.8 0.8]);
 % alpha(k,0.6)
-set(gca,'tickdir','out','xtick',[1 5 9 13 17 21 25],'xticklabel',[2 4 8 16 32 64 128])
+set(gca,'tickdir','out','xtick',[1 5 9 13 17],'xticklabel',[4 8 16 32 64])
 xlabel('Carrier frequency [Hz]'); ylabel('Degree [%]')
 tp_editplots
-axis([0 length(foi_range) 0 0.4]);
+axis([0 length(foi_range) 0 40]);
 
 subplot(3,2,4); hold on
 title('Dpz - Task')
@@ -86,10 +86,10 @@ plot(outp_dpz_task.tot_degree(:,2),'k','linestyle',':');
 % area(deg_dpz_task(:,1),'facecolor',[0.8 0.8 0.8],'edgecolor',[1 1 1]);
 % k = area(deg_dpz_task(:,2),'fvacecolor',[0.2 0.5 1],'edgecolor',[0.8 0.8 0.8]);
 % alpha(k,0.6)
-set(gca,'tickdir','out','xtick',[1 5 9 13 17 21 25],'xticklabel',[2 4 8 16 32 64 128])
+set(gca,'tickdir','out','xtick',[1 5 9 13 17],'xticklabel',[4 8 16 32 64])
 xlabel('Carrier frequency [Hz]'); ylabel('Degree [%]')
 tp_editplots
-axis([0 length(foi_range) 0 0.4]);
+axis([0 length(foi_range) 0 40]);
 
 print(gcf,'-dpdf',sprintf('~/pupmod/plots/pupmod_powcorr_degree_abs%d_rel%d_v%d.pdf',para.absolute,para.relative_degree,v))
 %% CONCATENATE PERMUTATONS AND COMPUTE STATS

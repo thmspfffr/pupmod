@@ -1,189 +1,208 @@
-%% COMPUTE WHOLE BRAIN DFA IN SOURCE SPACE
-% pconn_src_pow
-
-% requires execution of pconn_src_compute_common_filter.m first.
-% this is where the common dipole orientation is determined.
+%% pupmopd_src_pow
+% compute power in AAL parcellation using beamforming
 
 clear
+restoredefaultpath
+
+% -------------------------
+% VERSION 33 - AAL and alpha0 = 0.3
+% --------------------------------------------------------
+v         = 33;
 SUBJLIST  = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
+grid      = 'aal_6mm';
+foi_range = 2.^(2:(1/4):6); % freq range based on sign. effects
+REG       = 0.3;
+% --------------------------------------------------------
 
-% -----------------------------------------------------
-% VERSiON 12 - cortex
-% -----------------------------------------------------
-v       = 12;
-foi_range       = unique(round(2.^[1:.5:7]));
-bpfreq     = [foi_range-(foi_range./2)/2; foi_range+(foi_range./2)/2]';
-allpara.filt    = 'jh_lcmv';
-allpara.grid    = 'cortex_lowres';
-% -----------------------------------------------------
+addpath ~/Documents/MATLAB/fieldtrip-20160919/
+addpath ~/pupmod/matlab/
 
-tp_addpaths
+ft_defaults
+addpath ~/pconn/matlab/
+outdir = '~/pupmod/proc/src/';
 
-indir   = '/home/tpfeffer/pupmod/proc/pow/';
-outdir   = '/home/tpfeffer/pupmod/proc/pow/';
+ord    = pconn_randomization;
 
-if strcmp(allpara.grid,'xcoarse')
-  v_grid = 2;
-elseif strcmp(allpara.grid,'cortex')
-  v_grid = 3;
-elseif strcmp(allpara.grid,'aal')
-  v_grid = 4;
-elseif strcmp(allpara.grid,'medium')
-  v_grid = 5;
-elseif strcmp(allpara.grid,'aal_6mm')
+if strcmp(grid,'aal_6mm')
   v_grid = 6;
-elseif strcmp(allpara.grid,'aal_4mm')
-  v_grid = 7;
-elseif strcmp(allpara.grid,'m758_4mm')
-  v_grid = 8;
-elseif strcmp(allpara.grid, 'cortex_lowres')
+elseif strcmp(grid, 'cortex_lowres')
   v_grid = 9;
-elseif strcmp(allpara.grid,'genemaps')
-  v_grid = 13;
-elseif strcmp(allpara.grid,'genemaps_aal')
-  v_grid = 14;
-elseif strcmp(allpara.grid,'cortex800')
-  v_grid = 16;
 end
+
 %%
-
-for ifoi = 6
+% -------------------------
+for isubj = SUBJLIST
+  
   for m = 1 : 3
-    for isubj = SUBJLIST
-      
-%       if ~exist(sprintf([outdir 'pupmod_src_pow_s%d_m%d_f%d_v%d_processing.txt'],isubj,m,ifoi,v))
-%         system(['touch ' outdir sprintf('pupmod_src_pow_s%d_m%d_f%d_v%d_processing.txt',isubj,m,ifoi,v)]);
-%       else
-%         continue
-%       end
-      
-      clear d
-      
-      fprintf('Processing s%d m%d f%d ..\n', isubj,m,ifoi)
-      
-      d=dir(sprintf('/home/tpfeffer/pconn/proc/preproc/pconn_postpostproc_s%d_m%d_b*_v%d.mat',isubj,m,1));
-      
-      if length(d)==1
-        if v < 10
-          blocks = str2num(d(1).name(end-7));
-        else
-          blocks = str2num(d(1).name(end-8));
-        end
-      elseif length(d) == 2
-        blocks = [1 2];
-      end
-            
-      for iblock = blocks
-        
-        if length(blocks) == 1
-          if iblock == 1
-            par.pow(:,2) = nan(400,1); 
-          else
-            par.pow(:,1) = nan(400,1); 
-          end
-        end
-        
-        fprintf('Processing MEG s%dm%df%d%b...\\n',isubj,m,ifoi,iblock);
-            
-        if length(d) == 2
-          load(['~/pconn/proc/preproc/' d(iblock).name]);
-        else
-          load(['~/pconn/proc/preproc/' d(1).name]);
-        end
-        
-%         [dat] = megdata2mydata(data); clear data
-%         
-%         cfg = [];
-%         cfg.length =  1/0.2;
-%         cfg.overlap = 0;
-%         
-%         data      = ft_redefinetrial(cfg,data);
-        
-%         % COMPUTE CROSS SPECTRAL DENSITY, using multitaper method
-%         % ------------------------------
-%         cfg               = [];
-%         cfg.method        = 'mtmconvol';
-%         cfg.output        = 'powandcsd';
-%         cfg.taper         = 'hanning';
-%         cfg.pad           = 'nextpow2';
-%         cfg.foi           = foi_range(ifoi);
-%         cfg.keeptrials    = 'no';
-%         cfg.tapsmofrq     = (bpfreq(ifoi,2)-bpfreq(ifoi,1))/2;
-%         
-%         [~,  csd]         = ft_freqanalysis(cfg, data);  
-        % ------------------------------
-        data = megdata2mydata(data); 
-        segleng = 1600;
-        segshift = 1600;
-        epleng = size(data,1);
-        maxfreqbin = 300;
-        [cs] = data2cs_event(data,segleng,segshift,epleng,maxfreqbin,para);
-        
-        f = 0:400/1600:200;
-        
-        csd = mean(real(cs(:,:,f>=bpfreq(6,1) & f<=bpfreq(6,2))),3);
-%         clear data
-        
-        % LOAD HEAD/FORWARD MODEL
-        % ------------------------------
-        pars      = [];
-        pars.sa   = sprintf('~/pconn/proc/src/pconn_sa_s%d_m%d_b%d_v%d.mat',isubj,m,iblock,v_grid);
-        sa        = load(pars.sa);
-        % ------------------------------
-        [A, Ao, po]=mkfilt_lcmv(sa.sa.L_coarse,csd,.05);
-        
-        noisecov = reshape(sa.sa.L_coarse,[size(sa.sa.L_coarse,1) size(sa.sa.L_coarse,2)*3])*reshape(sa.sa.L_coarse,[size(sa.sa.L_coarse,1) size(sa.sa.L_coarse,2)*3])';
-        
-        para        = [];
-        para.iscs   = 1;
-        para.reg    = 0.05;
-%         para.noisecov = noisecov;
-        [filt,pow]  = pconn_beamformer(csd,sa.sa.L_coarse,para);
     
-        save(sprintf([outdir 'pupmod_src_pow_s%d_m%d_f%d_b%d_v%d.mat'],isubj,m,ifoi,iblock,v),'pow');
-
-        clear csd filt pow 
+    for iblock = 1:2
+      %
+      fn = sprintf('pupmod_src_pow_s%d_m%d_b%d_v%d',isubj,m,iblock,v);
+      if tp_parallel(fn,outdir,1,0)
+        continue
+      end
+      %
+      fprintf('Processing subj%d block%d ...\n',isubj,iblock);
+      
+      try
+        % load cleaned meg data
+        load(sprintf('~/pupmod/proc/sens/pupmod_rest_sens_cleandat_s%d_m%d_b%d_v%d.mat',isubj,m,iblock,1))
+        
+      catch me
+        continue
+      end
+      
+      load(sprintf('~/pconn/proc/src/pconn_sa_s%d_m%d_b%d_v%d.mat',isubj,m,iblock,v_grid));
+      lf = sa.L_aal_6mm;
+      
+      for ifreq=1:length(foi_range)
+        ifreq
+        
+        % -------------------------------
+        % compute CSD
+        % -------------------------------
+        para          = [];
+        para.freq     = foi_range(ifreq);
+        para.fsample  = 400;
+        para.overlap  = 0.5;
+        csd           = tp_compute_csd_wavelets(dat,para);
+        % -------------------------------
+        % beamforming
+        % -------------------------------
+        para          = [];
+        para.reg      = 0.05;
+        [~,outp.pow(:,ifreq)] = tp_beamformer(real(csd),lf,para);
+        % --------------
+        
+        % assign locations to AAL regions
+        for ilabel = 1 : max(sa.aal_label)
+          idx = sa.aal_label==ilabel;
+          outp.pow_aal(ilabel,ifreq) = mean(outp.pow(idx,ifreq),1);
+        end
         
       end
       
+      save([outdir fn '.mat'],'outp')
+      tp_parallel(fn,outdir,0)
       
-      clear par
-      
+      clear outp
     end
   end
 end
 
-error('STOP')
 
-%% PLOT
-ord   = pconn_randomization;
-for ifoi = 6
+% DO SAME FOR TASK DATA
+for isubj = SUBJLIST
+  
+  for m = 1 : 3
+    
+    for iblock = 1:2
+      %
+      fn = sprintf('pupmod_task_src_pow_s%d_m%d_b%d_v%d',isubj,m,iblock,v);
+      if tp_parallel(fn,outdir,1,0)
+        continue
+      end
+      %
+      fprintf('Processing subj%d block%d ...\n',isubj,iblock);
+      
+      try
+        % load cleaned meg data
+        load(sprintf('~/pupmod/proc/sens/pupmod_task_sens_cleandat_s%d_m%d_b%d_v%d.mat',isubj,m,iblock,1))
+        
+      catch me
+        continue
+      end
+      
+      load(sprintf('~/pconn_cnt/proc/src/pconn_cnt_sa_s%d_m%d_b%d_v%d.mat',isubj,m,iblock,v_grid));
+      lf = sa.L_aal_6mm;
+      
+      for ifreq=1:length(foi_range)
+        ifreq
+        
+        % -------------------------------
+        % compute CSD
+        % -------------------------------
+        para          = [];
+        para.freq     = foi_range(ifreq);
+        para.fsample  = 400;
+        para.overlap  = 0.5;
+        csd           = tp_compute_csd_wavelets(dat,para);
+        % -------------------------------
+        % beamforming
+        % -------------------------------
+        para          = [];
+        para.reg      = 0.05;
+        [~,outp.pow(:,ifreq)] = tp_beamformer(real(csd),lf,para);
+        % --------------
+        
+        % assign locations to AAL regions
+        for ilabel = 1 : max(sa.aal_label)
+          idx = sa.aal_label==ilabel;
+          outp.pow_aal(ilabel,ifreq) = mean(outp.pow(idx,ifreq),1);
+        end
+        
+      end
+      
+      save([outdir fn '.mat'],'outp')
+      tp_parallel(fn,outdir,0)
+      
+      clear outp
+    end
+  end
+end
+
+
+exit
+
+%%
+clear all_pow
+
+v = 33
+
+for isubj = SUBJLIST
+  isubj
   for m = 1 : 3
     im = find(ord(isubj,:)==m);
-    for isubj = SUBJLIST
-      for iblock = 1 : 2
-        load(sprintf([outdir 'pupmod_src_pow_s%d_m%d_f%d_b%d_v%d.mat'],isubj,im,ifoi,iblock,v));
-        
-        allpow(:,isubj,m,iblock) = pow;
+    for iblock = 1:2
+      
+      try
+      load(sprintf([outdir 'pupmod_src_pow_s%d_m%d_b%d_v%d'],isubj,m,iblock,v));
+      all_pow(:,isubj,m,iblock,:,1) = outp.pow_aal;
+      catch me
+        all_pow(:,isubj,m,iblock,:,1) = nan(91,17);
+      end
+      
+      try
+      load(sprintf([outdir 'pupmod_task_src_pow_s%d_m%d_b%d_v%d'],isubj,m,iblock,v));
+      all_pow(:,isubj,m,iblock,:,2) = outp.pow_aal;
+      catch me
+        all_pow(:,isubj,m,iblock,:,2) = nan(91,17);
       end
     end
   end
 end
 
-allpow= allpow(:,SUBJLIST,:,:)
-      
-  %%    
-      
-load /home/gnolte/meth/templates/sa_template.mat;
+all_pow = squeeze(nanmean(all_pow(:,SUBJLIST,:,:,:,:),4));
 
-pow = log10(nai)
-par = pow;
-para = [];
-para.clim = [min(pow) max(pow)];
-para.cmap = hot;
-para.grid = grid;
-para.dd = 0.75;
-para.fn = sprintf('~/test.png');
-tp_plot_surface(pow,para)
+
+k = 1 : 90;
+
+% exclude subcortical regions
+exclude_bcn = [11 15 21 36 37 38 39 52 53 54 55 70 76 80];
+include_bcn = find(~ismember(k,exclude_bcn));
+
+para          = [];
+para.transfer = 'to_bcn';
+para.N        = 90;
+[~,trans,lab]=tp_match_aal(para,rand(90,90));
+
+all_pow = all_pow(trans(:,2),:,:,:,:,:);
+all_pow = all_pow(include_bcn,:,:,:,:,:);
+
+[h,~,~,s] = ttest(nanmean(all_pow(:,:,1,6:9,2),4),nanmean(all_pow(:,:,1,6:9,1),4),'dim',2);
+
+task_idx = h;
+
+save(sprintf('~/pupmod/proc/src/pupmod_src_pow_taskmodulationindex_v%d.mat',v),'task_idx')
 
 

@@ -26,382 +26,115 @@ addpath ~/Documents/MATLAB/fieldtrip-20160919/; ft_defaults
 
 SUBJLIST  = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
 outdir = '~/pupmod/proc/sens/';
+ord    = pconn_randomization;
 %%
 for isubj = SUBJLIST
-  for m = 1:3
-    
-    if ~exist(sprintf([outdir 'pupmod_sens_peakfreq_s%d_m%d_v%d_processing.txt'],isubj,m,v))
-      system(['touch ' outdir sprintf('pupmod_sens_peakfreq_s%d_m%d_v%d_processing.txt',isubj,m,v)]);
-    else
-      continue
-    end
-    
-    for iblock =1:2
-      
-      fprintf('Processing s%d m%d b%d ...\n', isubj,m,iblock)
-
-      try
-        load(sprintf('~/pp/proc/pp_cnt_sens_cleandat_s%d_m%d_b%d_v%d.mat',isubj,m,iblock,1))
-      catch me
-        continue
-      end
-      out.cnt =0;
-      % TEST FILTER
-      % --------------------------
-%       all_idx = find(isnan(data.trial(1,:)));
-%       start = 1;
-%       while 1
-% %         
-%         if start == 1
-%           idx=find(isnan(data.trial(1,start:end)),1,'first');
-%         else
-%           idx=all_idx(find(all_idx>start,1,'first'));
-%           if isempty(idx)
-%             idx=size(data.trial,2);
-%           end
-%         end
-%         if isnan(data.trial(1,idx))
-%           tmp_dat = data.trial(:,start:idx-1);
-%         else
-%           tmp_dat = data.trial(:,start:idx);
-%         end
-%         
-%         if size(tmp_dat,2)<300
-%           warning('data short')
-%           data.trial(:,start:idx-1) = nan;
-%           out.cnt = out.cnt+1;
-%           while isnan(data.trial(1,idx))
-%             idx=idx+1;
-%             if idx==size(data.trial,2)
-%               break
-%             end
-%           end
-%           
-%           if idx==size(data.trial,2)
-%             break
-%           end
-%           start=idx;
-%           continue
-%         end
-%         
-%         clear mirr_dat
-%         
-%         mirr_dat=padarray(tmp_dat',800,'symmetric','both');       
-%         mirr_dat_filt = ft_preproc_highpassfilter(mirr_dat',400,2,4,'but');
-%         tmp_dat = mirr_dat_filt(:,801:size(mirr_dat_filt,2)-800);
-%         if isnan(data.trial(1,idx))
-%           data.trial(:,start:idx-1)=tmp_dat;
-%         else
-%           data.trial(:,start:idx)=tmp_dat;
-%         end
-%         
-%         while isnan(data.trial(1,idx))
-%           idx=idx+1;
-%           if idx==size(data.trial,2)
-%             break
-%           end
-%         end
-%         
-%         if idx==size(data.trial,2)
-%           break
-%         end
-%         start=idx;
-%       end
-%      % --------------------------
-      
-      dat = data.trial';
-      
-      if isempty(data.start_of_recording) && ~isempty(data.end_of_recording)
-        if (data.end_of_recording-600*data.fsample)<1
-          data.start_of_recording = 1;
-        else
-          data.start_of_recording = data.end_of_recording-600*data.fsample;
-        end
-      elseif ~isempty(data.start_of_recording) && isempty(data.end_of_recording)
-        if (data.start_of_recording+600*data.fsample)>size(data.trial,2)
-          data.end_of_recording = size(data.trial,2);
-        else
-          data.end_of_recording = data.start_of_recording+600*data.fsample;
-        end
-      elseif isempty(data.start_of_recording) && isempty(data.end_of_recording)
-        data.start_of_recording = 5000;
-        data.end_of_recording = 235000;
-      else
-        data.start_of_recording = 5000;
-        data.end_of_recording = 235000;
-      end
-      
-      dat = dat(data.start_of_recording:data.end_of_recording,:);
-      dat(isnan(dat(:,1)),:)=[];
-      
-      
-%       for ichan = 1 : size(dat,2)
-%                   ichan
-%         dx = abs(fft(dat(:,ichan))).^2; dx = dx(1:length(dx)/2+1);
-%         para.f = 0:400/size(dat,1):400/2;
-%         para.f_select = para.f >7 & para.f <13;
-%         para.method = method;
-%         para.detrend = 0;
-%         para.detrendfreq = [1 100];
-%         dx_resample = resample(dx,10,400);
-%         out.f = para.f(1:40:end);
-%         out.pow7_13hz(:,ichan) = dx_resample;
-%         [out.pf(ichan)] = tp_peakfreq(dx,para);
-%         
-%       end
-      
-%       dx = mean(abs(fft(dat)).^2,2);
-%       [out.pf_avg out.fun_avg] = tp_peakfreq(dx,para);
-      
-      [px,f]=pwelch(dat,hanning(4000),0.5,0:0.1:50,400,'power');
-      out.pwelch = px;
-      out.pwelchfreq = f;
-      
-      save(sprintf('~/pupmod/proc/sens/pupmod_sens_peakfreq_s%d_m%d_b%d_v%d.mat',isubj,m,iblock,v),'out');
-      
-      clear out dx_resample out.f
-      
-    end
-  end
-end
-
-% COMPUTE REST
-
-for isubj = SUBJLIST
-  for m = 1:3
-    
-    if ~exist(sprintf([outdir 'pupmod_rest_sens_peakfreq_s%d_m%d_v%d_processing.txt'],isubj,m,v))
-      system(['touch ' outdir sprintf('pupmod_rest_sens_peakfreq_s%d_m%d_v%d_processing.txt',isubj,m,v)]);
-    else
-      continue
-    end
-    
-    
-    for iblock = 1:2
-      
-       fprintf('Processing s%d m%d b%d ...\n', isubj,m,iblock)
-
-      try
-        load(sprintf('~/pp/proc/pp_sens_cleandat_s%d_m%d_b%d_v%d.mat',isubj,m,iblock,1))
-      catch me
-        out.cnt = 0;
-        %           out.pf =
-        %           save(sprintf([outdir 'pupmod_sens_peakfreq_s%d_m%d_b%d_f%d_v%d.mat'],isubj,m,iblock,ifoi,v),'powcorr');
-        continue
-      end
-      
-      % TEST FILTER
-      % --------------------------
-%       all_idx = find(isnan(data.trial(1,:)));
-%       start = 1;
-%       while 1
-% %         
-%         if start == 1
-%           idx=find(isnan(data.trial(1,start:end)),1,'first');
-%         else
-%           idx=all_idx(find(all_idx>start,1,'first'));
-%           if isempty(idx)
-%             idx=size(data.trial,2);
-%           end
-%         end
-%         if isnan(data.trial(1,idx))
-%           tmp_dat = data.trial(:,start:idx-1);
-%         else
-%           tmp_dat = data.trial(:,start:idx);
-%         end
-%         
-%         if size(tmp_dat,2)<300
-%           warning('data short')
-%           data.trial(:,start:idx-1) = nan;
-%           out.cnt = out.cnt+1;
-%           while isnan(data.trial(1,idx))
-%             idx=idx+1;
-%             if idx==size(data.trial,2)
-%               break
-%             end
-%           end
-%           start=idx;
-%           if idx==size(data.trial,2)
-%             break
-%           end
-%           continue
-%         end
-%         
-%         mirr_dat=padarray(tmp_dat',800,'symmetric','both');       
-%         mirr_dat_filt = ft_preproc_highpassfilter(mirr_dat',400,2,4,'but');
-%         tmp_dat = mirr_dat_filt(:,801:size(mirr_dat_filt,2)-800);
-% 
-%          if isnan(data.trial(1,idx))
-%           data.trial(:,start:idx-1)=tmp_dat;
-%         else
-%           data.trial(:,start:idx)=tmp_dat;
-%         end
-% 
-%         while isnan(data.trial(1,idx))
-%           idx=idx+1;
-%           if idx==size(data.trial,2)
-%             break
-%           end
-%         end
-%        
-%         if idx==size(data.trial,2)
-%           break
-%         end
-%          start=idx;
-%       end
-      % --------------------------
-      
-      dat = data.trial';
-      
-      if isempty(data.start_of_recording) && ~isempty(data.end_of_recording)
-        if (data.end_of_recording-600*data.fsample)<1
-          data.start_of_recording = 1;
-        else
-          data.start_of_recording = data.end_of_recording-600*data.fsample;
-        end
-      elseif ~isempty(data.start_of_recording) && isempty(data.end_of_recording)
-        if (data.start_of_recording+600*data.fsample)>size(data.trial,2)
-          data.end_of_recording = size(data.trial,2);
-        else
-          data.end_of_recording = data.start_of_recording+600*data.fsample;
-        end
-      elseif isempty(data.start_of_recording) && isempty(data.end_of_recording)
-        data.start_of_recording = 5000;
-        data.end_of_recording = 235000;
-      else
-        data.start_of_recording = 5000;
-        data.end_of_recording = 235000;
-      end
-      
-      dat = dat(data.start_of_recording:data.end_of_recording,:);
-      dat(isnan(dat(:,1)),:)=[];
-      
-%       for ichan = 1 : size(dat,2)
-%                   ichan
-%         dx = abs(fft(dat(:,ichan))).^2; dx = dx(1:length(dx)/2+1);
-%         para.f = 0:400/size(dat,1):400/2;
-%         para.f_select = para.f >7 & para.f <13;
-%         para.method = 'gaussian';
-%         para.detrend = 0;
-%         para.detrendfreq = [1 100];
-%         dx_resample = resample(dx,10,400);
-%         out.f = para.f(1:40:end);
-%         out.pow7_13hz(:,ichan) = dx_resample;
-%         [out.pf(ichan)] = tp_peakfreq(dx,para);
-%         
-%       end
-      
-%       dx = mean(abs(fft(dat)).^2,2);
-%       [out.pf_avg out.fun_avg] = tp_peakfreq(dx,para);
-      
-       [px,f]=pwelch(dat,hanning(4000),0.5,0:0.1:50,400,'power');
-      out.pwelch = px;
-      out.pwelchfreq = f;
-      save(sprintf('~/pupmod/proc/sens/pupmod_rest_sens_peakfreq_s%d_m%d_b%d_v%d.mat',isubj,m,iblock,v),'out');
-      
-      clear out
-      
-    end
-  end
-end
-
-
-%%
-addpath ~/pconn/matlab
-clear pf_all pf_avg_all pow
-SUBJLIST  = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
-clear ps 
-v = 2
-ord = pconn_randomization;
-for isubj = SUBJLIST
+  
   isubj
-  for m = 1 : 3
-    for iblock = 1 : 2
-      im = find(ord(isubj,:)==m);
-      try
-        load(sprintf('~/pupmod/proc/sens/pupmod_sens_peakfreq_s%d_m%d_b%d_v%d.mat',isubj,im,iblock,v))
-%         
-%         ii = 0; cnt=1; clear ff
-%         while 1        
-%           if isempty(find(out.f>0+ii&out.f<0.2+ii))
-%             break
-%           elseif (out.f>0+ii)>=200
-%             break
-%           end
-%           ff(cnt)=mean(mean(out.pow7_13hz(out.f>0+ii&out.f<0.2+ii,:),2));
-%           cnt = cnt+1;
-%           ii=ii+0.2;
-%         end
-
-          pow(:,isubj,m,2,iblock)=mean(out.pwelch,2);
-%         if size(out.pf,2)==274
-%           pf_all(:,isubj,m,2,iblock) = out.pf;
-%         else
-%           pf_all(:,isubj,m,2,iblock) = pconn_sens_interp274_alena(isubj,out.pf,im);
-%         end
-%         pf_avg_all(isubj,m,2,iblock) = out.pf_avg;
-%          [~,i]=max(smoothdata(mean(out.pow7_13hz(para.f>8&para.f<12),1),'gaussian', 30));
-%         k=para.f(para.f>8&para.f<12);
-%         pf_new(isubj,m,2,iblock) = k(i);
-%         pow(:,isubj,m,2,iblock)=ff;
-      catch me
-%         pf_all(:,isubj,m,2,iblock) = nan(274,1);
-%         pf_avg_all(isubj,m,2,iblock)  = nan;
-%         pf_new(isubj,m,2,iblock) =nan;
-%         pow(isubj,m,2,iblock)=nan;
-pow(:,isubj,m,2,iblock)=nan(501,1);
+  
+  m = find(ord(isubj,:)==1);
+  
+  if ~exist(sprintf([outdir 'pupmod_sens_peakfreq_s%d_m%d_v%d_processing.txt'],isubj,m,v))
+    system(['touch ' outdir sprintf('pupmod_sens_peakfreq_s%d_m%d_v%d_processing.txt',isubj,m,v)]);
+  else
+    continue
+  end
+  
+  for iblock =1:2
+    
+    
+    % ------------
+    % Load sensor level data
+    % ------------
+    try
+      load(sprintf('~/pupmod/proc/sens/pupmod_rest_sens_cleandat_s%d_m%d_b%d_v%d.mat',isubj,m,iblock,1))
+    catch me
+      if ~exist(sprintf('~/pupmod/proc/pupmod_rest_sens_cleandat_s%d_m%d_b%d_v%d.mat',isubj,m,iblock,1))
+        if strcmp(grid,'cortex_lowres')
+          powcorr(:,:,iblock,1:length(foi_range)) = nan(400,400,2,length(foi_range));
+        elseif strcmp(grid,'aal_6mm')
+          powcorr(:,:,iblock,1:length(foi_range)) = nan(90,90,2,length(foi_range));
+        end
+        continue
+      else
+        error('Data corrupt?')
       end
-
-%       end
     end
     
-    for iblock = 1 : 2
-      try
-        load(sprintf('~/pupmod/proc/sens/pupmod_rest_sens_peakfreq_s%d_m%d_b%d_v%d.mat',isubj,im,iblock,v));
-        
-%         ii = 0; cnt=1; clear ff
-%         while 1        
-%           if isempty(find(out.f>0+ii&out.f<0.2+ii))
-%             break
-%           elseif (out.f>0+ii)>=200
-%             break
-%           end
-%           ff(cnt)=mean(mean(out.pow7_13hz(out.f>0+ii&out.f<0.2+ii,:),2));
-%           cnt = cnt+1;
-%           ii=ii+0.2;
-%         end
-pow(:,isubj,m,1,iblock)=mean(out.pwelch,2);
-%         pow(:,isubj,m,1,iblock)=ff;
-%         if size(out.pf,2)==274
-%           pf_all(:,isubj,m,1,iblock) = out.pf;
-%           ps(:,isubj,m,1,iblock) = mean(out.pow7_13hz,2);
-%         else
-%           pf_all(:,isubj,m,1,iblock) = pconn_sens_interp274_alena(isubj,out.pf,im);
-%           ps(:,isubj,m,1,iblock) = pconn_sens_interp274_alena(isubj,mean(out.pow7_13hz,2),im);
-%         ps(:,isubj,m,1,iblock) = mean(out.pow7_13hz,2);
-%         end
-%         pf_avg_all(isubj,m,1,iblock) = out.pf_avg;
-%          [~,i]=max(smoothdata(mean(out.pow7_13hz(para.f>8&para.f<12),1),'gaussian', 30));
-%         k=para.f(para.f>8&para.f<12);
-%         pf_new(isubj,m,1,iblock) = k(i);
-
-
-%         for 
-%         pow(:,isubj,m,1,iblock)=nanmean(out.pow7_13hz(1:1500,:),2);
-      catch me
-%         pf_all(:,isubj,m,2,iblock) = nan(274,1);
-%         pf_avg_all(isubj,m,2,iblock)  = nan;
-%         pf_new(isubj,m,2,iblock) =nan;
-%         pow(isubj,m,2,iblock)=nan;
-pow(:,isubj,m,1,iblock)=nan(501,1);
-      end
-      clear out
-    end
+    dat = dat(:,~isnan(dat(1,:)));
+    
+    [px,f]=pwelch(dat',hanning(4000),0.5,5:0.01:15,400,'power');
+    out.pwelch(:,:,iblock) = px;
+    out.pwelchfreq = f;
+    
   end
+  
+  save(sprintf('~/pupmod/proc/sens/pupmod_rest_sens_peakfreq_s%d_v%d.mat',isubj,v),'out')
+  
+  clear out dat
+  
+  for iblock =1:2
+    
+    % ------------
+    % Load sensor level data
+    % ------------
+    try
+      load(sprintf('~/pupmod/proc/sens/pupmod_task_sens_cleandat_s%d_m%d_b%d_v%d.mat',isubj,m,iblock,1))
+    catch me
+      if ~exist(sprintf('~/pupmod/proc/pupmod_task_sens_cleandat_s%d_m%d_b%d_v%d.mat',isubj,m,iblock,1))
+        if strcmp(grid,'cortex_lowres')
+          powcorr(:,:,iblock,1:length(foi_range)) = nan(400,400,1,length(foi_range));
+        elseif strcmp(grid,'aal_6mm')
+          powcorr(:,:,iblock,1:length(foi_range)) = nan(90,90,1,length(foi_range));
+        end
+        continue
+      else
+        error('Data corrupt?')
+      end
+    end
+    
+    
+    dat = dat(:,~isnan(dat(1,:)));
+    
+    [px,f]=pwelch(dat',hanning(4000),0.5,5:0.01:15,400,'power');
+    out.pwelch(:,:,iblock) = px;
+    out.pwelchfreq = f;
+    
+  end
+  
+  save(sprintf('~/pupmod/proc/sens/pupmod_task_sens_peakfreq_s%d_v%d.mat',isubj,v),'out')
+  clear out dat
+  
 end
 
-pf_all = nanmean(pf_all(:,SUBJLIST,:,:,:),5);
-pf_avg_all= nanmean(pf_avg_all(SUBJLIST,:,:,:),4);
+%% PLOT
+
+
+for isubj = SUBJLIST
+      
+  load(sprintf('~/pupmod/proc/sens/pupmod_rest_sens_peakfreq_s%d_v%d.mat',isubj,v),'out')
+  
+  for iblock = 1 : 2
+    pxx(:,1,isubj,iblock) = smooth(nanmean(out.pwelch(:,:,iblock),2),20);
+  end
+    
+  load(sprintf('~/pupmod/proc/sens/pupmod_task_sens_peakfreq_s%d_v%d.mat',isubj,v),'out')
+
+  for iblock = 1 : 2
+    pxx(:,2,isubj,iblock) = smooth(nanmean(out.pwelch(:,:,iblock),2),20);
+  end
+  
+end
+
+pxx = nanmean(pxx(:,:,SUBJLIST,:),4);
+
+for i = 1 : size(pxx,3)
+  
+  [~,imax(i,1)]=max(pxx(out.pwelchfreq>7 & out.pwelchfreq<13,1,i));
+  [~,imax(i,2)]=max(pxx(out.pwelchfreq>7 & out.pwelchfreq<13,2,i));
+  
+end
+
 
 %% PLOT AVERAGE POWER SPECTRUM (ACROSS SUBJECTS)
 smo = 20;
@@ -421,22 +154,22 @@ all_idx1 = randi(2,[size(SUBJLIST,2),nperm]);
 
 for iperm = 1 : nperm
   
-    idx1 = all_idx1(:,iperm);
-    idx2 = 3-idx1;
-    
-    for i = 1 : length(idx1)
-      permpow(:,i,1) = pow(:,i,1,idx1(i));
-      permpow(:,i,2) = pow(:,i,1,idx2(i));     
-    end
-    
-    idx=out.pwelchfreq>7&out.pwelchfreq<14;
-    [~,i1]=max(smooth(mean(permpow(idx,:,1),2),smo));
-    [~,i2]=max(smooth(mean(permpow(idx,:,2),2),smo));
-    ff=out.pwelchfreq(idx);
-    
-    perm_pf(iperm,1)=ff(i1);
-    perm_pf(iperm,2)=ff(i2);
-    
+  idx1 = all_idx1(:,iperm);
+  idx2 = 3-idx1;
+  
+  for i = 1 : length(idx1)
+    permpow(:,i,1) = pow(:,i,1,idx1(i));
+    permpow(:,i,2) = pow(:,i,1,idx2(i));
+  end
+  
+  idx=out.pwelchfreq>7&out.pwelchfreq<14;
+  [~,i1]=max(smooth(mean(permpow(idx,:,1),2),smo));
+  [~,i2]=max(smooth(mean(permpow(idx,:,2),2),smo));
+  ff=out.pwelchfreq(idx);
+  
+  perm_pf(iperm,1)=ff(i1);
+  perm_pf(iperm,2)=ff(i2);
+  
 end
 
 
@@ -464,7 +197,7 @@ tmp_fc = nanmean(nanmean(fc(:,:,:,:,2,ifoi,iblock),7),6);
 d_beh = nanmean(behav_cnt(ipharm,:,iblock)-behav_cnt(1,:,iblock),3);
 d_pf = nanmean(b(:,ipharm,iblock)-b(:,1,iblock),3);
 d_meg = squeeze(nanmean(nanmean(nanmean(nanmean(fc(:,:,:,ipharm,2,ifoi,iblock),1),2),6),7)-nanmean(nanmean(nanmean(nanmean(fc(:,:,:,1,2,ifoi,iblock),1),2),7),6));
-% 
+%
 % d_beh = (nanmean(behav_cnt(ipharm,:,iblock)-behav_cnt(1,:,iblock),3))./nanmean(behav_cnt(1,:,iblock),3);
 % d_pf = (nanmean(b(:,ipharm,iblock)-b(:,1,iblock),3))./nanmean(b(:,1,iblock),3);
 % d_meg = (nanmean(reshape(tmp_fc(:,:,:,ipharm),[400*400 28]))-nanmean(reshape(tmp_fc(:,:,:,1),[400*400 28])))./nanmean(reshape(tmp_fc(:,:,:,1),[400*400 28]));
@@ -474,7 +207,7 @@ nan_idx = ~isnan(d_pf(:)) & ~isnan(d_beh(:));
 
 figure; set(gcf,'color','w');
 subplot(1,2,1);
-scatter(d_beh,d_pf,50,'markerfacecolor','k','markeredgecolor','w'); 
+scatter(d_beh,d_pf,50,'markerfacecolor','k','markeredgecolor','w');
 xlabel('\DeltaSwitches'); ylabel('\DeltaPeak frequency [Hz]');
 tp_editplots; axis square; lsline
 [r,p]=corr(d_beh(nan_idx)',d_pf(nan_idx))
@@ -482,7 +215,7 @@ text(-38,-0.7,sprintf('r=%.3f\np=%.3f',r,p),'fontsize',7)
 
 
 subplot(1,2,2);
-scatter(d_meg,d_pf,50,'markerfacecolor','k','markeredgecolor','w'); 
+scatter(d_meg,d_pf,50,'markerfacecolor','k','markeredgecolor','w');
 xlabel('\DeltaFC'); ylabel('\DeltaPeak frequency [Hz]');
 tp_editplots; axis square; lsline
 [r,p]=corr(d_meg(nan_idx),d_pf(nan_idx))
@@ -503,14 +236,14 @@ nan_idx = ~isnan(d_pf(:)) & ~isnan(d_beh(:));
 
 figure; set(gcf,'color','w');
 subplot(1,2,1);
-scatter(d_beh,d_pf); 
+scatter(d_beh,d_pf);
 xlabel('\DeltaSwitches'); ylabel('\DeltaPeak frequency [Hz]');
 tp_editplots; axis square; lsline
 [r,p]=corr(d_beh(nan_idx)',d_pf(nan_idx))
 text(2,8.8,sprintf('r=%.3f\np=%.3f',r,p),'fontsize',7)
 
 subplot(1,2,2);
-scatter(d_meg,d_pf); 
+scatter(d_meg,d_pf);
 xlabel('\DeltaFC'); ylabel('\DeltaPeak frequency [Hz]');
 tp_editplots; axis square; lsline
 [r,p]=corr(d_meg(nan_idx),d_pf(nan_idx))
