@@ -336,6 +336,8 @@ for i = 1 : 28
   line([1+randnumb(i) 2+randnumb(i)],[pf(i,1,1) pf(i,3,1)],'color',greys(i,:))
 end
 
+[~,p,~,s]=ttest(pf(:,3,1),pf(:,1,1),'tail',1)
+
 line([0.6 1.4],[nanmean(pf(:,1,1)) nanmean(pf(:,1,1))],'color','k','linewidth',2)
 line([1.6 2.4],[nanmean(pf(:,3,1)) nanmean(pf(:,3,1))],'color','r','linewidth',2)
 
