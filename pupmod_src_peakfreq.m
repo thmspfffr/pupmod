@@ -196,7 +196,7 @@ v = 33;
 
 fxx = 3:0.05:40;
 
-alpha_idx = fxx>8 & fxx<12;
+alpha_idx = fxx>7 & fxx<13;
 
 SUBJLIST        = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
 ord    = pconn_randomization;
@@ -237,7 +237,7 @@ end
 all_pow = squeeze(all_pow(:,include_bcn,SUBJLIST,:,:,:));
 all_pow2 = squeeze(all_pow2(:,include_bcn,SUBJLIST,:,:,:));
 
-all_pow = all_pow(:,find(task_idx),:,:,:,:);
+all_pow = all_pow(:,:,:,:,:,:);
 alpha_idx=find(alpha_idx);
 
 
@@ -248,36 +248,29 @@ for isubj = 1 : 28
   isubj
   for icond = 1 : 2
     for im =1 :3
-        for ireg = 1 : size(all_pow,2)
-%         findpeaks(all_pow(alpha_idx,isubj,im,icond,iblock))
-        [mag,loc]=findpeaks(nanmean(all_pow(alpha_idx,ireg,isubj,im,icond,iblock),6));
-
-%         if isempty(mag)
-%           
-%           plot(nanmean(all_pow(:,ireg,isubj,im,icond,iblock),6))
-%           ireg
-%         end
-  %       sum((mag./sum(mag)) .* fxx(alpha_idx(loc))',1)
-  %       m = loc(find(sum(mag>mag',2)==(length(mag)-1)));
-  %       tmp = find(alpha_idx); 
-        if ~isempty(mag)
-          pf(ireg,isubj,im,icond) = sum((mag./sum(mag)) .* fxx(alpha_idx(loc))',1);
-        else
-          pf(ireg,isubj,im,icond) = nan;
+      for ireg = 1 : size(all_pow,2)
+        for iblock = 1 : 2
+          
+          [mag,loc]=findpeaks(nanmean(all_pow(alpha_idx,ireg,isubj,im,icond,iblock),6));
+          if ~isempty(mag)
+            pf(ireg,isubj,im,icond,iblock) = sum((mag./sum(mag)) .* fxx(alpha_idx(loc))',1);
+          else
+            pf(ireg,isubj,im,icond,iblock) = nan;
+          end
+          
         end
       end
     end
   end
-  
 end
 
 idx=find(sum(~isnan(pf(:,:,1,1)),2)==28)
 
-pf = squeeze(nanmean(pf(:,:,:,:),1));
+pf = squeeze(nanmean(nanmean(pf,1),5));
 
 marker = 4;
 
-pf=nanmean(pf,4);
+% pf=nanmean(pf,4);
 
 randnumb = (rand(28,1)-0.5)/3;
 %%
@@ -367,7 +360,7 @@ print(gcf,'-dpdf',sprintf('~/pupmod/plots/pupmod_peakfreq_v%d.pdf',v))
 diff_pf = pf(:,1,2)-pf(:,1,1);
 fc = pupmod_loadpowcorr(33,SUBJLIST,1);
 
-tmp=squeeze(nanmean(nanmean(fc(:,:,:,2,2,3),2),6)-nanmean(nanmean(fc(:,:,:,1,2,3),2),6))
+tmp=squeeze(nanmean(nanmean(fc(:,:,:,2,2,3:6),2),6)-nanmean(nanmean(fc(:,:,:,1,2,3:6),2),6))
 
 clear diff_atx
 for isubj = 1 : 28
