@@ -1,31 +1,37 @@
 %% PLOT NUMBER OF ALTERED CORRELATIONS, INCLUDING STATISTICS
-% --------------------------
+% ----------------------------------------
 % This script obtains the empircal number of altered correlations, by
 % calling pupmod_compute_altered_correlations.m and obtains a corrected 
 % p-values from a permutation distribution (computed in
 % pupmod_src_powcorr_permtest.m). The actual p-values are obtained calling
 % the function pupmod_all_powcorr_getstatistics.m)
-% --------------------------
+% ----------------------------------------
 % CONTENTS
-% --------------
+% ----------------------------------------
 % (1) PLOT: P-Values (corrected) 
 % (2) PLOT: Altered correlations
 % (4) Plot altered correlations (per voxel)
-% -------------
+% ----------------------------------------
 
 clear
 
-% -------------
+% ----------------------------------------
 % version of cleaned data: 
 % v1: cortex 400 vertices, v2: 400 vertices (cortex)
-% -------------
+% ----------------------------------------
 v = 3;
-% -------------
+% ----------------------------------------
 %%
-SUBJLIST        = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
+% ----------------------------------------
+% Load FC matrices 
+% ----------------------------------------
+SUBJLIST  = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
+fc        = pupmod_loadpowcorr(v,SUBJLIST,1);
+% ----------------------------------------
 
-fc = pupmod_loadpowcorr(1,SUBJLIST,1);
-
+% ----------------------------------------
+% Compute fracition of altered correlations 
+% ----------------------------------------
 para = [];
 if v < 5
 para.nfreq = 1:17;
@@ -35,10 +41,13 @@ end
 para.alpha = 0.05;
 
 emp = pupmod_compute_altered_correlations(fc,para);
+% ----------------------------------------
 
 
 %% GET STATISTICS 
-
+% Obtain results from permutation test
+% Computed in ****
+% ----------------------------------------
 if ~exist(sprintf('~/pupmod/proc/pupmod_src_powcorr_alteredcorr_v%d.mat',v))
   % Settings:
   para = [];
@@ -53,9 +62,7 @@ if ~exist(sprintf('~/pupmod/proc/pupmod_src_powcorr_alteredcorr_v%d.mat',v))
   para.emp = emp;
   
   outp_atx = pupmod_src_powcorr_getstatistics(para);
-  
   save(sprintf('~/pupmod/proc/pupmod_src_powcorr_alteredcorr_v%d.mat',v),'outp_atx','emp')
-
 else
   load(sprintf('~/pupmod/proc/pupmod_src_powcorr_alteredcorr_v%d.mat',v))
 end
@@ -100,6 +107,8 @@ alpha3 = 0.001;
 figure; set(gcf,'color','w')
 
 subplot(5,4,1); hold on
+
+shadedErrorBar(freq_start:nfreq,emp.n_p_atx(freq_start:nfreq,1),[outp_atx.percentiles_atx_pos(2,:,1); outp_atx.percentiles_atx_pos(1,:,1)],'k')
 plot(freq_start:nfreq,emp.n_p_atx(freq_start:nfreq,1),'k-','linewidth',0.75)
 plot(freq_start:nfreq,emp.n_n_atx(freq_start:nfreq,1),':','linewidth',0.75,'color',[.44 .44 .44])
 if v < 5

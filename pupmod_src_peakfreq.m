@@ -177,6 +177,27 @@ end
 
 exit
 
+%%
+fc_tmp = pupmod_loadpowcorr(33,SUBJLIST,1);
+fc_tmp=nanmean(fc_tmp(:,:,:,:,:,3:6),6);
+
+para          = [];
+para.transfer = 'to_bcn';
+para.N        = 90;
+
+for isubj = 1 : 28
+  for im = 1 : 3
+    for icond = 1 : 2
+      tmp = squeeze(fc_tmp(:,:,isubj,im,icond));
+      tmp = tp_match_aal(para,tmp); 
+      fc(:,:,isubj,im,icond) = tmp(include_bcn,include_bcn);
+    end
+  end
+end
+ 
+[h_atx,p]=ttest(squeeze(nanmean(fc(:,:,:,2,2),1)),squeeze(nanmean(fc(:,:,:,1,2),1)),'dim',2)
+[h_dpz,p]=ttest(squeeze(nanmean(fc(:,:,:,3,1),1)),squeeze(nanmean(fc(:,:,:,1,1),1)),'dim',2)
+
 %% LOAD FOOOF RESULST (from pupmod_src_fooof.py)
 para          = [];
 para.transfer = 'to_bcn';
@@ -195,8 +216,8 @@ include_bcn = find(~ismember(k,exclude_bcn));
 v = 33;
 
 fxx = 3:0.05:40;
+alpha_idx = fxx>6 & fxx<14;
 
-alpha_idx = fxx>7 & fxx<13;
 
 SUBJLIST        = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
 ord    = pconn_randomization;
@@ -242,6 +263,7 @@ alpha_idx=find(alpha_idx);
 
 
 %% FIND PEAK
+
 clear pf
 
 for isubj = 1 : 28
@@ -251,8 +273,9 @@ for isubj = 1 : 28
       for ireg = 1 : size(all_pow,2)
         for iblock = 1 : 2
           
-          [mag,loc]=findpeaks(nanmean(all_pow(alpha_idx,ireg,isubj,im,icond,iblock),6));
+          [mag,loc]=findpeaks(squeeze(nanmean(all_pow(alpha_idx,ireg,isubj,im,icond,iblock),6)));
           if ~isempty(mag)
+%             pf(ireg,isubj,im,icond,iblock) = fxx(alpha_idx(loc(sum((mag./mag')>=1)==length(mag))));
             pf(ireg,isubj,im,icond,iblock) = sum((mag./sum(mag)) .* fxx(alpha_idx(loc))',1);
           else
             pf(ireg,isubj,im,icond,iblock) = nan;
@@ -266,11 +289,50 @@ end
 
 idx=find(sum(~isnan(pf(:,:,1,1)),2)==28)
 
-pf = squeeze(nanmean(nanmean(pf,1),5));
+pf = squeeze(nanmean(pf,1));
 
+figure_w;
+subplot(2,3,1); 
+scatter(pf(:,1,1,1),pf(:,1,1,2),40,'markeredgecolor','w','markerfacecolor','k')
+tp_editplots; axis equal square; xlabel('Peak freq. (Block 1) [Hz]'); ylabel('Peak freq. (Block 2) [Hz]')
+axis([8 12 8 12]); lsline
+[r,p]=corr(pf(:,1,1,1),pf(:,1,1,2));
+text(8.3,11.6,sprintf('r = %.3f | p = %.3f',r,p),'fontsize',6)
+
+subplot(2,3,2); 
+scatter(pf(:,2,1,1),pf(:,2,1,2),40,'markeredgecolor','w','markerfacecolor','k')
+tp_editplots; axis equal square; xlabel('Peak freq. (Block 1) [Hz]'); ylabel('Peak freq. (Block 2) [Hz]')
+axis([8 12 8 12]); lsline
+[r,p]=corr(pf(:,2,1,1),pf(:,2,1,2));
+text(8.3,11.6,sprintf('r = %.3f | p = %.3f',r,p),'fontsize',6)
+
+subplot(2,3,3); 
+scatter(pf(:,3,1,1),pf(:,3,1,2),40,'markeredgecolor','w','markerfacecolor','k')
+tp_editplots; axis equal square; xlabel('Peak freq. (Block 1) [Hz]'); ylabel('Peak freq. (Block 2) [Hz]')
+axis([8 12 8 12]); lsline
+[r,p]=corr(pf(:,3,1,1),pf(:,3,1,2));
+text(8.3,11.6,sprintf('r = %.3f | p = %.3f',r,p),'fontsize',6)
+
+pf=nanmean(pf,4);
+
+subplot(2,3,4); 
+scatter(pf(:,2,1)-pf(:,1,1),pf(:,2,2)-pf(:,1,2),40,'markeredgecolor','w','markerfacecolor','k')
+tp_editplots; axis equal square; xlabel('Peak freq. (Block 1) [Hz]'); ylabel('Peak freq. (Block 2) [Hz]')
+axis([-1.5 1.5 -1.5 1.5]); lsline
+[r,p]=corr(pf(:,2,1)-pf(:,1,1),pf(:,2,2)-pf(:,1,2));
+text(-1.3,1.3,sprintf('r = %.3f | p = %.3f',r,p),'fontsize',6)
+
+subplot(2,3,5); 
+scatter(pf(:,3,1)-pf(:,1,1),pf(:,3,2)-pf(:,1,2),40,'markeredgecolor','w','markerfacecolor','k')
+tp_editplots; axis equal square; xlabel('Peak freq. (Block 1) [Hz]'); ylabel('Peak freq. (Block 2) [Hz]')
+axis([-1.5 1.5 -1.5 1.5]); lsline
+[r,p]=corr(pf(:,3,1)-pf(:,1,1),pf(:,3,2)-pf(:,1,2));
+text(-1.3,1.3,sprintf('r = %.3f | p = %.3f',r,p),'fontsize',6)
+
+
+print(gcf,'-dpdf',sprintf('~/pupmod/plots/pupmod_peakfreq_controls_v%d.pdf',v))
 marker = 4;
 
-% pf=nanmean(pf,4);
 
 randnumb = (rand(28,1)-0.5)/3;
 %%
@@ -283,7 +345,18 @@ subplot(3,2,2); hold on
 
 plot(fxx,nanmean(nanmean(nanmean(all_pow(:,:,:,1,1,:),2),3),6),'k:')
 plot(fxx,nanmean(nanmean(nanmean(all_pow(:,:,:,1,2,:),2),3),6),'k-')
+plot(fxx,nanmean(nanmean(nanmean(all_pow(:,:,:,3,1,:),2),3),6),'k-')
+
+[~,k1]=max(nanmean(nanmean(nanmean(all_pow(alpha_idx,:,:,1,1,:),2),3),6));
+[~,k2]=max(nanmean(nanmean(nanmean(all_pow(alpha_idx,:,:,1,2,:),2),3),6));
+[~,k3]=max(nanmean(nanmean(nanmean(all_pow(alpha_idx,:,:,3,1,:),2),3),6));
+
+line([fxx(alpha_idx(k1)) fxx(alpha_idx(k1))],[0 0.5],'color','k','linestyle',':')
+line([fxx(alpha_idx(k2)) fxx(alpha_idx(k2))],[0 0.5],'color','k','linestyle','-')
+line([fxx(alpha_idx(k3)) fxx(alpha_idx(k3))],[0 0.5],'color','b','linestyle','-')
+
 tp_editplots; axis square
+axis([9 12 0 0.4])
 
 subplot(3,2,1); hold on
 
@@ -296,7 +369,7 @@ end
 line([0.6 1.4],[nanmean(pf(:,1,1)) nanmean(pf(:,1,1))],'color','k','linewidth',2)
 line([1.6 2.4],[nanmean(pf(:,1,2)) nanmean(pf(:,1,2))],'color','r','linewidth',2)
 
-axis([0 3 8 12]); axis square; tp_editplots; ylabel('Peak frequency'); xlabel('Rest / Task')
+axis([0 3 6 14]); axis square; tp_editplots; ylabel('Peak frequency'); xlabel('Rest / Task')
 
 [~,p,~,s]=ttest(pf(:,1,2),pf(:,1,1),'tail',1)
 
@@ -311,7 +384,7 @@ end
 line([0.6 1.4],[nanmean(pf(:,1,1)) nanmean(pf(:,1,1))],'color','k','linewidth',2)
 line([1.6 2.4],[nanmean(pf(:,2,1)) nanmean(pf(:,2,1))],'color','r','linewidth',2)
 
-axis([0 3 8 12]);  axis square; tp_editplots; ylabel('Peak frequency'); xlabel('Pbo / Atx')
+axis([0 3 6 14]); axis square; tp_editplots; ylabel('Peak frequency'); xlabel('Rest / Task')
 
 subplot(3,2,4); hold on
 
@@ -324,7 +397,7 @@ end
 line([0.6 1.4],[nanmean(pf(:,1,2)) nanmean(pf(:,1,2))],'color','k','linewidth',2)
 line([1.6 2.4],[nanmean(pf(:,2,2)) nanmean(pf(:,2,2))],'color','r','linewidth',2)
 
-axis([0 3 8 12]);  axis square; tp_editplots; ylabel('Peak frequency'); xlabel('Pbo / Atx')
+axis([0 3 6 14]); axis square; tp_editplots; ylabel('Peak frequency'); xlabel('Rest / Task')
 
 [~,p,~,s]=ttest(pf(:,2,2),pf(:,1,2),'tail',-1)
 
@@ -336,12 +409,12 @@ for i = 1 : 28
   line([1+randnumb(i) 2+randnumb(i)],[pf(i,1,1) pf(i,3,1)],'color',greys(i,:))
 end
 
-[~,p,~,s]=ttest(pf(:,3,1),pf(:,1,1),'tail',1)
+[~,p,~,s]=ttest(pf(:,3,1),pf(:,1,1),'tail',-1)
 
 line([0.6 1.4],[nanmean(pf(:,1,1)) nanmean(pf(:,1,1))],'color','k','linewidth',2)
 line([1.6 2.4],[nanmean(pf(:,3,1)) nanmean(pf(:,3,1))],'color','r','linewidth',2)
 
-axis([0 3 8 12]);  axis square; tp_editplots; ylabel('Peak frequency'); xlabel('Pbo / Dpz')
+axis([0 3 6 14]); axis square; tp_editplots; ylabel('Peak frequency'); xlabel('Rest / Task')
 
 subplot(3,2,6); hold on
 for i = 1 : 28
@@ -352,7 +425,7 @@ end
 line([0.6 1.4],[nanmean(pf(:,1,2)) nanmean(pf(:,1,2))],'color','k','linewidth',2)
 line([1.6 2.4],[nanmean(pf(:,3,2)) nanmean(pf(:,3,2))],'color','r','linewidth',2)
 
-axis([0 3 8 12]);  axis square; tp_editplots; ylabel('Peak frequency'); xlabel('Pbo / Dpz')
+axis([0 3 6 14]); axis square; tp_editplots; ylabel('Peak frequency'); xlabel('Rest / Task')
 
   
 print(gcf,'-dpdf',sprintf('~/pupmod/plots/pupmod_peakfreq_v%d.pdf',v))
