@@ -107,8 +107,6 @@ alpha3 = 0.001;
 figure; set(gcf,'color','w')
 
 subplot(5,4,1); hold on
-
-shadedErrorBar(freq_start:nfreq,emp.n_p_atx(freq_start:nfreq,1),[outp_atx.percentiles_atx_pos(2,:,1); outp_atx.percentiles_atx_pos(1,:,1)],'k')
 plot(freq_start:nfreq,emp.n_p_atx(freq_start:nfreq,1),'k-','linewidth',0.75)
 plot(freq_start:nfreq,emp.n_n_atx(freq_start:nfreq,1),':','linewidth',0.75,'color',[.44 .44 .44])
 if v < 5

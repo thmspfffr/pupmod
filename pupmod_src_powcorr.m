@@ -5,11 +5,11 @@ clear all
 % --------------------------------------------------------
 % VERSION 1 - alpha0 = 0.05 
 % --------------------------------------------------------
-v         = 1;
-SUBJLIST  = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
-grid      = 'cortex_lowres';
-foi_range = 2.^(2:.25:6);
-REG       = 0.05;
+% v         = 1;
+% SUBJLIST  = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
+% grid      = 'cortex_lowres';
+% foi_range = 2.^(2:.25:6);
+% REG       = 0.05;
 % --------------------------------------------------------
 % VERSION 2 - alpha0 = 0.15
 % --------------------------------------------------------
@@ -21,11 +21,11 @@ REG       = 0.05;
 % --------------------------------------------------------
 % VERSION 3 - alpha0 = 0.3 (version in main figures of the paper)
 % --------------------------------------------------------
-% v         = 3;
-% SUBJLIST  = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
-% grid      = 'cortex_lowres';
-% foi_range = 2.^(2:.25:6);
-% REG       = 0.3;
+v         = 3;
+SUBJLIST  = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
+grid      = 'cortex_lowres';
+foi_range = 2.^(2:.25:6);
+REG       = 0.3;
 % --------------------------------------------------------
 % VERSION 4 - alpha0 = 1.0
 % --------------------------------------------------------
@@ -100,30 +100,41 @@ for isubj = SUBJLIST
         % ------------
         para          = [];
         para.freq     = foi_range(ifoi);
-        para.fsample  = 400;           
-        cs            = tp_compute_csd_wavelets(dat,para);
+        para.fsample  = 400; 
+        para.overlap  = 0.5;
+        [cs, dataf]   = tp_compute_csd_wavelets(dat,para);
         % ------------
         % Compute spatial filter (LCMV)
         % ------------
         para          = [];
         para.reg      = REG;
         filt          = tp_beamformer(real(cs),eval(sprintf('sa.sa.L_%s',grid)),para);   
+         % ------------
+        % Compute Kuramoto order parameter 
+        % ------------
+        dataf = dataf'*filt;
+        phase = angle(dataf);
+        kuramoto.R{ifoi}      = abs(sum(exp(1i*phase),2))/size(dataf,2);
+        kuramoto.Rsd(ifoi)    = std(kuramoto.R{ifoi});
+        kuramoto.Rmean(ifoi)  = mean(kuramoto.R{ifoi});
         % ------------
         % Compute orthogonalized power enevelope correlations 
         % ------------
         para            = [];
         para.fsample    = 400;
         para.freq       = foi_range(ifoi);
+        para.overlap    = 0.5; 
         [powcorr(:,:,iblock,ifoi), variance(:,iblock,ifoi)] = tp_data2orthopowcorr_wavelet(dat,filt,para);
         % ------------
-        clear cs para filt
+        clear cs para filt 
 
       end 
     end
     
     save(sprintf([outdir 'pupmod_src_variance_s%d_m%d_v%d.mat'],isubj,m,v),'variance');
     save(sprintf([outdir 'pupmod_src_powcorr_s%d_m%d_v%d.mat'],isubj,m,v),'powcorr');
-    clear powcorr        
+    save(sprintf([outdir 'pupmod_src_kuramoto_s%d_m%d_v%d.mat'],isubj,m,v),'kuramoto');
+    clear powcorr kuramoto variance     
     
   end
 end
