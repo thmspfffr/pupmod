@@ -109,14 +109,14 @@ for isubj = SUBJLIST
         para          = [];
         para.reg      = REG;
         filt          = tp_beamformer(real(cs),eval(sprintf('sa.sa.L_%s',grid)),para);   
-         % ------------
+        % ------------
         % Compute Kuramoto order parameter 
         % ------------
         dataf = dataf'*filt;
         phase = angle(dataf);
-        kuramoto.R{ifoi}      = abs(sum(exp(1i*phase),2))/size(dataf,2);
-        kuramoto.Rsd(ifoi)    = std(kuramoto.R{ifoi});
-        kuramoto.Rmean(ifoi)  = mean(kuramoto.R{ifoi});
+        kuramoto.R{ifoi}{iblock}    = abs(sum(exp(1i*phase),2))/size(dataf,2);
+        kuramoto.Rsd(ifoi,iblock)   = nanstd(kuramoto.R{ifoi}{iblock});
+        kuramoto.Rmean(ifoi,iblock)	= nanmean(kuramoto.R{ifoi}{iblock}});
         % ------------
         % Compute orthogonalized power enevelope correlations 
         % ------------
