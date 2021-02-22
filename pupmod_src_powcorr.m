@@ -77,8 +77,10 @@ for isubj = SUBJLIST
         if ~exist(sprintf('~/pupmod/proc/pupmod_rest_sens_cleandat_s%d_m%d_b%d_v%d.mat',isubj,m,iblock,1))             
           if strcmp(grid,'cortex_lowres')
             powcorr(:,:,iblock,1:length(foi_range)) = nan(400,400,2,length(foi_range));
+            cov(:,:,iblock,1:length(foi_range)) = nan(400,400,2,length(foi_range));
           elseif strcmp(grid,'aal_6mm')
             powcorr(:,:,iblock,1:length(foi_range)) = nan(90,90,2,length(foi_range));
+            cov(:,:,iblock,1:length(foi_range)) = nan(90,90,2,length(foi_range));
           end
           continue
         else
@@ -116,7 +118,7 @@ for isubj = SUBJLIST
         phase = angle(dataf);
         kuramoto.R{ifoi}{iblock}    = abs(sum(exp(1i*phase),2))/size(dataf,2);
         kuramoto.Rsd(ifoi,iblock)   = nanstd(kuramoto.R{ifoi}{iblock});
-        kuramoto.Rmean(ifoi,iblock)	= nanmean(kuramoto.R{ifoi}{iblock}});
+        kuramoto.Rmean(ifoi,iblock)	= nanmean(kuramoto.R{ifoi}{iblock});
         % ------------
         % Compute orthogonalized power enevelope correlations 
         % ------------
@@ -124,7 +126,7 @@ for isubj = SUBJLIST
         para.fsample    = 400;
         para.freq       = foi_range(ifoi);
         para.overlap    = 0.5; 
-        [powcorr(:,:,iblock,ifoi), variance(:,iblock,ifoi)] = tp_data2orthopowcorr_wavelet(dat,filt,para);
+        [powcorr(:,:,iblock,ifoi), variance(:,iblock,ifoi) cov(:,:,iblock,ifoi)] = tp_data2orthopowcorr_wavelet(dat,filt,para);
         % ------------
         clear cs para filt 
 
@@ -133,8 +135,9 @@ for isubj = SUBJLIST
     
     save(sprintf([outdir 'pupmod_src_variance_s%d_m%d_v%d.mat'],isubj,m,v),'variance');
     save(sprintf([outdir 'pupmod_src_powcorr_s%d_m%d_v%d.mat'],isubj,m,v),'powcorr');
+    save(sprintf([outdir 'pupmod_src_cov_s%d_m%d_v%d.mat'],isubj,m,v),'cov');
     save(sprintf([outdir 'pupmod_src_kuramoto_s%d_m%d_v%d.mat'],isubj,m,v),'kuramoto');
-    clear powcorr kuramoto variance     
+    clear powcorr kuramoto variance cov  
     
   end
 end
