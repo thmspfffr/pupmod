@@ -126,7 +126,7 @@ for isubj = SUBJLIST
         para.fsample    = 400;
         para.freq       = foi_range(ifoi);
         para.overlap    = 0.5; 
-        [powcorr(:,:,iblock,ifoi), variance(:,iblock,ifoi) cov(:,:,iblock,ifoi)] = tp_data2orthopowcorr_wavelet(dat,filt,para);
+        [powcorr(:,:,iblock,ifoi), variance(:,iblock,ifoi), cov(:,:,iblock,ifoi)] = tp_data2orthopowcorr_wavelet(dat,filt,para);
         % ------------
         clear cs para filt 
 
