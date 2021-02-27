@@ -780,10 +780,16 @@ fc_task = fc_task(include_bcn,include_bcn);
 
 %% DIFFERENTIAL ENTROPY
 % --------------------------------
-
-v = 3;
+clear cov hc m
+v = 33;
 SUBJLIST  = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
 ord       = pconn_randomization;
+para          = [];
+para.transfer = 'to_bcn';
+para.N        = 90;
+k = 1 : 90; exclude_bcn = [11 15 21 36 37 38 39 52 53 54 55 70 76 80];
+include_bcn = find(~ismember(k,exclude_bcn));
+
 % --------------------------------
 % LOAD ORTH. COV & COMPUTE DIFF. ENTROPY
 % --------------------------------
@@ -793,29 +799,39 @@ if ~exist('hc','var')
     for m = 1 : 3
       
       im = find(ord(SUBJLIST(isubj),:)==m);
-      try
-        load(sprintf('/home/tpfeffer/pupmod/proc/conn/pupmod_src_cov_s%d_m%d_v%d.mat',SUBJLIST(isubj),im,v))
-      catch me
-        hc(isubj,m,:,1,:) = nan(17,1,2);
-      end
       
-      for ifreq = 1 : 17
+      load(sprintf('/home/tpfeffer/pupmod/proc/conn/pupmod_src_cov_s%d_m%d_v%d.mat',SUBJLIST(isubj),im,v))
+      load(sprintf('/home/tpfeffer/pupmod/proc/conn/pupmod_src_variance_s%d_m%d_v%d.mat',SUBJLIST(isubj),im,v))
+   
+      cov(find(repmat(eye(size(cov,1)),[1 1 2 size(cov,4)]))) = ones([90,2,size(cov,4)]);
+      
+      for ifreq = 1 : size(cov,4)
         for iblock = 1 : 2
-          hc(isubj,m,ifreq,1,iblock)=diff_entropy(cov(:,:,iblock,ifreq));
+          if isnan(cov(1,2,iblock,1))
+            hc(isubj,m,ifreq,1,iblock)=nan;
+          else
+            cov(:,:,iblock,ifreq) = tp_match_aal(para,cov(:,:,iblock,ifreq)); 
+            hc(isubj,m,ifreq,1,iblock)=diff_entropy(cov(include_bcn,include_bcn,iblock,ifreq));
+          end
         end
       end
       
-      try
       load(sprintf('/home/tpfeffer/pupmod/proc/conn/pupmod_task_src_cov_s%d_m%d_v%d.mat',SUBJLIST(isubj),im,v))
-      catch me
-        hc(isubj,m,:,2,:) = nan(17,1,2);
-      end
+      load(sprintf('/home/tpfeffer/pupmod/proc/conn/pupmod_task_src_variance_s%d_m%d_v%d.mat',SUBJLIST(isubj),im,v))
+  
+      cov(find(repmat(eye(size(cov,1)),[1 1 2 size(cov,4)]))) = ones([90,2,size(cov,4)]);
       
-      for ifreq = 1 : 17
+      for ifreq = 1 : size(cov,4)
         for iblock = 1 : 2
-          hc(isubj,m,ifreq,2,iblock)=diff_entropy(cov(:,:,iblock,ifreq));
+          if isnan(cov(1,2,iblock,1))
+            hc(isubj,m,ifreq,2,iblock)=nan;
+          else
+            cov(:,:,iblock,ifreq) = tp_match_aal(para,cov(:,:,iblock,ifreq)); 
+            hc(isubj,m,ifreq,2,iblock)=diff_entropy(cov(include_bcn,include_bcn,iblock,ifreq));
+          end
         end
       end
+      
     end
   end
   % average over recording blocks
@@ -829,25 +845,25 @@ freqoi    = 2.^(2:(1/4):6);
 figure_w;
 
 subplot(2,2,1);  hold on
-m = squeeze(nanmean(nanmean(hc(:,:,6:9,1),1),3));
-s = squeeze(nanstd(nanmean(hc(:,:,6:9,1),3),[],1))./sqrt(size(hc,1));
+m = squeeze(nanmean(nanmean(hc(:,:,3:6,1),1),3));
+s = squeeze(nanstd(nanmean(hc(:,:,3:6,1),3),[],1))./sqrt(size(hc,1));
 
 plot(m,'k.','markersize',30)
 line([1 1],[m(1)-s(1) m(1)+s(1)],'color','k')
 line([2 2],[m(2)-s(2) m(2)+s(2)],'color','k')
 line([3 3],[m(3)-s(3) m(3)+s(3)],'color','k')
-axis([0.5 3.5 559 562]); axis square; tp_editplots
+axis([0.5 3.5 107.4 107.7]); axis square; tp_editplots
 
 subplot(2,2,2);  hold on
 
-m = squeeze(nanmean(nanmean(hc(:,:,6:9,2),1),3));
-s = squeeze(nanstd(nanmean(hc(:,:,6:9,2),3),[],1))./sqrt(size(hc,1));
+m = squeeze(nanmean(nanmean(hc(:,:,3:6,2),1),3));
+s = squeeze(nanstd(nanmean(hc(:,:,3:6,2),3),[],1))./sqrt(size(hc,1));
 
 plot(m,'k.','markersize',30)
 line([1 1],[m(1)-s(1) m(1)+s(1)],'color','k')
 line([2 2],[m(2)-s(2) m(2)+s(2)],'color','k')
 line([3 3],[m(3)-s(3) m(3)+s(3)],'color','k')
-axis([0.5 3.5 559 562]); axis square; tp_editplots
+axis([0.5 3.5 107.4 107.7]); axis square; tp_editplots
 
 print(gcf,'-dpdf',sprintf('~/pupmod/plots/pupmod_entropy_v%d.pdf',v))
 end
