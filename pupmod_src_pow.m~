@@ -155,6 +155,9 @@ end
 exit
 
 %%
+clear all_pow
+
+v = 33
 
 for isubj = SUBJLIST
   isubj
@@ -194,17 +197,49 @@ para.N        = 90;
 [~,trans,lab]=tp_match_aal(para,rand(90,90));
 
 all_pow = all_pow(trans(:,2),:,:,:,:,:);
-% 
-% % load SC matrix, exclude subcortical regions
-% load ~/sc90.mat
-% SC = SC(include_bcn,include_bcn);
-% 
-% fc_rest = squeeze(nanmean(nanmean(cleandat(1:90,1:90,:,1,1,[3 4 5 6]),3),6));
-% fc_task = squeeze(nanmean(nanmean(cleandat(1:90,1:90,:,1,2,[3 4 5 6]),3),6));
-% 
+all_pow = all_pow(include_bcn,:,:,:,:,:);
 
-% 
-% fc_rest = tp_match_aal(para,fc_rest);
-% fc_task = tp_match_aal(para,fc_task);
+[h,~,~,s] = ttest(nanmean(all_pow(:,:,1,6:9,2),4),nanmean(all_pow(:,:,1,6:9,1),4),'dim',2);
+
+task_idx = h;
+
+save(sprintf('~/pupmod/proc/src/pupmod_src_pow_taskmodulationindex_v%d.mat',v),'task_idx')
+
+%% PLOT
+
+figure_w
+subplot(3,2,1); hold on
+
+[h,~,~,s] = ttest(all_pow(:,:,1,:,2),all_pow(:,:,1,:,1),'dim',2);
+
+plot(log10(freqoi),100*squeeze(sum(h>0 & s.tstat > 0))/76,'r','linewidth',2)
+plot(log10(freqoi),100*squeeze(sum(h>0 & s.tstat < 0))/76,'b','linewidth',2)
+tp_editplots; xlabel('Frequency [Hz]'); ylabel('Fraction of nodes [%]')
+set(gca,'xtick',log10(freqoi(1:4:end)),'xticklabel',freqoi(1:4:end))
+
+axis([log10(3.5) log10(64),-3 70])
+print(gcf,'-dpdf',sprintf('~/pupmod/plots/pupmod_power_AAL_taskvsrest.pdf'))
+
+%% SURFACE PLOT OF ALTERED POWER
+
+load(sprintf('~/pconn_cnt/proc/src/pconn_cnt_sa_s%d_m%d_b%d_v%d.mat',4,1,1,6));
+
+grid = sa.aal_centr(trans,:);
+grid = grid(include_bcn,:)./10;
+
+par = 100*(squeeze(mean(mean((all_pow(:,:,1,6:9,2)-all_pow(:,:,1,6:9,1)),2),4)))./squeez
+
+close all
+% cmap = cbrewer('seq', 'YlOrRd', 256);
+
+% cmap      = [cmap; 0.98*ones(1,3); cmap];
+para      = [];
+para.clim = [-max([abs(min(par(:))) abs(max(par(:)))]) max([abs(min(par(:))) abs(max(par(:)))])];
+para.cmap = cmap;
+para.grid = grid;
+para.dd   = 0.75;
+para.fn   = sprintf('~/test.png');
+tp_plot_surface(par,para)
+  
 
 

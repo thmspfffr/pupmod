@@ -17,31 +17,73 @@ clear
 
 % ----------------------------------------
 % version of cleaned data: 
-% v1: cortex 400 vertices, v2: 400 vertices (cortex)
+% v3: cortex 400 vertices, v33: 91 AAL nodes (prior to excluding subcortex)
 % ----------------------------------------
-v = 3;
+v = 3; 
 % ----------------------------------------
 %%
 % ----------------------------------------
-% Load FC matrices 
+% Load FC for all subjects, conditions and contexts, averaged across blocks
 % ----------------------------------------
 SUBJLIST  = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
 fc        = pupmod_loadpowcorr(v,SUBJLIST,1);
 % ----------------------------------------
+% fc = 400x400x28x3x2x17 (Nvox x Nvox x Nsubj x Npharm x Ncontext x Nfreq)
 
 % ----------------------------------------
-% Compute fracition of altered correlations 
+% Compute fraction of altered correlations 
 % ----------------------------------------
 para = [];
 if v < 5
-para.nfreq = 1:17;
+  % v1-v3 were computed for all 17 carrier frequencies
+  % i.e., freqoi = 2.^(2:.25:6);
+  para.nfreq = 1:17;
 elseif v == 33
+  % v33 was only computed for a subset of frequencies 
+  % i.e., freqoi = 2.^(2.75:.25:4.25);
   para.nfreq = 1:7;
 end
+% this is the threshold for the 1st level t-test
 para.alpha = 0.05;
-
+% obtain fraction of significantly altered correlations (no statistics)
 emp = pupmod_compute_altered_correlations(fc,para);
-% ----------------------------------------
+
+% output contains (atx=atomoxetine; dpz=donepezil):
+% - n_p_atx: fraction of sign. positively altered correlations (Nfreq x Ncontext)
+% - n_p_atx: fraction of sign. negatively altered correlations (Nfreq x Ncontext)
+% - n_p_dpz: fraction of sign. positively altered correlations (Nfreq x Ncontext)
+% - n_p_dpz: fraction of sign. negatively altered correlations (Nfreq x Ncontext)
+% - n_p_context_atx: context effect for atx, positive altereations (1xNfreq)
+% - n_p_context_dpz: context effect for dpz, positive altereations (1xNfreq)
+% - n_n_context_atx: context effect for atx, negative altereations (1xNfreq)
+% - n_n_context_dpz: context effect for dpz, negative altereations (1xNfreq)
+% - double_dissociation: 1xNfreq, see Fig. 1G
+% - all entries with ending *_pervoxel contain the same, but on "voxel" level
+
+%% CHANGES IN CORREALTIONS AND EFFECT SIZES
+
+% compute cohen's d, based on rev2 request
+fcm = squeeze(nanmean(nanmean(fc,1),2));
+
+m_pbo2 = mean(squeeze(nanmean(fcm(:,1,2,6:9),4)),1);
+m_atx2 = mean(squeeze(nanmean(fcm(:,2,2,6:9),4)),1);
+s_pbo2 = std(squeeze(nanmean(fcm(:,1,2,6:9),4)),[],1);
+s_atx2 = std(squeeze(nanmean(fcm(:,2,2,6:9),4)),[],1);
+r = corr(squeeze(nanmean(fcm(:,1,2,6:9),4)),squeeze(nanmean(fcm(:,2,2,6:9),4))); r = diag(r)';
+
+cohensd_atx = abs(m_atx2-m_pbo2) ./ sqrt ( s_atx2.^2 + s_pbo2.^2 - 2.*r.*s_atx2.*s_pbo2);
+
+m_pbo1 = mean(squeeze(nanmean(fcm(:,1,1,6:10),4)),1);
+m_dpz1 = mean(squeeze(nanmean(fcm(:,3,1,6:10),4)),1);
+s_pbo1 = std(squeeze(nanmean(fcm(:,1,1,6:10),4)),[],1);
+s_dpz1 = std(squeeze(nanmean(fcm(:,3,1,6:10),4)),[],1);
+r = corr(squeeze(nanmean(fcm(:,1,1,6:10),4)),squeeze(nanmean(fcm(:,3,1,6:10),4))); r = diag(r)';
+
+cohensd_dpz = abs(m_dpz1-m_pbo1) ./ sqrt ( s_dpz1.^2 + s_pbo1.^2 - 2.*r.*s_dpz1.*s_pbo1);
+
+% Change in percent (after averaging across all pairs and subjects)
+prct_change_atx_task = 100*((mean(mean(fcm(:,2,2,6:9),1),4)-mean(mean(fcm(:,1,2,6:9),1),4))/mean(mean(fcm(:,1,2,6:9),1),4));
+prct_change_dpz_rest = 100*((mean(mean(fcm(:,3,1,6:10),1),4)-mean(mean(fcm(:,1,1,6:10),1),4))/mean(mean(fcm(:,1,1,6:10),1),4));
 
 
 %% GET STATISTICS 
@@ -777,97 +819,4 @@ fc_task = tp_match_aal(para,fc_task);
 
 fc_rest = fc_rest(include_bcn,include_bcn);
 fc_task = fc_task(include_bcn,include_bcn);
-
-%% DIFFERENTIAL ENTROPY
-% --------------------------------
-clear cov hc m
-v = 33;
-SUBJLIST  = [4 5 6 7 8 9 10 11 12 13 15 16 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34];
-ord       = pconn_randomization;
-para          = [];
-para.transfer = 'to_bcn';
-para.N        = 90;
-k = 1 : 90; exclude_bcn = [11 15 21 36 37 38 39 52 53 54 55 70 76 80];
-include_bcn = find(~ismember(k,exclude_bcn));
-
-% --------------------------------
-% LOAD ORTH. COV & COMPUTE DIFF. ENTROPY
-% --------------------------------
-if ~exist('hc','var')
-  for isubj =  1:length(SUBJLIST)
-    isubj
-    for m = 1 : 3
-      
-      im = find(ord(SUBJLIST(isubj),:)==m);
-      
-      load(sprintf('/home/tpfeffer/pupmod/proc/conn/pupmod_src_cov_s%d_m%d_v%d.mat',SUBJLIST(isubj),im,v))
-      load(sprintf('/home/tpfeffer/pupmod/proc/conn/pupmod_src_variance_s%d_m%d_v%d.mat',SUBJLIST(isubj),im,v))
-   
-      cov(find(repmat(eye(size(cov,1)),[1 1 2 size(cov,4)]))) = ones([90,2,size(cov,4)]);
-      
-      for ifreq = 1 : size(cov,4)
-        for iblock = 1 : 2
-          if isnan(cov(1,2,iblock,1))
-            hc(isubj,m,ifreq,1,iblock)=nan;
-          else
-            cov(:,:,iblock,ifreq) = tp_match_aal(para,cov(:,:,iblock,ifreq)); 
-            hc(isubj,m,ifreq,1,iblock)=diff_entropy(cov(include_bcn,include_bcn,iblock,ifreq));
-          end
-        end
-      end
-      
-      load(sprintf('/home/tpfeffer/pupmod/proc/conn/pupmod_task_src_cov_s%d_m%d_v%d.mat',SUBJLIST(isubj),im,v))
-      load(sprintf('/home/tpfeffer/pupmod/proc/conn/pupmod_task_src_variance_s%d_m%d_v%d.mat',SUBJLIST(isubj),im,v))
-  
-      cov(find(repmat(eye(size(cov,1)),[1 1 2 size(cov,4)]))) = ones([90,2,size(cov,4)]);
-      
-      for ifreq = 1 : size(cov,4)
-        for iblock = 1 : 2
-          if isnan(cov(1,2,iblock,1))
-            hc(isubj,m,ifreq,2,iblock)=nan;
-          else
-            cov(:,:,iblock,ifreq) = tp_match_aal(para,cov(:,:,iblock,ifreq)); 
-            hc(isubj,m,ifreq,2,iblock)=diff_entropy(cov(include_bcn,include_bcn,iblock,ifreq));
-          end
-        end
-      end
-      
-    end
-  end
-  % average over recording blocks
-  hc = nanmean(hc,5);
-  
-else
-% --------------------------------
-% PLOT DIFFERENTIAL ENTROPY
-% --------------------------------
-freqoi    = 2.^(2:(1/4):6);
-figure_w;
-
-subplot(2,2,1);  hold on
-m = squeeze(nanmean(nanmean(hc(:,:,3:6,1),1),3));
-s = squeeze(nanstd(nanmean(hc(:,:,3:6,1),3),[],1))./sqrt(size(hc,1));
-
-plot(m,'k.','markersize',30)
-line([1 1],[m(1)-s(1) m(1)+s(1)],'color','k')
-line([2 2],[m(2)-s(2) m(2)+s(2)],'color','k')
-line([3 3],[m(3)-s(3) m(3)+s(3)],'color','k')
-axis([0.5 3.5 107.4 107.7]); axis square; tp_editplots
-
-subplot(2,2,2);  hold on
-
-m = squeeze(nanmean(nanmean(hc(:,:,3:6,2),1),3));
-s = squeeze(nanstd(nanmean(hc(:,:,3:6,2),3),[],1))./sqrt(size(hc,1));
-
-plot(m,'k.','markersize',30)
-line([1 1],[m(1)-s(1) m(1)+s(1)],'color','k')
-line([2 2],[m(2)-s(2) m(2)+s(2)],'color','k')
-line([3 3],[m(3)-s(3) m(3)+s(3)],'color','k')
-axis([0.5 3.5 107.4 107.7]); axis square; tp_editplots
-
-print(gcf,'-dpdf',sprintf('~/pupmod/plots/pupmod_entropy_v%d.pdf',v))
-end
-
-
-
 

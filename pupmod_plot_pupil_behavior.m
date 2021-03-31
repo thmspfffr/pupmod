@@ -273,6 +273,10 @@ plot(0,nanmean(par_pooled(:,2)),'o','markersize',3,'markeredgecolor','k','marker
 plot(2,nanmean(par_pooled(:,1)),'o','markersize',3,'markeredgecolor','k','markerfacecolor','w')
 plot(4,nanmean(par_pooled(:,3)),'o','markersize',3,'markeredgecolor','k','markerfacecolor','w')
 
+[p_pboatx_res] = tp_permtest(par_pooled(:,2),par_pooled(:,1),100000,0);
+[p_pbodpz_res] = tp_permtest(par_pooled(:,3),par_pooled(:,1),100000,0);
+[p_atxdpz_res] = tp_permtest(par_pooled(:,2),par_pooled(:,3),100000,0);
+
 par_pooled = squeeze(nanmean(permute(behav,[2 1 3]),3))';
 par_pooled = par_pooled(~any(isnan(par_pooled),2),:);
 
@@ -295,6 +299,10 @@ plot(8,nanmean(par_pooled(:,1)),'o','markersize',3,'markeredgecolor','k','marker
 plot(10,nanmean(par_pooled(:,3)),'o','markersize',3,'markeredgecolor','k','markerfacecolor','w')
 
 axis([-02 25 0 150]); tp_editplots; %lsline
+
+[p_pboatx_res] = tp_permtest(par_pooled(:,2),par_pooled(:,1),100000,0);
+[p_pbodpz_res] = tp_permtest(par_pooled(:,3),par_pooled(:,1),100000,0);
+[p_atxdpz_res] = tp_permtest(par_pooled(:,2),par_pooled(:,3),100000,0);
 
 
 print(gcf,'-dpdf',sprintf('~/pupmod/plots/pupmod_plot_pupil_behavior_resttaskseparately.pdf'))

@@ -198,6 +198,9 @@ end
 [h_atx,p]=ttest(squeeze(nanmean(fc(:,:,:,2,2),1)),squeeze(nanmean(fc(:,:,:,1,2),1)),'dim',2)
 [h_dpz,p]=ttest(squeeze(nanmean(fc(:,:,:,3,1),1)),squeeze(nanmean(fc(:,:,:,1,1),1)),'dim',2)
 
+
+
+      
 %% LOAD FOOOF RESULST (from pupmod_src_fooof.py)
 para          = [];
 para.transfer = 'to_bcn';
@@ -235,18 +238,22 @@ for isubj = SUBJLIST
         load(sprintf('~/pupmod/proc/src/pupmod_rest_fooof_s%d_m%d_b%d_v%d.mat',isubj,im,iblock,v))
         all_pow(:,:,isubj,m,1,iblock) = only_gauss(:,trans(:,2));
         all_pow2(:,:,isubj,m,1,iblock) = full_gauss(:,trans(:,2));
+        all_aper(:,:,isubj,m,1,iblock) = aper(:,:);
       catch me
         all_pow(:,:,isubj,m,1,iblock) = nan(741,90);
         all_pow2(:,:,isubj,m,1,iblock) = nan(741,90);
+        all_aper(:,:,isubj,m,1,iblock) = nan(2,91);
       end
       
       try
         load(sprintf('~/pupmod/proc/src/pupmod_task_fooof_s%d_m%d_b%d_v%d.mat',isubj,im,iblock,v))
         all_pow(:,:,isubj,m,2,iblock) = only_gauss(:,trans(:,2));
         all_pow2(:,:,isubj,m,2,iblock) = full_gauss(:,trans(:,2));
+        all_aper(:,:,isubj,m,2,iblock) = aper(:,:);
       catch me
         all_pow(:,:,isubj,m,2,iblock) = nan(741,90);
         all_pow2(:,:,isubj,m,2,iblock) = nan(741,90);
+        all_aper(:,:,isubj,m,2,iblock) = nan(2,91);
       end
       
       
@@ -257,10 +264,46 @@ end
 
 all_pow = squeeze(all_pow(:,include_bcn,SUBJLIST,:,:,:));
 all_pow2 = squeeze(all_pow2(:,include_bcn,SUBJLIST,:,:,:));
+% all_aper = squeeze(all_aper(:,include_bcn,SUBJLIST,:,:,:));
 
 all_pow = all_pow(:,:,:,:,:,:);
 alpha_idx=find(alpha_idx);
 
+%% LOAD EMPIRICAL POWER
+% and remove 1/f component (aper_all)
+
+clear emp_pow
+for isubj = SUBJLIST
+  isubj
+  for m = 1 : 3
+    for iblock = 1 : 2
+      
+      im = find(ord(isubj,:)==m);
+      
+      
+      try
+        load(sprintf('~/pupmod/proc/src/pupmod_rest_peakfreq_s%d_m%d_b%d_v%d.mat',isubj,im,iblock,v))
+        aper_comp = repmat(all_aper(1,:,isubj,m,1,iblock),[741 1])'-all_aper(2,:,isubj,m,1,iblock)'.*log10((3:0.05:40));
+        emp_pow(:,:,isubj,m,1,iblock) = log10(outp.pxx(:,trans(:,2)))-aper_comp(trans(:,2),:)';
+        
+
+      catch me
+        emp_pow(:,:,isubj,m,1,iblock) = nan(741,90);
+      end
+      
+      try
+        load(sprintf('~/pupmod/proc/src/pupmod_task_peakfreq_s%d_m%d_b%d_v%d.mat',isubj,im,iblock,v))
+        aper_comp = repmat(all_aper(1,:,isubj,m,2,iblock),[741 1])'-all_aper(2,:,isubj,m,2,iblock)'.*log10((3:0.05:40));
+        emp_pow(:,:,isubj,m,2,iblock) = log10(outp.pxx(:,trans(:,2)))-aper_comp(trans(:,2),:)';
+      catch me
+        emp_pow(:,:,isubj,m,2,iblock) = nan(741,90);
+      end
+      
+    end
+  end
+end
+
+emp_pow = emp_pow(:,include_bcn,SUBJLIST,:,:,:);
 
 %% FIND PEAK
 
@@ -287,7 +330,7 @@ for isubj = 1 : 28
   end
 end
 
-idx=find(sum(~isnan(pf(:,:,1,1)),2)==28)
+% idx=find(sum(~isnan(pf(:,:,1,1)),2)==28)
 
 pf = squeeze(nanmean(pf,1));
 
@@ -315,27 +358,12 @@ text(8.3,11.6,sprintf('r = %.3f | p = %.3f',r,p),'fontsize',6)
 
 pf=nanmean(pf,4);
 
-subplot(2,3,4); 
-scatter(pf(:,2,1)-pf(:,1,1),pf(:,2,2)-pf(:,1,2),40,'markeredgecolor','w','markerfacecolor','k')
-tp_editplots; axis equal square; xlabel('Peak freq. (Block 1) [Hz]'); ylabel('Peak freq. (Block 2) [Hz]')
-axis([-1.5 1.5 -1.5 1.5]); lsline
-[r,p]=corr(pf(:,2,1)-pf(:,1,1),pf(:,2,2)-pf(:,1,2));
-text(-1.3,1.3,sprintf('r = %.3f | p = %.3f',r,p),'fontsize',6)
-
-subplot(2,3,5); 
-scatter(pf(:,3,1)-pf(:,1,1),pf(:,3,2)-pf(:,1,2),40,'markeredgecolor','w','markerfacecolor','k')
-tp_editplots; axis equal square; xlabel('Peak freq. (Block 1) [Hz]'); ylabel('Peak freq. (Block 2) [Hz]')
-axis([-1.5 1.5 -1.5 1.5]); lsline
-[r,p]=corr(pf(:,3,1)-pf(:,1,1),pf(:,3,2)-pf(:,1,2));
-text(-1.3,1.3,sprintf('r = %.3f | p = %.3f',r,p),'fontsize',6)
-
-
 print(gcf,'-dpdf',sprintf('~/pupmod/plots/pupmod_peakfreq_controls_v%d.pdf',v))
-marker = 4;
 
 
-randnumb = (rand(28,1)-0.5)/3;
 %%
+marker = 4;
+randnumb = (rand(28,1)-0.5)/3;
 
 greys = cbrewer('seq', 'Greys', 120,'pchip'); greys=greys(32:2:end-32,:)
 
@@ -344,19 +372,19 @@ figure_w
 subplot(3,2,2); hold on
 
 plot(fxx,nanmean(nanmean(nanmean(all_pow(:,:,:,1,1,:),2),3),6),'k:')
-plot(fxx,nanmean(nanmean(nanmean(all_pow(:,:,:,1,2,:),2),3),6),'k-')
-plot(fxx,nanmean(nanmean(nanmean(all_pow(:,:,:,3,1,:),2),3),6),'k-')
+plot(fxx,nanmean(nanmean(nanmean(all_pow(:,:,:,1,2,:),2),3),6),'k')
+
+plot(fxx,nanmean(nanmean(nanmean(emp_pow(:,:,:,1,1,:),2),3),6),'color',[0.5 0.5 0.5],'linestyle',':')
+plot(fxx,nanmean(nanmean(nanmean(emp_pow(:,:,:,1,2,:),2),3),6),'color',[0.5 0.5 0.5],'linestyle','-')
 
 [~,k1]=max(nanmean(nanmean(nanmean(all_pow(alpha_idx,:,:,1,1,:),2),3),6));
 [~,k2]=max(nanmean(nanmean(nanmean(all_pow(alpha_idx,:,:,1,2,:),2),3),6));
-[~,k3]=max(nanmean(nanmean(nanmean(all_pow(alpha_idx,:,:,3,1,:),2),3),6));
 
 line([fxx(alpha_idx(k1)) fxx(alpha_idx(k1))],[0 0.5],'color','k','linestyle',':')
 line([fxx(alpha_idx(k2)) fxx(alpha_idx(k2))],[0 0.5],'color','k','linestyle','-')
-line([fxx(alpha_idx(k3)) fxx(alpha_idx(k3))],[0 0.5],'color','b','linestyle','-')
 
 tp_editplots; axis square
-axis([9 12 0 0.4])
+axis([3 16 0 0.4])
 
 subplot(3,2,1); hold on
 
@@ -371,62 +399,7 @@ line([1.6 2.4],[nanmean(pf(:,1,2)) nanmean(pf(:,1,2))],'color','r','linewidth',2
 
 axis([0 3 6 14]); axis square; tp_editplots; ylabel('Peak frequency'); xlabel('Rest / Task')
 
-[~,p,~,s]=ttest(pf(:,1,2),pf(:,1,1),'tail',1)
-
-subplot(3,2,3); hold on
-
-for i = 1 : 28
-  plot(ones(1,1)+randnumb(i),pf(i,1,1),'o','markersize',marker,'markeredgecolor','none','markerfacecolor',greys(i,:))
-  plot(ones(1,1)*2+randnumb(i),pf(i,2,1),'o','markersize',marker,'markeredgecolor','none','markerfacecolor',greys(i,:))
-  line([1+randnumb(i) 2+randnumb(i)],[pf(i,1,1) pf(i,2,1)],'color',greys(i,:))
-end
-
-line([0.6 1.4],[nanmean(pf(:,1,1)) nanmean(pf(:,1,1))],'color','k','linewidth',2)
-line([1.6 2.4],[nanmean(pf(:,2,1)) nanmean(pf(:,2,1))],'color','r','linewidth',2)
-
-axis([0 3 6 14]); axis square; tp_editplots; ylabel('Peak frequency'); xlabel('Rest / Task')
-
-subplot(3,2,4); hold on
-
-for i = 1 : 28
-  plot(ones(1,1)+randnumb(i),pf(i,1,2),'o','markersize',marker,'markeredgecolor','none','markerfacecolor',greys(i,:))
-  plot(ones(1,1)*2+randnumb(i),pf(i,2,2),'o','markersize',marker,'markeredgecolor','none','markerfacecolor',greys(i,:))
-  line([1+randnumb(i) 2+randnumb(i)],[pf(i,1,2) pf(i,2,2)],'color',greys(i,:))
-end
-
-line([0.6 1.4],[nanmean(pf(:,1,2)) nanmean(pf(:,1,2))],'color','k','linewidth',2)
-line([1.6 2.4],[nanmean(pf(:,2,2)) nanmean(pf(:,2,2))],'color','r','linewidth',2)
-
-axis([0 3 6 14]); axis square; tp_editplots; ylabel('Peak frequency'); xlabel('Rest / Task')
-
-[~,p,~,s]=ttest(pf(:,2,2),pf(:,1,2),'tail',-1)
-
-subplot(3,2,5); hold on
-
-for i = 1 : 28
-  plot(ones(1,1)+randnumb(i),pf(i,1,1),'o','markersize',marker,'markeredgecolor','none','markerfacecolor',greys(i,:))
-  plot(ones(1,1)*2+randnumb(i),pf(i,3,1),'o','markersize',marker,'markeredgecolor','none','markerfacecolor',greys(i,:))
-  line([1+randnumb(i) 2+randnumb(i)],[pf(i,1,1) pf(i,3,1)],'color',greys(i,:))
-end
-
-[~,p,~,s]=ttest(pf(:,3,1),pf(:,1,1),'tail',-1)
-
-line([0.6 1.4],[nanmean(pf(:,1,1)) nanmean(pf(:,1,1))],'color','k','linewidth',2)
-line([1.6 2.4],[nanmean(pf(:,3,1)) nanmean(pf(:,3,1))],'color','r','linewidth',2)
-
-axis([0 3 6 14]); axis square; tp_editplots; ylabel('Peak frequency'); xlabel('Rest / Task')
-
-subplot(3,2,6); hold on
-for i = 1 : 28
-  plot(ones(1,1)+randnumb(i),pf(i,1,2),'o','markersize',marker,'markeredgecolor','none','markerfacecolor',greys(i,:))
-  plot(ones(1,1)*2+randnumb(i),pf(i,3,2),'o','markersize',marker,'markeredgecolor','none','markerfacecolor',greys(i,:))
-  line([1+randnumb(i) 2+randnumb(i)],[pf(i,1,2) pf(i,3,2)],'color',greys(i,:))
-end
-line([0.6 1.4],[nanmean(pf(:,1,2)) nanmean(pf(:,1,2))],'color','k','linewidth',2)
-line([1.6 2.4],[nanmean(pf(:,3,2)) nanmean(pf(:,3,2))],'color','r','linewidth',2)
-
-axis([0 3 6 14]); axis square; tp_editplots; ylabel('Peak frequency'); xlabel('Rest / Task')
-
+p = tp_permtest(pf(:,1,2),pf(:,1,1),100000,0)
   
 print(gcf,'-dpdf',sprintf('~/pupmod/plots/pupmod_peakfreq_v%d.pdf',v))
 %   

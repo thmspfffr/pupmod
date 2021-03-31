@@ -168,21 +168,26 @@ for isubj = SUBJLIST
       try
       load(sprintf([outdir 'pupmod_src_pow_s%d_m%d_b%d_v%d'],isubj,m,iblock,v));
       all_pow(:,isubj,m,iblock,:,1) = outp.pow_aal;
+      all_pow_full(:,isubj,m,iblock,:,1) = outp.pow;
       catch me
         all_pow(:,isubj,m,iblock,:,1) = nan(91,17);
+        all_pow_full(:,isubj,m,iblock,:,1) = nan(6007,17);
       end
       
       try
       load(sprintf([outdir 'pupmod_task_src_pow_s%d_m%d_b%d_v%d'],isubj,m,iblock,v));
       all_pow(:,isubj,m,iblock,:,2) = outp.pow_aal;
+      all_pow_full(:,isubj,m,iblock,:,2) = outp.pow;
       catch me
         all_pow(:,isubj,m,iblock,:,2) = nan(91,17);
+        all_pow_full(:,isubj,m,iblock,:,2) = nan(6007,17);
       end
     end
   end
 end
 
 all_pow = squeeze(nanmean(all_pow(:,SUBJLIST,:,:,:,:),4));
+all_pow_full = squeeze(nanmean(all_pow_full(:,SUBJLIST,:,:,:,:),4));
 
 
 k = 1 : 90;
@@ -204,5 +209,42 @@ all_pow = all_pow(include_bcn,:,:,:,:,:);
 task_idx = h;
 
 save(sprintf('~/pupmod/proc/src/pupmod_src_pow_taskmodulationindex_v%d.mat',v),'task_idx')
+
+%% PLOT
+
+figure_w
+subplot(3,2,1); hold on
+
+[h,~,~,s] = ttest(all_pow(:,:,1,:,2),all_pow(:,:,1,:,1),'dim',2);
+
+plot(log10(freqoi),100*squeeze(sum(h>0 & s.tstat > 0))/76,'r','linewidth',2)
+plot(log10(freqoi),100*squeeze(sum(h>0 & s.tstat < 0))/76,'b','linewidth',2)
+tp_editplots; xlabel('Frequency [Hz]'); ylabel('Fraction of nodes [%]')
+set(gca,'xtick',log10(freqoi(1:4:end)),'xticklabel',freqoi(1:4:end))
+
+axis([log10(3.5) log10(64),-3 70])
+print(gcf,'-dpdf',sprintf('~/pupmod/plots/pupmod_power_AAL_taskvsrest.pdf'))
+
+%% SURFACE PLOT OF ALTERED POWER
+
+load(sprintf('~/pconn_cnt/proc/src/pconn_cnt_sa_s%d_m%d_b%d_v%d.mat',4,1,1,6));
+
+grid = sa.grid_aal6mm;
+% grid = grid(include_bcn,:)./10;
+
+par = 100*(squeeze(mean(mean((all_pow_full(:,:,1,6:9,2)-all_pow_full(:,:,1,6:9,1)),2),4)))./squeeze(mean(mean(all_pow_full(:,:,1,6:9,1),2),4))
+
+close all
+% cmap = cbrewer('seq', 'YlOrRd', 256);
+
+% cmap      = [cmap; 0.98*ones(1,3); cmap];
+para      = [];
+para.clim = [-15 15];
+para.cmap = cmap;
+para.grid = grid;
+para.dd   = 0.25;
+para.fn   = sprintf('~/test.png');
+tp_plot_surface(par,para)
+  
 
 
